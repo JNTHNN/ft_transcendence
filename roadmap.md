@@ -35,5 +35,6 @@
 ##  WEB
     - Re-apprendre les bases HTML CSS
     - Apprentissage des bases JS + Manipulation du DOM
+    - Apprentissage du Responsive Design
     - Utilisation de Typescript avec Tailwind CSS
-    - Pensez a l'architecture des pages 
+    - Pensez a l'architecture des pages
