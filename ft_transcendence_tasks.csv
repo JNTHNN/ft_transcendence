@@ -1,0 +1,38 @@
+Title,Module,Assigned To,Priority,Deadline,Status
+Config docker-compose.yml + traefik.yml,Global,mleonet,High,05/11/2025,Todo
+HTTPS fonctionnel via Traefik (https://app.localhost),Global,mleonet,High,05/11/2025,Todo
+DB SQLite initialisée + migration (migrate.ts),Backend,abolor-e,High,05/11/2025,Todo
+Créer .env.example et documenter,Global,all,Medium,05/11/2025,Todo
+/health et /openapi.json accessibles,Backend,abolor-e,High,05/11/2025,Todo
+README minimal (setup, build, run),Global,mleonet,Medium,05/11/2025,Todo
+Setup Vite + TypeScript + Tailwind,Frontend,jgasparo,High,06/11/2025,Todo
+Routing SPA (History API),Frontend,jgasparo,High,06/11/2025,Todo
+Pages Login / Signup (mock),Frontend,jgasparo,Medium,06/11/2025,Todo
+Page Tournaments (mock data),Frontend,jgasparo,Medium,06/11/2025,Todo
+Page Chat (mock),Frontend,jgasparo,Medium,06/11/2025,Todo
+Canvas Pong (local / rendu),Frontend,jgasparo,High,07/11/2025,Todo
+Responsive (mobile/desktop),Frontend,jgasparo,Medium,08/11/2025,Todo
+i18n base (fr/en/nl),Frontend,jgasparo,Medium,09/11/2025,Todo
+Setup Fastify + SQLite + Argon2id,Backend,abolor-e,High,06/11/2025,Todo
+Auth routes (signup / login / me),Backend,abolor-e,High,06/11/2025,Todo
+CRUD Users + Friends,Backend,abolor-e,Medium,07/11/2025,Todo
+CRUD Tourneys + Participants + Matchmaking,Backend,abolor-e,High,07/11/2025,Todo
+/ws/game avec état factice (ticker),Backend,abolor-e,High,07/11/2025,Todo
+/ws/chat echo (rooms de base),Backend,abolor-e,Medium,07/11/2025,Todo
+Validation (Zod) + rate limit auth,Backend,abolor-e,High,08/11/2025,Todo
+Exposer schéma OpenAPI (fichier servi),Backend,abolor-e,Medium,06/11/2025,Todo
+Créer Scores.sol (contrat),Blockchain,mleonet,High,06/11/2025,Todo
+Tests Hardhat (ok / double publish ko / length ko),Blockchain,mleonet,High,07/11/2025,Todo
+Déploiement sur Avalanche Fuji (adresse consignée),Blockchain,mleonet,High,08/11/2025,Todo
+Endpoint /tournaments/:id/publish (optionnel via API),Blockchain,mleonet,Medium,09/11/2025,Todo
+Bouton “Publish on-chain” + affichage txHash,Blockchain,mleonet,High,09/11/2025,Todo
+IA: tick 1 Hz (harness offline),AI,mleonet,High,07/11/2025,Todo
+IA: prédiction rebonds + décision UP/DOWN/NONE,AI,mleonet,High,08/11/2025,Todo
+IA: intégration WS réelle (/ws/game) même pipeline que joueur,AI,mleonet,High,09/11/2025,Todo
+IA: taux de victoire non nul (réglage difficulté),AI,mleonet,Medium,10/11/2025,Todo
+0 erreur console / linter (front & back),Global,all,High,10/11/2025,Todo
+CSP headers + HTTPS only (prod-like),Global,abolor-e,High,10/11/2025,Todo
+Validation entrée côté front (forms) + sanitize chat,Global,jgasparo,Medium,10/11/2025,Todo
+README final (lancement 1 commande + comptes tests),Global,mleonet,Medium,11/11/2025,Todo
+MODULES.md (modules implémentés et où vérifier),Global,mleonet,Medium,11/11/2025,Todo
+Mini script ou courte vidéo de démo,Global,all,Low,11/11/2025,Todo
