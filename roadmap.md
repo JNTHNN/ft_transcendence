@@ -33,8 +33,12 @@
             Minor module: Supports multiple languages.
 
 ##  WEB
-    - Re-apprendre les bases HTML CSS
-    - Apprentissage des bases JS + Manipulation du DOM
-    - Apprentissage du Responsive Design
+    - Re-apprendre les bases HTML CSS ✅
+    - Apprentissage des bases JS + Manipulation du DOM ✅
     - Utilisation de Typescript avec Tailwind CSS
-    - Pensez a l'architecture des pages
+    - Pensez a l'architecture des pages 
+    - Comprehension du "single-page application" ✅
+
+
+## TO-DO
+    - Docker
