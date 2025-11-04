@@ -38,3 +38,7 @@
     - Utilisation de Typescript avec Tailwind CSS
     - Pensez a l'architecture des pages 
     - Comprehension du "single-page application" ✅
+
+
+## TO-DO
+    - Docker
