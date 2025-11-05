@@ -1,22 +1,33 @@
-# node & build
+# --- Certificats SSL locaux (mkcert / traefik) ---
+traefik/certs/
+*.pem
+*.crt
+*.key
+
+# --- Fichiers de build et dépendances ---
 node_modules/
 dist/
+build/
 *.log
 
-# env & secrets
+# --- Environnements locaux ---
 .env
-.env.*
-!.env.example
+.env.local
+.env.development
+.env.production
 
-# cookies & DB locales
-cookies.txt
-db-data/
-api_data/
-data/
+# --- Docker ---
 *.sqlite
-*.sqlite-shm
-*.sqlite-wal
+*.db
+*.pid
+*.sock
+*.tar
+*.bak
+*.tmp
+docker-compose.override.yml
 
-# certs (clé privée !)
-traefik/certs/*.key
-api/traefik/certs/*.key
+# --- Éditeurs / IDE ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import "@fastify/websocket"; // <— important: module d’augmentation de types
+import "@fastify/websocket";
 
 export async function registerChatWS(app: FastifyInstance) {
   app.get("/ws/chat", { websocket: true }, (connection: any, _req: FastifyRequest) => {

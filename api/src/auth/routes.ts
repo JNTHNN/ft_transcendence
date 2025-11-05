@@ -21,10 +21,11 @@ function toSqliteDate(d: Date) {
 function setRefreshCookie(reply: any, token: string) {
   reply.setCookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: true,          // https via Traefik ✔
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     path: '/auth',
-    maxAge: REFRESH_DAYS * 24 * 60 * 60
+    maxAge: REFRESH_DAYS * 24 * 60 * 60,
+    partitioned: true
   });
 }
 
@@ -44,7 +45,6 @@ function createRefreshToken(db: Database.Database, userId: number) {
 }
 
 function rotateRefreshToken(db: Database.Database, oldToken: string, userId: number) {
-  // révoque l’ancien, émet un nouveau
   db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE token = ?').run(oldToken);
   return createRefreshToken(db, userId);
 }
@@ -92,7 +92,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       { uid: row.id, email: row.email },
       { expiresIn: ACCESS_TTL }
     );
-    // Crée un nouveau refresh token (rotation à la connexion)
     const rt = createRefreshToken(db, row.id);
     setRefreshCookie(res, rt);
 
@@ -134,7 +133,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
   });
 
   // --- POST /auth/refresh ---
-  // Utilise le cookie 'rt' (ou un champ JSON { refreshToken }) et ROTATE.
   app.post('/auth/refresh', async (req: any, res) => {
     try {
       const cookieRt = req.cookies?.[COOKIE_NAME];
@@ -152,16 +150,13 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       if (!row) return res.status(401).send({ error: 'Invalid refresh token' });
       if (row.revoked) return res.status(401).send({ error: 'Refresh token revoked' });
       if (new Date(row.expires_at).getTime() < Date.now()) {
-        // expire -> révoque aussi
         db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE token = ?').run(rt);
         return res.status(401).send({ error: 'Refresh token expired' });
       }
 
-      // rotation
       const newRt = rotateRefreshToken(db, rt, row.user_id);
       setRefreshCookie(res, newRt);
 
-      // nouvel access
       const access = app.jwt.sign({ uid: row.user_id, email: row.email }, { expiresIn: ACCESS_TTL });
       return res.send({ token: access });
     } catch (e) {
@@ -171,7 +166,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
   });
 
   // --- POST /auth/logout ---
-  // Révoque le refresh courant (si présent en cookie) + clear cookie
   app.post('/auth/logout', async (req: any, res) => {
     try {
       const rt = req.cookies?.[COOKIE_NAME];
@@ -187,7 +181,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
   });
 
   // --- DELETE /auth/sessions (optionnel) ---
-  // Invalide tous les refresh tokens de l’utilisateur courant (Authorization: Bearer <access>)
   app.delete('/auth/sessions', async (req: any, res) => {
     try {
       const auth = req.headers.authorization;

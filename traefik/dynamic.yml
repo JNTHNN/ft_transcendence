@@ -1,4 +1,10 @@
 tls:
   certificates:
-    - certFile: /certs/selfsigned.crt
-      keyFile: /certs/selfsigned.key
+    - certFile: /certs/app.localhost+1.pem
+      keyFile:  /certs/app.localhost+1-key.pem
+
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/app.localhost+1.pem
+        keyFile:  /certs/app.localhost+1-key.pem

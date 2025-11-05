@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import "@fastify/websocket"; // <— important
+import "@fastify/websocket";
 
 const room = new Set<any>();
 
@@ -9,7 +9,6 @@ export async function registerGameWS(app: FastifyInstance) {
     conn.socket.on("close", () => room.delete(conn));
   });
 
-  // Broadcast d'état fictif 1×/s
   setInterval(() => {
     const msg = JSON.stringify({
       type: "game/state",
