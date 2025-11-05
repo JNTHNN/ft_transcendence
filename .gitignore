@@ -1,0 +1,22 @@
+# node & build
+node_modules/
+dist/
+*.log
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# cookies & DB locales
+cookies.txt
+db-data/
+api_data/
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# certs (clé privée !)
+traefik/certs/*.key
+api/traefik/certs/*.key
