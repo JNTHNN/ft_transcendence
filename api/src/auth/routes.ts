@@ -4,9 +4,9 @@ import Database from 'better-sqlite3';
 import argon2 from 'argon2';
 import crypto from 'crypto';
 
-const ACCESS_TTL = '15m';       // JWT court
-const REFRESH_DAYS = 7;         // durée refresh
-const COOKIE_NAME = 'rt';       // nom du cookie refresh
+const ACCESS_TTL = '15m';       // short JWT
+const REFRESH_DAYS = 7;         // refresh duration
+const COOKIE_NAME = 'rt';       // refresh cookie name
 
 function nowPlusDays(days: number) {
   const d = new Date();

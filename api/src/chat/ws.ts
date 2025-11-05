@@ -7,7 +7,7 @@ export async function registerChatWS(app: FastifyInstance) {
       connection.socket.send(raw.toString());
     });
     connection.socket.on("close", () => {
-      // cleanup si besoin
+      // cleanup if needed
     });
   });
 }

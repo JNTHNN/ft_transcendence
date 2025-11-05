@@ -10,7 +10,7 @@ export async function api(path: string, init: RequestInit = {}) {
 
   let res = await doFetch();
 
-  // Optionnel : rafraîchit le token si expiré
+  // Optional token refresh
   if (res.status === 401 && path !== "/auth/refresh") {
     const r = await fetch(`${API}/auth/refresh`, {
       method: "POST",

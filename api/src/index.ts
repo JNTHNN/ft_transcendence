@@ -24,7 +24,7 @@ await app.register(websocket);
 await app.register(cookie);
 await app.register(authPlugin);
 
-// --- Migration unique ---
+// --- Database migration ---
 try {
   await migrate();
   app.log.info('✅ Database migrated successfully');
@@ -46,7 +46,7 @@ app.get('/ready', async (_req, res) => {
 
 // --- Routes / WS ---
 await registerAuthRoutes(app, db);
-await registerUserRoutes(app, db); // <— ajout
+await registerUserRoutes(app, db);
 registerChatWS(app);
 registerGameWS(app);
 
