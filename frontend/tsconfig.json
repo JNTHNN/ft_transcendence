@@ -1,12 +1,3 @@
-{
-    "compilerOptions": {
-        "outDir": "ts/dist",
-        "target": "es6",
-        "noEmitOnError": true,
-        "strict": true
-    },
-    "files": [
-        "ts/src/script.ts"
-    ]
-
-}
+{ "compilerOptions": {
+  "target":"ES2020","module":"ES2020","moduleResolution":"Node","strict":true,"esModuleInterop":true
+}}
