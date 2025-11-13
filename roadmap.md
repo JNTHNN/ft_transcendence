@@ -42,3 +42,6 @@
 
 ## TO-DO
     - Docker
+
+install tailwind : npm install -D tailwindcss
+				   npx tailwindcss init

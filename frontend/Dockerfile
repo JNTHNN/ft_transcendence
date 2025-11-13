@@ -1,10 +1,20 @@
-FROM node:20-bookworm-slim AS build
-WORKDIR /app
-COPY package.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+# Utiliser une image Node.js comme base
+FROM node:20-alpine
 
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer les dépendances
+RUN npm install
+
+# Copier tous les fichiers du projet
+COPY . .
+
+# Exposer le port 3000
+EXPOSE 3000
+
+# Démarrer l'application en mode développement
+CMD ["npm", "run", "dev"]

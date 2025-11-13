@@ -1,7 +1,32 @@
-<!doctype html><html lang="fr"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ft_transcendence</title></head>
-<body><nav>
-  <a href="/">Tournaments</a> | <a href="/login">Login</a> | <a href="/signup">Signup</a> | <a href="/chat">Chat</a>
-</nav><hr/><div id="app"></div>
-<script type="module" src="/src/main.ts"></script></body></html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPA - TypeScript & Tailwind</title>
+</head>
+<body class="bg-gray-900 text-text font-sans antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Menu vertical -->
+    <aside class="w-64 bg-primary shadow-2xl flex-shrink-0">
+      <div class="p-6 border-b border-secondary">
+        <h1 class="text-2xl font-bold text-text">Mon Application</h1>
+      </div>
+      <nav id="sidebar-menu" class="h-[calc(100vh-88px)]">
+        <!-- Le menu sera injecté ici par JavaScript -->
+      </nav>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="flex-1 overflow-y-auto bg-gray-900">
+      <div class="container mx-auto px-8 py-8">
+        <div id="app-content">
+          <!-- Le contenu des vues sera injecté ici -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
