@@ -35,3 +35,9 @@ Puis ouvrez votre navigateur sur : http://localhost:3000
 5. **Design responsive** : Fonctionne sur mobile et desktop
 
 Bon développement ! 🎉
+
+
+tailwind dev :
+npx tailwindcss -i ./src/style.css -o ./dist/tailwind.css --watch
+npx tsc --watch
+npm run dev

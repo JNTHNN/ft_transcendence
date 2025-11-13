@@ -20,7 +20,7 @@ export class Template {
   // Template pour une carte
   static card(title: string, content: string, classes: string = ''): string {
     return `
-      <div class="bg-primary rounded-lg shadow-lg p-6 ${classes}">
+      <div class="bg-prem rounded-lg shadow-lg p-6 ${classes}">
         <h2 class="text-2xl font-bold text-text mb-4">${title}</h2>
         <div class="text-text">${content}</div>
       </div>
@@ -32,7 +32,7 @@ export class Template {
     return `
       <button 
         onclick="${onClick}" 
-        class="bg-secondary hover:bg-opacity-80 text-text font-bold py-2 px-4 rounded transition-colors ${classes}"
+        class="bg-second hover:bg-opacity-80 text-text font-bold py-2 px-4 rounded transition-colors ${classes}"
       >
         ${text}
       </button>
