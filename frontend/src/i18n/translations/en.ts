@@ -18,7 +18,10 @@ export default {
     displayName: "Display Name",
     confirmPassword: "Confirm Password",
     loginWith42: "Login with 42",
+    signupWith42: "Sign up with 42",
     alreadyHaveAccount: "Already have an account?",
+    alreadyAccount: "Already have an account?",
+    noAccount: "Don't have an account?",
     dontHaveAccount: "Don't have an account?",
     loginHere: "Login here",
     signupHere: "Sign up here",
@@ -26,7 +29,13 @@ export default {
     signupButton: "Sign up",
     demoMode: "Demo Mode",
     exitDemoMode: "Exit Demo Mode",
-    demoModeActive: "Connected in demo mode"
+    demoModeActive: "Connected in demo mode",
+    loggingIn: "Logging in...",
+    signingUp: "Signing up...",
+    loginRequired: "You must be logged in to access this page",
+    loginRequiredTournaments: "You must be logged in to participate in tournaments",
+    emailPlaceholder: "your.email@example.com",
+    displayNamePlaceholder: "Your display name"
   },
 
   profile: {
@@ -47,7 +56,8 @@ export default {
     confirmNewPassword: "Confirm New Password",
     dangerZone: "Danger Zone",
     deleteAccount: "Permanently delete my account",
-    deleteAccountWarning: "This action is irreversible and will permanently delete:",
+    deleteAccountWarning: "⚠️ Warning: This action is irreversible",
+    deleteAccountNote: "Deleting your account will permanently erase:",
     deleteAccountItems: {
       profile: "Your profile and personal information",
       history: "All your game history",
@@ -55,26 +65,36 @@ export default {
       messages: "Your chat messages",
       tokens: "All your connection tokens"
     },
-    oauth42DeleteNote: "This will only remove your account from our platform, not your 42 account.",
+    oauth42DeleteNote: "Note: This will only delete your account on our platform, not your 42 account.",
     deletePasswordConfirm: "Password (to confirm deletion)",
     deleteConfirmation: "I understand that this action is irreversible and all my data will be permanently deleted",
-    memberSince: "Member since {{date}}",
-    lastSync: "Last 42 sync: {{date}}",
-    accountType: "Account type: {{type}}"
+    memberSince: "Member since",
+    lastSync: "Last 42 sync:",
+    accountType: "Account type:",
+    account42: "42 Account"
   },
 
   stats: {
     title: "Statistics",
     gamesPlayed: "Games Played",
     victories: "Victories",
-    defeats: "Defeats"
+    defeats: "Defeats",
+    rank: "Rank",
+    gamesWon: "Games Won",
+    points: "Points",
+    winRate: "Win Rate"
   },
 
   messages: {
     profileUpdated: "Profile updated successfully!",
     passwordChanged: "Password changed successfully!",
     accountDeleted: "Your account has been successfully deleted.\\nYou will be redirected to the homepage.",
-    oauth42AccountDeleted: "OAuth2 account deleted successfully. Note: This only removes your account from our platform, not from 42.",
+    oauth42AccountDeleted: "OAuth2 account deleted successfully. Note: This only deletes your account from our platform, not from 42.",
+    accountDeletedSuccess: "Your account has been successfully deleted.\\nYou will be redirected to the homepage.",
+    confirmDeleteAccountTitle: "WARNING!\\n\\nAre you absolutely sure you want to delete your account?\\n\\nThis action is IRREVERSIBLE and will delete:\\n• Your profile and personal data\\n• All your game history\\n• Your statistics and rankings\\n• Your chat messages\\n\\nType 'DELETE' in the next dialog to confirm.",
+    confirmDeleteAccountFinal: "To definitively confirm account deletion, type exactly:\\n\\nDELETE",
+    incorrectDeleteConfirmation: "Incorrect confirmation. Deletion cancelled.",
+    deletingAccount: "Deleting account...",
     confirmLogout: "Are you sure you want to log out?",
     confirmDeleteAccount: "Are you absolutely sure you want to delete your account?",
     noChangesDetected: "No changes detected",
@@ -87,7 +107,11 @@ export default {
     passwordMustDiffer: "New password must be different from current one",
     allFieldsRequired: "Please fill in all fields",
     incorrectPassword: "Incorrect password",
-    networkError: "Network error: {{error}}"
+    networkError: "Network error:",
+    loginSuccess: "Successfully logged in!",
+    signupSuccess: "Account created successfully!",
+    noData: "No data available",
+    fillAllFields: "Please fill in all fields"
   },
 
   language: {
@@ -104,7 +128,16 @@ export default {
     missingToken: "Missing token",
     internalError: "Internal error",
     loginFailed: "Login failed",
-    networkError: "Network error"
+    networkError: "Network error",
+    fillAllFields: "Please fill all fields",
+    signupFailed: "Sign up failed",
+    passwordTooShort: "Password must be at least 6 characters",
+    oauthError: "OAuth authentication error",
+    deleteError: "Account deletion failed",
+    passwordChangeFailed: "Password change failed",
+    apiOffline: "API server is offline",
+    logoutError: "Logout failed",
+    accessDenied: "Access denied. You cancelled the OAuth2 authentication."
   },
 
   game: {
@@ -116,18 +149,25 @@ export default {
     winner: "Winner",
     gameOver: "Game Over",
     newGame: "New Game",
+    quickGame: "Quick Game",
+    quickGameDesc: "Start a quick game against the computer.",
+    multiplayer: "Multiplayer",
+    multiplayerDesc: "Play against another player online.",
+    customGame: "Custom Game",
+    customGameDesc: "Create a game with your own rules.",
     spectate: "Spectate",
     joinGame: "Join Game",
     startGame: "Start Game",
     gameInProgress: "Game in Progress",
-    findOpponent: "Find Opponent"
+    findOpponent: "Find Opponent",
+    instructions: "Use ↑ ↓ arrows to play"
   },
 
   tournament: {
     title: "Tournaments",
     tournaments: "Tournaments",
     createTournament: "Create Tournament",
-    joinTournament: "Join",
+    joinTournament: "Join Tournament",
     tournamentName: "Tournament Name",
     participants: "Participants",
     status: "Status",
@@ -140,7 +180,15 @@ export default {
     semifinals: "Semifinals",
     quarterfinals: "Quarterfinals",
     availableTournaments: "Available Tournaments",
-    myTournaments: "My Tournaments"
+    myTournaments: "My Tournaments",
+    weekly: "Weekly Tournament",
+    monthly: "Championship of the Month",
+    beginners: "Beginners Cup",
+    local: "Local Tournament",
+    weeklyDesc: "Participate in the tournament of the week.",
+    localDesc: "Organize a private tournament with your friends.",
+    createDesc: "Create your own custom tournament.",
+    globalRanking: "Global Ranking"
   },
 
   chat: {
@@ -177,6 +225,21 @@ export default {
     refresh: "Refresh",
     retry: "Retry",
     create: "Create",
-    user: "User"
+    user: "User",
+    player: "Player",
+    update: "Update",
+    avatar: "Avatar",
+    account: "Account",
+    security: "Security",
+    accountType: "Account Type",
+    oauth42Account: "42 Account",
+    unknown: "Unknown",
+    pongTournaments: "Pong Tournaments",
+    welcomeToTranscendence: "Welcome to ft_transcendence",
+    welcomeMessage: "Participate in online Pong tournaments, face other players and climb the rankings!",
+    serverStatus: "Server Status",
+    viewDemoMatch: "View a demonstration match",
+    anonymous: "Anonymous",
+    accountInfo: "Account Information"
   }
 };

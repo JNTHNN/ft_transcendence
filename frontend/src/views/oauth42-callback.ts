@@ -41,7 +41,7 @@ export default async function View() {
           <h1 class="font-display text-2xl font-bold text-text mb-4">${t('errors.missingToken')}</h1>
           <p class="font-sans text-gray-400 mb-6">${t('errors.oauthCallbackFailed')}</p>
           <button id="retryBtn" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-6 rounded-lg transition">
-            Réessayer
+            ${t('common.retry')}
           </button>
         </div>
       </div>
@@ -80,10 +80,10 @@ export default async function View() {
           <div class="text-center">
             <div class="text-6xl mb-4">❌</div>
             <h1 class="font-display text-2xl font-bold text-text mb-4">${t('errors.loginFailed')}</h1>
-            <p class="font-sans text-gray-400 mb-6">${result.error || 'Une erreur s\'est produite.'}</p>
+            <p class="font-sans text-gray-400 mb-6">${result.error || t('errors.internalError')}</p>
             <div class="space-y-3">
               <button id="retryBtn" class="w-full bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-6 rounded-lg transition">
-                Réessayer
+                ${t('common.retry')}
               </button>
               <button id="backBtn" class="w-full bg-gray-600 hover:bg-gray-700 text-text font-sans font-bold py-2 px-6 rounded-lg transition">
                 ${t('common.back')}

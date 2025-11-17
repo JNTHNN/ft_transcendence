@@ -18,7 +18,10 @@ export default {
     displayName: "Nom d'affichage",
     confirmPassword: "Confirmer le mot de passe",
     loginWith42: "Se connecter avec 42",
+    signupWith42: "S'inscrire avec 42",
     alreadyHaveAccount: "Vous avez déjà un compte ?",
+    alreadyAccount: "Vous avez déjà un compte ?",
+    noAccount: "Pas de compte ?",
     dontHaveAccount: "Vous n'avez pas de compte ?",
     loginHere: "Connectez-vous ici",
     signupHere: "Inscrivez-vous ici",
@@ -27,17 +30,12 @@ export default {
     demoMode: "Mode Démo",
     exitDemoMode: "Quitter le mode démo",
     demoModeActive: "Connecté en mode démo",
-    emailPlaceholder: "email@exemple.com",
-    displayNamePlaceholder: "Votre nom",
-    noAccount: "Pas de compte ?",
-    alreadyAccount: "Déjà un compte ?",
     loggingIn: "Connexion...",
     signingUp: "Inscription...",
-    demoUser: "Utilisateur Démo",
-    demoLogout: "Déconnexion du mode démo",
-    demoResponse: "Réponse simulée en mode démo",
-    loginRequired: "Vous devez être connecté pour jouer une partie.",
-    loginRequiredTournaments: "Vous devez être connecté pour participer aux tournois."
+    loginRequired: "Vous devez être connecté pour accéder à cette page",
+    loginRequiredTournaments: "Vous devez être connecté pour participer aux tournois",
+    emailPlaceholder: "email@exemple.com",
+    displayNamePlaceholder: "Votre nom d'affichage"
   },
 
   profile: {
@@ -58,7 +56,8 @@ export default {
     confirmNewPassword: "Confirmer le nouveau mot de passe",
     dangerZone: "Zone dangereuse",
     deleteAccount: "Supprimer définitivement mon compte",
-    deleteAccountWarning: "Cette action est irréversible et supprimera définitivement :",
+    deleteAccountWarning: "⚠️ Attention : Cette action est irréversible",
+    deleteAccountNote: "La suppression de votre compte effacera définitivement :",
     deleteAccountItems: {
       profile: "Votre profil et vos informations personnelles",
       history: "Tout votre historique de parties",
@@ -66,13 +65,13 @@ export default {
       messages: "Vos messages de chat",
       tokens: "Tous vos tokens de connexion"
     },
-    oauth42DeleteNote: "Cela ne supprimera que votre compte sur notre plateforme, pas votre compte 42.",
+    oauth42DeleteNote: "Note: Cela ne supprimera que votre compte sur notre plateforme, pas votre compte 42.",
     deletePasswordConfirm: "Mot de passe (pour confirmer la suppression)",
     deleteConfirmation: "Je comprends que cette action est irréversible et que toutes mes données seront définitivement supprimées",
-    memberSince: "Membre depuis {{date}}",
-    lastSync: "Dernière sync 42: {{date}}",
-    accountType: "Type de compte: {{type}}",
-    deleteAccountFinal: "Supprimer définitivement mon compte"
+    memberSince: "Membre depuis",
+    lastSync: "Dernière sync 42:",
+    accountType: "Type de compte:",
+    account42: "Compte 42"
   },
 
   stats: {
@@ -80,7 +79,10 @@ export default {
     gamesPlayed: "Parties jouées",
     victories: "Victoires",
     defeats: "Défaites",
-    points: "Points"
+    rank: "Rang",
+    gamesWon: "Parties gagnées",
+    points: "Points",
+    winRate: "Taux de victoire"
   },
 
   messages: {
@@ -88,6 +90,11 @@ export default {
     passwordChanged: "Mot de passe changé avec succès !",
     accountDeleted: "Votre compte a été supprimé avec succès.\\nVous allez être redirigé vers la page d'accueil.",
     oauth42AccountDeleted: "Compte OAuth2 supprimé avec succès. Note: Cela ne supprime que votre compte de notre plateforme, pas de 42.",
+    accountDeletedSuccess: "Votre compte a été supprimé avec succès.\\nVous allez être redirigé vers la page d'accueil.",
+    confirmDeleteAccountTitle: "ATTENTION !\\n\\nÊtes-vous absolument certain de vouloir supprimer votre compte ?\\n\\nCette action est IRRÉVERSIBLE et supprimera :\\n• Votre profil et vos données personnelles\\n• Tout votre historique de parties\\n• Vos statistiques et classements\\n• Vos messages de chat\\n\\nTapez 'SUPPRIMER' dans la prochaine boîte de dialogue pour confirmer.",
+    confirmDeleteAccountFinal: "Pour confirmer définitivement la suppression de votre compte, tapez exactement :\\n\\nSUPPRIMER",
+    incorrectDeleteConfirmation: "Confirmation incorrecte. Suppression annulée.",
+    deletingAccount: "Suppression en cours...",
     confirmLogout: "Êtes-vous sûr de vouloir vous déconnecter ?",
     confirmDeleteAccount: "Êtes-vous absolument certain de vouloir supprimer votre compte ?",
     noChangesDetected: "Aucune modification détectée",
@@ -100,11 +107,11 @@ export default {
     passwordMustDiffer: "Le nouveau mot de passe doit être différent de l'actuel",
     allFieldsRequired: "Veuillez remplir tous les champs",
     incorrectPassword: "Mot de passe incorrect",
-    networkError: "Erreur de réseau: {{error}}",
-    loginSuccess: "Connexion réussie ! Redirection...",
-    signupSuccess: "Inscription réussie ! Redirection...",
+    networkError: "Erreur de réseau:",
+    loginSuccess: "Connexion réussie !",
+    signupSuccess: "Compte créé avec succès !",
     noData: "Aucune donnée disponible",
-    accountDeletedSuccess: "Votre compte a été supprimé avec succès.\nVous allez être redirigé vers la page d'accueil."
+    fillAllFields: "Veuillez remplir tous les champs"
   },
 
   language: {
@@ -125,10 +132,12 @@ export default {
     fillAllFields: "Veuillez remplir tous les champs",
     signupFailed: "Échec de l'inscription",
     passwordTooShort: "Le mot de passe doit contenir au moins 6 caractères",
-    accessDenied: "Accès refusé",
-    logoutError: "Erreur lors de la déconnexion",
-    apiOffline: "API hors ligne",
-    deleteError: "Erreur lors de la suppression"
+    oauthError: "Erreur d'authentification OAuth",
+    deleteError: "Échec de la suppression du compte",
+    passwordChangeFailed: "Échec du changement de mot de passe",
+    apiOffline: "Le serveur API est hors ligne",
+    logoutError: "Échec de la déconnexion",
+    accessDenied: "Accès refusé. Vous avez annulé l'authentification OAuth2."
   },
 
   game: {
@@ -140,16 +149,17 @@ export default {
     winner: "Gagnant",
     gameOver: "Partie terminée",
     newGame: "Nouvelle partie",
-    spectate: "Regarder",
-    joinGame: "Rejoindre la partie",
-    startGame: "Commencer la partie",
-    gameInProgress: "Partie en cours",
-    findOpponent: "Trouver un adversaire",
+    quickGame: "Partie Rapide",
     quickGameDesc: "Commencez une partie rapide contre l'ordinateur.",
     multiplayer: "Multijoueur",
     multiplayerDesc: "Jouez contre un autre joueur en ligne.",
     customGame: "Partie Personnalisée",
     customGameDesc: "Créez une partie avec vos propres règles.",
+    spectate: "Regarder",
+    joinGame: "Rejoindre la partie",
+    startGame: "Commencer la partie",
+    gameInProgress: "Partie en cours",
+    findOpponent: "Trouver un adversaire",
     instructions: "Utilisez les flèches ↑ ↓ pour jouer"
   },
 
@@ -157,7 +167,7 @@ export default {
     title: "Tournois",
     tournaments: "Tournois",
     createTournament: "Créer un tournoi",
-    joinTournament: "Rejoindre",
+    joinTournament: "Rejoindre le tournoi",
     tournamentName: "Nom du tournoi",
     participants: "Participants",
     status: "Statut",
@@ -172,15 +182,12 @@ export default {
     availableTournaments: "Tournois disponibles",
     myTournaments: "Mes tournois",
     weekly: "Tournoi Hebdomadaire",
+    monthly: "Championnat du Mois",
+    beginners: "Coupe des Débutants",
     local: "Tournoi Local",
-    create: "Créer Tournoi",
-    join: "Rejoindre",
-    prize: "Prix",
     weeklyDesc: "Participez au tournoi de la semaine.",
     localDesc: "Organisez un tournoi privé avec vos amis.",
     createDesc: "Créez votre propre tournoi personnalisé.",
-    monthly: "Championnat du Mois",
-    beginners: "Coupe des Débutants",
     globalRanking: "Classement Global"
   },
 
@@ -218,8 +225,21 @@ export default {
     refresh: "Actualiser",
     retry: "Réessayer",
     create: "Créer",
-    anonymous: "Anonyme",
+    user: "Utilisateur",
     player: "Joueur",
-    user: "Utilisateur"
+    update: "Mettre à jour",
+    avatar: "Avatar",
+    account: "Compte",
+    security: "Sécurité",
+    accountType: "Type de compte",
+    oauth42Account: "Compte 42",
+    unknown: "Inconnue",
+    pongTournaments: "Tournois de Pong",
+    welcomeToTranscendence: "Bienvenue sur ft_transcendence",
+    welcomeMessage: "Participez à des tournois de Pong en ligne, affrontez d'autres joueurs et grimpez dans le classement !",
+    serverStatus: "État du serveur",
+    viewDemoMatch: "Voir un match de démonstration",
+    anonymous: "Anonyme",
+    accountInfo: "Informations du compte"
   }
 };

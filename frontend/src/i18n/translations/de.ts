@@ -18,7 +18,10 @@ export default {
     displayName: "Anzeigename",
     confirmPassword: "Passwort bestätigen",
     loginWith42: "Mit 42 anmelden",
+    signupWith42: "Mit 42 registrieren",
     alreadyHaveAccount: "Haben Sie bereits ein Konto?",
+    alreadyAccount: "Haben Sie bereits ein Konto?",
+    noAccount: "Haben Sie kein Konto?",
     dontHaveAccount: "Haben Sie noch kein Konto?",
     loginHere: "Hier anmelden",
     signupHere: "Hier registrieren",
@@ -26,7 +29,13 @@ export default {
     signupButton: "Registrieren",
     demoMode: "Demo-Modus",
     exitDemoMode: "Demo-Modus verlassen",
-    demoModeActive: "Im Demo-Modus verbunden"
+    demoModeActive: "Im Demo-Modus verbunden",
+    loggingIn: "Anmeldung...",
+    signingUp: "Registrierung...",
+    loginRequired: "Sie müssen angemeldet sein, um auf diese Seite zugreifen zu können",
+    loginRequiredTournaments: "Sie müssen angemeldet sein, um an Turnieren teilzunehmen",
+    emailPlaceholder: "ihre.email@beispiel.com",
+    displayNamePlaceholder: "Ihr Anzeigename"
   },
 
   profile: {
@@ -56,18 +65,24 @@ export default {
       tokens: "Alle Ihre Verbindungstoken"
     },
     oauth42DeleteNote: "Dies entfernt nur Ihr Konto von unserer Plattform, nicht Ihr 42-Konto.",
+    deleteAccountNote: "Das Löschen Ihres Kontos wird dauerhaft löschen:",
     deletePasswordConfirm: "Passwort (zur Bestätigung der Löschung)",
     deleteConfirmation: "Ich verstehe, dass diese Aktion unwiderruflich ist und alle meine Daten dauerhaft gelöscht werden",
     memberSince: "Mitglied seit {{date}}",
     lastSync: "Letzte 42-Synchronisation: {{date}}",
-    accountType: "Kontotyp: {{type}}"
+    accountType: "Kontotyp: {{type}}",
+    account42: "42-Konto"
   },
 
   stats: {
     title: "Statistiken",
     gamesPlayed: "Gespielte Spiele",
     victories: "Siege",
-    defeats: "Niederlagen"
+    defeats: "Niederlagen",
+    rank: "Rang",
+    gamesWon: "Gewonnene Spiele",
+    points: "Punkte",
+    winRate: "Gewinnrate"
   },
 
   messages: {
@@ -87,7 +102,16 @@ export default {
     passwordMustDiffer: "Das neue Passwort muss sich vom aktuellen unterscheiden",
     allFieldsRequired: "Bitte füllen Sie alle Felder aus",
     incorrectPassword: "Falsches Passwort",
-    networkError: "Netzwerkfehler: {{error}}"
+    networkError: "Netzwerkfehler:",
+    loginSuccess: "Anmeldung erfolgreich!",
+    signupSuccess: "Konto erfolgreich erstellt!",
+    noData: "Keine Daten verfügbar",
+    fillAllFields: "Bitte füllen Sie alle Felder aus",
+    accountDeletedSuccess: "Ihr Konto wurde erfolgreich gelöscht.\\nSie werden zur Startseite weitergeleitet.",
+    confirmDeleteAccountTitle: "WARNUNG!\\n\\nSind Sie absolut sicher, dass Sie Ihr Konto löschen möchten?\\n\\nDiese Aktion ist UNWIDERRUFLICH und löscht:\\n• Ihr Profil und persönliche Daten\\n• Ihre gesamte Spielhistorie\\n• Ihre Statistiken und Rankings\\n• Ihre Chat-Nachrichten\\n\\nGeben Sie 'LÖSCHEN' in den nächsten Dialog ein, um zu bestätigen.",
+    confirmDeleteAccountFinal: "Um die Kontolöschung endgültig zu bestätigen, geben Sie genau ein:\\n\\nLÖSCHEN",
+    incorrectDeleteConfirmation: "Falsche Bestätigung. Löschung abgebrochen.",
+    deletingAccount: "Konto wird gelöscht..."
   },
 
   language: {
@@ -104,7 +128,16 @@ export default {
     missingToken: "Fehlender Token",
     internalError: "Interner Fehler",
     loginFailed: "Anmeldung fehlgeschlagen",
-    networkError: "Netzwerkfehler"
+    networkError: "Netzwerkfehler",
+    fillAllFields: "Bitte füllen Sie alle Felder aus",
+    signupFailed: "Registrierung fehlgeschlagen",
+    passwordTooShort: "Das Passwort muss mindestens 6 Zeichen haben",
+    oauthError: "OAuth-Authentifizierungsfehler",
+    deleteError: "Kontolöschung fehlgeschlagen",
+    passwordChangeFailed: "Passwort-Änderung fehlgeschlagen",
+    apiOffline: "API-Server ist offline",
+    logoutError: "Abmeldung fehlgeschlagen",
+    accessDenied: "Zugriff verweigert. Sie haben die OAuth2-Authentifizierung abgebrochen."
   },
 
   game: {
@@ -120,7 +153,14 @@ export default {
     joinGame: "Spiel Beitreten",
     startGame: "Spiel Starten",
     gameInProgress: "Spiel Läuft",
-    findOpponent: "Gegner Finden"
+    findOpponent: "Gegner Finden",
+    quickGame: "Schnelles Spiel",
+    quickGameDesc: "Starten Sie ein schnelles Spiel gegen den Computer.",
+    multiplayer: "Mehrspieler",
+    multiplayerDesc: "Spielen Sie gegen einen anderen Spieler online.",
+    customGame: "Benutzerdefiniertes Spiel",
+    customGameDesc: "Erstellen Sie ein Spiel mit Ihren eigenen Regeln.",
+    instructions: "Verwenden Sie die Pfeiltasten ↑ ↓ zum Spielen"
   },
 
   tournament: {
@@ -140,7 +180,15 @@ export default {
     semifinals: "Halbfinale",
     quarterfinals: "Viertelfinale",
     availableTournaments: "Verfügbare Turniere",
-    myTournaments: "Meine Turniere"
+    myTournaments: "Meine Turniere",
+    weekly: "Wöchentliches Turnier",
+    monthly: "Meisterschaft des Monats",
+    beginners: "Anfänger-Cup",
+    local: "Lokales Turnier",
+    weeklyDesc: "Nehmen Sie am Turnier der Woche teil.",
+    localDesc: "Organisieren Sie ein privates Turnier mit Ihren Freunden.",
+    createDesc: "Erstellen Sie Ihr eigenes benutzerdefiniertes Turnier.",
+    globalRanking: "Globale Rangliste"
   },
 
   chat: {
@@ -177,6 +225,21 @@ export default {
     refresh: "Aktualisieren",
     retry: "Erneut versuchen",
     create: "Erstellen",
-    user: "Benutzer"
+    user: "Benutzer",
+    player: "Spieler",
+    update: "Aktualisieren",
+    avatar: "Avatar",
+    account: "Konto",
+    security: "Sicherheit",
+    accountType: "Kontotyp",
+    oauth42Account: "42-Konto",
+    unknown: "Unbekannt",
+    pongTournaments: "Pong-Turniere",
+    welcomeToTranscendence: "Willkommen bei ft_transcendence",
+    welcomeMessage: "Nehmen Sie an Online-Pong-Turnieren teil, treten Sie gegen andere Spieler an und erklimmen Sie die Rangliste!",
+    serverStatus: "Server-Status",
+    viewDemoMatch: "Ein Demonstrationsspiel ansehen",
+    anonymous: "Anonym",
+    accountInfo: "Kontoinformationen"
   }
 };

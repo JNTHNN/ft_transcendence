@@ -18,7 +18,10 @@ export default {
     displayName: "Nombre para Mostrar",
     confirmPassword: "Confirmar Contraseña",
     loginWith42: "Iniciar sesión con 42",
+    signupWith42: "Registrarse con 42",
     alreadyHaveAccount: "¿Ya tienes una cuenta?",
+    alreadyAccount: "¿Ya tienes una cuenta?",
+    noAccount: "¿No tienes cuenta?",
     dontHaveAccount: "¿No tienes una cuenta?",
     loginHere: "Inicia sesión aquí",
     signupHere: "Regístrate aquí",
@@ -26,7 +29,13 @@ export default {
     signupButton: "Registrarse",
     demoMode: "Modo Demo",
     exitDemoMode: "Salir del modo demo",
-    demoModeActive: "Conectado en modo demo"
+    demoModeActive: "Conectado en modo demo",
+    loggingIn: "Iniciando sesión...",
+    signingUp: "Registrándose...",
+    loginRequired: "Debes iniciar sesión para acceder a esta página",
+    loginRequiredTournaments: "Debes iniciar sesión para participar en torneos",
+    emailPlaceholder: "tu.email@ejemplo.com",
+    displayNamePlaceholder: "Tu nombre de usuario"
   },
 
   profile: {
@@ -56,18 +65,24 @@ export default {
       tokens: "Todos tus tokens de conexión"
     },
     oauth42DeleteNote: "Esto solo eliminará tu cuenta de nuestra plataforma, no tu cuenta de 42.",
+    deleteAccountNote: "Eliminar tu cuenta borrará permanentemente:",
     deletePasswordConfirm: "Contraseña (para confirmar la eliminación)",
     deleteConfirmation: "Entiendo que esta acción es irreversible y que todos mis datos serán eliminados permanentemente",
     memberSince: "Miembro desde {{date}}",
     lastSync: "Última sincronización 42: {{date}}",
-    accountType: "Tipo de cuenta: {{type}}"
+    accountType: "Tipo de cuenta: {{type}}",
+    account42: "Cuenta 42"
   },
 
   stats: {
     title: "Estadísticas",
     gamesPlayed: "Partidas Jugadas",
     victories: "Victorias",
-    defeats: "Derrotas"
+    defeats: "Derrotas",
+    rank: "Rango",
+    gamesWon: "Partidas ganadas",
+    points: "Puntos",
+    winRate: "Tasa de victoria"
   },
 
   messages: {
@@ -87,7 +102,16 @@ export default {
     passwordMustDiffer: "La nueva contraseña debe ser diferente de la actual",
     allFieldsRequired: "Por favor completa todos los campos",
     incorrectPassword: "Contraseña incorrecta",
-    networkError: "Error de red: {{error}}"
+    networkError: "Error de red",
+    loginSuccess: "¡Inicio de sesión exitoso!",
+    signupSuccess: "¡Cuenta creada con éxito!",
+    noData: "No hay datos disponibles",
+    fillAllFields: "Por favor, completa todos los campos",
+    accountDeletedSuccess: "Tu cuenta ha sido eliminada con éxito.\nSerás redirigido a la página de inicio.",
+    confirmDeleteAccountTitle: "¡ATENCIÓN!\n\n¿Estás absolutamente seguro de que quieres eliminar tu cuenta?\n\nEsta acción es IRREVERSIBLE y eliminará:\n• Tu perfil y datos personales\n• Todo tu historial de partidas\n• Tus estadísticas y rankings\n• Tus mensajes de chat\n\nEscribe 'ELIMINAR' en el siguiente diálogo para confirmar.",
+    confirmDeleteAccountFinal: "Para confirmar definitivamente la eliminación de la cuenta, escribe exactamente:\n\nELIMINAR",
+    incorrectDeleteConfirmation: "Confirmación incorrecta. Eliminación cancelada.",
+    deletingAccount: "Eliminando cuenta..."
   },
 
   language: {
@@ -104,7 +128,16 @@ export default {
     missingToken: "Token faltante",
     internalError: "Error interno",
     loginFailed: "Error de conexión",
-    networkError: "Error de red"
+    networkError: "Error de red",
+    fillAllFields: "Por favor, completa todos los campos",
+    signupFailed: "Error en registro",
+    passwordTooShort: "La contraseña debe tener al menos 6 caracteres",
+    oauthError: "Error de autenticación OAuth",
+    deleteError: "Error al eliminar cuenta",
+    passwordChangeFailed: "Error al cambiar contraseña",
+    apiOffline: "El servidor API está desconectado",
+    logoutError: "Error al cerrar sesión",
+    accessDenied: "Acceso denegado. Cancelaste la autenticación OAuth2."
   },
 
   game: {
@@ -120,7 +153,14 @@ export default {
     joinGame: "Unirse al Juego",
     startGame: "Iniciar Partida",
     gameInProgress: "Partida en Curso",
-    findOpponent: "Buscar Oponente"
+    findOpponent: "Buscar Oponente",
+    quickGame: "Partida Rápida",
+    quickGameDesc: "Inicia una partida rápida contra la computadora.",
+    multiplayer: "Multijugador",
+    multiplayerDesc: "Juega contra otro jugador en línea.",
+    customGame: "Partida Personalizada",
+    customGameDesc: "Crea una partida con tus propias reglas.",
+    instructions: "Usa las flechas ↑ ↓ para jugar"
   },
 
   tournament: {
@@ -140,7 +180,15 @@ export default {
     semifinals: "Semifinales",
     quarterfinals: "Cuartos de Final",
     availableTournaments: "Torneos Disponibles",
-    myTournaments: "Mis Torneos"
+    myTournaments: "Mis Torneos",
+    weekly: "Torneo Semanal",
+    monthly: "Campeonato del Mes",
+    beginners: "Copa de Principiantes",
+    local: "Torneo Local",
+    weeklyDesc: "Participa en el torneo de la semana.",
+    localDesc: "Organiza un torneo privado con tus amigos.",
+    createDesc: "Crea tu propio torneo personalizado.",
+    globalRanking: "Clasificación Global"
   },
 
   chat: {
@@ -177,6 +225,21 @@ export default {
     refresh: "Actualizar",
     retry: "Reintentar",
     create: "Crear",
-    user: "Usuario"
+    user: "Usuario",
+    player: "Jugador",
+    update: "Actualizar",
+    avatar: "Avatar",
+    account: "Cuenta",
+    security: "Seguridad",
+    accountType: "Tipo de cuenta",
+    oauth42Account: "Cuenta 42",
+    unknown: "Desconocido",
+    pongTournaments: "Torneos de Pong",
+    welcomeToTranscendence: "Bienvenido a ft_transcendence",
+    welcomeMessage: "¡Participa en torneos de Pong en línea, enfrenta a otros jugadores y sube en el ranking!",
+    serverStatus: "Estado del Servidor",
+    viewDemoMatch: "Ver una partida de demostración",
+    anonymous: "Anónimo",
+    accountInfo: "Información de la Cuenta"
   }
 };

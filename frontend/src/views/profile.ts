@@ -1,7 +1,7 @@
 import { authManager } from "../auth";
 import { router } from "../router";
 import { api } from "../api-client";
-import { i18n } from "../i18n";
+import { t } from "../i18n/index.js";
 
 interface User {
   id: number;
@@ -50,11 +50,11 @@ export default async function View() {
 
   header.innerHTML = `
     <div class="flex items-center justify-between mb-6">
-      <h1 class="font-display font-black text-4xl text-text">Mon Profil</h1>
+      <h1 class="font-display font-black text-4xl text-text">${t('profile.title')}</h1>
       <div class="flex items-center space-x-4">
-        ${isOAuth42 ? '<span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-sans">Compte 42</span>' : ''}
+        ${isOAuth42 ? `<span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-sans">${t('profile.oauth42Account')}</span>` : ''}
         <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
-          Déconnexion
+          ${t('auth.logout')}
         </button>
       </div>
     </div>
@@ -66,8 +66,8 @@ export default async function View() {
         <h2 class="font-sans text-2xl font-bold text-text">${user.displayName}</h2>
         <p class="font-sans text-gray-400">${user.email}</p>
         ${user.oauth42Login ? `<p class="font-sans text-sm text-blue-400">Login 42: ${user.oauth42Login}</p>` : ''}
-        <p class="font-sans text-sm text-gray-500">Membre depuis ${formatDate(user.createdAt)}</p>
-        ${user.last42Sync ? `<p class="font-sans text-xs text-gray-600">Dernière sync 42: ${formatDate(user.last42Sync)}</p>` : ''}
+        <p class="font-sans text-sm text-gray-500">${t('profile.memberSince')} ${formatDate(user.createdAt)}</p>
+        ${user.last42Sync ? `<p class="font-sans text-xs text-gray-600">${t('profile.lastSync')} ${formatDate(user.last42Sync)}</p>` : ''}
       </div>
     </div>
   `;
@@ -75,40 +75,40 @@ export default async function View() {
   const profileForm = document.createElement("form");
   profileForm.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
   profileForm.innerHTML = `
-    <h3 class="font-display text-2xl font-bold text-text mb-6">Modifier le profil</h3>
+    <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.editProfile')}</h3>
 
     ${user.avatarUrl ? `
       <div class="mb-6">
-        <label class="block font-sans text-text mb-2">Photo de profil</label>
+        <label class="block font-sans text-text mb-2">${t('profile.profilePhoto')}</label>
         <div class="flex items-center space-x-4">
           <img src="${user.avatarUrl}" alt="Avatar" class="w-20 h-20 rounded-full object-cover" onerror="this.style.display='none';">
           <div class="text-sm text-gray-400">
-            ${isOAuth42 ? 'Avatar synchronisé depuis votre profil 42' : 'Avatar personnalisé'}
+            ${isOAuth42 ? t('profile.avatarSyncFrom42') : t('profile.customAvatar')}
           </div>
         </div>
       </div>
     ` : ''}
 
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2">Nom d'affichage</label>
+      <label class="block font-sans text-text mb-2">${t('auth.displayName')}</label>
       <input name="displayName" type="text" value="${user.displayName}" required
         class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
 
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2">Email</label>
+      <label class="block font-sans text-text mb-2">${t('auth.email')}</label>
       <input name="email" type="email" value="${user.email}" required
         class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans"
-        ${isOAuth42 ? 'disabled title="Les utilisateurs OAuth2 ne peuvent pas changer leur email"' : ''} />
-      ${isOAuth42 ? '<small class="text-yellow-400 text-xs">Les utilisateurs 42 doivent modifier leur email depuis leur profil 42</small>' : ''}
+        ${isOAuth42 ? `disabled title="${t('profile.oauth42EmailRestriction')}"` : ''} />
+      ${isOAuth42 ? `<small class="text-yellow-400 text-xs">${t('profile.oauth42EmailRestriction')}</small>` : ''}
     </div>
 
     <div class="flex space-x-4">
       <button type="submit" id="updateProfileBtn" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
-        Mettre à jour
+        ${t('profile.updateProfile')}
       </button>
       <button type="button" id="cancelProfileBtn" class="bg-gray-600 hover:bg-gray-700 text-text font-sans font-bold py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-        Annuler
+        ${t('profile.cancel')}
       </button>
     </div>
     <div id="profileError" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-sm font-sans hidden"></div>
@@ -120,39 +120,38 @@ export default async function View() {
 
   if (isOAuth42) {
     passwordForm.innerHTML = `
-      <h3 class="font-display text-2xl font-bold text-text mb-6">Sécurité du compte</h3>
+      <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.accountSecurity')}</h3>
       <div class="bg-blue-900 border border-blue-600 rounded-lg p-4">
-        <p class="font-sans text-blue-200 mb-2">🔒 Compte 42 OAuth</p>
+        <p class="font-sans text-blue-200 mb-2">🔒 ${t('profile.oauth42Account')}</p>
         <p class="font-sans text-blue-300 text-sm">
-          Votre compte est sécurisé par l'authentification 42.
-          La gestion des mots de passe se fait directement via votre compte 42.
+          ${t('profile.oauth42SecurityMessage')}
         </p>
       </div>
     `;
   } else {
     passwordForm.innerHTML = `
-    <h3 class="font-display text-2xl font-bold text-text mb-6">Changer le mot de passe</h3>
+    <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.changePassword')}</h3>
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2">Mot de passe actuel</label>
+      <label class="block font-sans text-text mb-2">${t('profile.currentPassword')}</label>
       <input name="currentPassword" type="password" required
         class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2">Nouveau mot de passe</label>
+      <label class="block font-sans text-text mb-2">${t('profile.newPassword')}</label>
       <input name="newPassword" type="password" required minlength="6"
         class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2">Confirmer le nouveau mot de passe</label>
+      <label class="block font-sans text-text mb-2">${t('profile.confirmNewPassword')}</label>
       <input name="confirmPassword" type="password" required minlength="6"
         class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
     <div class="flex space-x-4">
       <button type="submit" id="changePasswordBtn" class="bg-orange-600 hover:bg-orange-700 text-white font-sans font-bold py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
-        Changer le mot de passe
+        ${t('profile.changePassword')}
       </button>
       <button type="button" id="cancelPasswordBtn" class="bg-gray-600 hover:bg-gray-700 text-text font-sans font-bold py-2 px-6 rounded-lg transition">
-        Annuler
+        ${t('profile.cancel')}
       </button>
     </div>
     <div id="passwordError" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-sm font-sans hidden"></div>
@@ -163,19 +162,19 @@ export default async function View() {
   const stats = document.createElement("div");
   stats.className = "bg-prem rounded-lg shadow-xl p-8 mt-6";
   stats.innerHTML = `
-    <h3 class="font-display text-2xl font-bold text-text mb-6">Statistiques</h3>
+    <h3 class="font-display text-2xl font-bold text-text mb-6">${t('stats.title')}</h3>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-gray-700 p-4 rounded-lg text-center">
         <div class="font-display text-3xl font-bold text-sec">0</div>
-        <div class="font-sans text-gray-400">Parties jouées</div>
+        <div class="font-sans text-gray-400">${t('stats.gamesPlayed')}</div>
       </div>
       <div class="bg-gray-700 p-4 rounded-lg text-center">
         <div class="font-display text-3xl font-bold text-green-400">0</div>
-        <div class="font-sans text-gray-400">Victoires</div>
+        <div class="font-sans text-gray-400">${t('stats.victories')}</div>
       </div>
       <div class="bg-gray-700 p-4 rounded-lg text-center">
         <div class="font-display text-3xl font-bold text-red-400">0</div>
-        <div class="font-sans text-gray-400">Défaites</div>
+        <div class="font-sans text-gray-400">${t('stats.defeats')}</div>
       </div>
     </div>
   `;
@@ -200,35 +199,35 @@ export default async function View() {
   const deleteAccountSection = document.createElement("div");
   deleteAccountSection.className = "bg-red-900 rounded-lg shadow-xl p-8 mt-6 border border-red-600";
   deleteAccountSection.innerHTML = `
-    <h3 class="font-display text-2xl font-bold text-red-200 mb-6">Zone dangereuse</h3>
+    <h3 class="font-display text-2xl font-bold text-red-200 mb-6">${t('profile.dangerZone')}</h3>
     <div class="bg-red-800 border border-red-600 rounded-lg p-4 mb-4">
-      <p class="font-sans text-red-200 mb-2">⚠️ Attention : Cette action est irréversible</p>
-      <p class="font-sans text-red-300 text-sm">La suppression de votre compte effacera définitivement :</p>
+      <p class="font-sans text-red-200 mb-2">${t('profile.deleteAccountWarning')}</p>
+      <p class="font-sans text-red-300 text-sm">${t('profile.deleteAccountNote')}</p>
       <ul class="font-sans text-red-300 text-sm mt-2 ml-4 list-disc">
-        <li>Votre profil et vos informations personnelles</li>
-        <li>Tout votre historique de parties</li>
-        <li>Vos statistiques et classements</li>
-        <li>Vos messages de chat</li>
-        <li>Tous vos tokens de connexion</li>
+        <li>${t('profile.deleteAccountItems.profile')}</li>
+        <li>${t('profile.deleteAccountItems.history')}</li>
+        <li>${t('profile.deleteAccountItems.stats')}</li>
+        <li>${t('profile.deleteAccountItems.messages')}</li>
+        <li>${t('profile.deleteAccountItems.tokens')}</li>
       </ul>
-      ${isOAuth42 ? '<p class="font-sans text-red-300 text-sm mt-2">Note: Cela ne supprimera que votre compte sur notre plateforme, pas votre compte 42.</p>' : ''}
+      ${isOAuth42 ? `<p class="font-sans text-red-300 text-sm mt-2">${t('profile.oauth42DeleteNote')}</p>` : ''}
     </div>
     ${!isOAuth42 ? `
       <div class="mb-4">
-        <label class="block font-sans text-red-200 mb-2">Mot de passe (pour confirmer la suppression)</label>
+        <label class="block font-sans text-red-200 mb-2">${t('profile.deletePasswordConfirm')}</label>
         <input id="deletePasswordInput" type="password" required
           class="w-full px-4 py-2 bg-red-800 text-red-100 border border-red-600 rounded-lg focus:outline-none focus:border-red-400 font-sans placeholder-red-400"
-          placeholder="Entrez votre mot de passe pour confirmer" />
+          placeholder="${t('profile.deletePasswordConfirm')}" />
       </div>
     ` : ''}
     <div class="mb-4">
       <label class="block font-sans text-red-200 mb-2">
         <input type="checkbox" id="confirmDeleteCheckbox" class="mr-2">
-        Je comprends que cette action est irréversible et que toutes mes données seront définitivement supprimées
+        ${t('profile.deleteConfirmation')}
       </label>
     </div>
     <button type="button" id="deleteAccountBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-3 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-      🗑️ Supprimer définitivement mon compte
+      ${t('profile.deleteAccount')}
     </button>
     <div id="deleteError" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-sm font-sans hidden border border-red-600"></div>
   `;
@@ -306,7 +305,7 @@ export default async function View() {
   confirmDeleteCheckbox.addEventListener('change', updateDeleteButtonState);
 
   logoutBtn.onclick = async () => {
-    if (confirm(i18n.translate('messages.confirmLogout'))) {
+    if (confirm(t('messages.confirmLogout'))) {
       await authManager.logout();
       router.navigate("/login");
     }
@@ -329,28 +328,28 @@ export default async function View() {
     const email = emailInput.value.trim();
 
     if (!displayName) {
-      showProfileError("Le nom d'affichage ne peut pas être vide");
+      showProfileError(t('messages.displayNameRequired'));
       return;
     }
 
     if (!email) {
-      showProfileError("L'email ne peut pas être vide");
+      showProfileError(t('messages.emailRequired'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      showProfileError("Format d'email invalide");
+      showProfileError(t('messages.invalidEmailFormat'));
       return;
     }
 
     if (displayName === originalDisplayName && email === originalEmail) {
-      showProfileError("Aucune modification détectée");
+      showProfileError(t('messages.noChangesDetected'));
       return;
     }
 
     updateProfileBtn.disabled = true;
-    updateProfileBtn.textContent = "Mise à jour...";
+    updateProfileBtn.textContent = t('common.loading');
 
     try {
       const updates: any = {};
@@ -362,7 +361,7 @@ export default async function View() {
         body: JSON.stringify(updates)
       });
 
-      showProfileSuccess("Profil mis à jour avec succès !");
+      showProfileSuccess(t('messages.profileUpdated'));
 
       const nameElement = header.querySelector('h2');
       const emailElement = header.querySelector('p');
@@ -378,51 +377,40 @@ export default async function View() {
       updateCancelButtonState();
 
     } catch (error: any) {
-      showProfileError("Erreur lors de la mise à jour: " + error.message);
+      showProfileError(t('errors.networkError') + ": " + error.message);
     } finally {
       updateProfileBtn.disabled = false;
-      updateProfileBtn.textContent = "Mettre à jour";
+      updateProfileBtn.textContent = t('profile.updateProfile');
     }
   };
 
   deleteAccountBtn.onclick = async () => {
     if (!confirmDeleteCheckbox.checked) {
-      showDeleteError("Veuillez confirmer que vous comprenez les conséquences");
+      showDeleteError(t('profile.deleteConfirmation'));
       return;
     }
 
     if (!isOAuth42) {
       const password = deletePasswordInput.value;
       if (!password) {
-        showDeleteError("Veuillez entrer votre mot de passe");
+        showDeleteError(t('messages.fillAllFields'));
         return;
       }
     }
 
-    const confirmed = confirm(
-      "ATTENTION !\n\n" +
-      "Êtes-vous absolument certain de vouloir supprimer votre compte ?\n\n" +
-      "Cette action est IRRÉVERSIBLE et supprimera :\n" +
-      "• Votre profil et vos données personnelles\n" +
-      "• Tout votre historique de parties\n" +
-      "• Vos statistiques et classements\n" +
-      "• Vos messages de chat\n\n" +
-      "Tapez 'SUPPRIMER' dans la prochaine boîte de dialogue pour confirmer."
-    );
+    const confirmed = confirm(t('messages.confirmDeleteAccountTitle'));
 
     if (!confirmed) return;
 
-    const finalConfirmation = prompt(
-      "Pour confirmer définitivement la suppression de votre compte, tapez exactement :\n\nSUPPRIMER"
-    );
+    const finalConfirmation = prompt(t('messages.confirmDeleteAccountFinal'));
 
     if (finalConfirmation !== "SUPPRIMER") {
-      showDeleteError("Confirmation incorrecte. Suppression annulée.");
+      showDeleteError(t('messages.incorrectDeleteConfirmation'));
       return;
     }
 
     deleteAccountBtn.disabled = true;
-    deleteAccountBtn.textContent = "Suppression en cours...";
+    deleteAccountBtn.textContent = t('messages.deletingAccount');
 
     try {
       const requestBody = isOAuth42 ? {} : { password: deletePasswordInput.value };
@@ -431,13 +419,13 @@ export default async function View() {
         body: JSON.stringify(requestBody)
       });
 
-      alert(i18n.translate('messages.accountDeletedSuccess'));
+      alert(t('messages.accountDeletedSuccess'));
       await authManager.logout();
       router.navigate("/");
     } catch (error: any) {
-      showDeleteError(i18n.translate('errors.deleteError') + ": " + error.message);
+      showDeleteError(t('errors.deleteError') + ": " + error.message);
       deleteAccountBtn.disabled = false;
-      deleteAccountBtn.textContent = "🗑️ " + i18n.translate('profile.deleteAccountFinal');
+      deleteAccountBtn.textContent = t('profile.deleteAccount');
     }
   };
 
@@ -462,46 +450,46 @@ export default async function View() {
       const confirmPassword = confirmPasswordInput.value;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      showPasswordError("Veuillez remplir tous les champs");
+      showPasswordError(t('messages.fillAllFields'));
       return;
     }
 
     if (newPassword.length < 6) {
-      showPasswordError("Le nouveau mot de passe doit contenir au moins 6 caractères");
+      showPasswordError(t('messages.passwordTooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      showPasswordError("Les mots de passe ne correspondent pas");
+      showPasswordError(t('messages.passwordsMismatch'));
       return;
     }
 
     if (currentPassword === newPassword) {
-      showPasswordError("Le nouveau mot de passe doit être différent de l'actuel");
+      showPasswordError(t('messages.passwordMustDiffer'));
       return;
     }
 
     changePasswordBtn.disabled = true;
-    changePasswordBtn.textContent = "Changement en cours...";
+    changePasswordBtn.textContent = t('common.loading');
 
     try {
       const result = await authManager.changePassword(currentPassword, newPassword);
 
       if (result.success) {
-        showPasswordSuccess("Mot de passe changé avec succès !");
+        showPasswordSuccess(t('messages.passwordChanged'));
 
         currentPasswordInput.value = '';
         newPasswordInput.value = '';
         confirmPasswordInput.value = '';
 
       } else {
-        showPasswordError(result.error || "Erreur lors du changement de mot de passe");
+        showPasswordError(result.error || t('errors.passwordChangeFailed'));
       }
     } catch (error: any) {
-      showPasswordError("Erreur de réseau: " + error.message);
+      showPasswordError(t('errors.networkError') + ": " + error.message);
     } finally {
         changePasswordBtn.disabled = false;
-        changePasswordBtn.textContent = "Changer le mot de passe";
+        changePasswordBtn.textContent = t('profile.changePassword');
       }
     };
   }
@@ -518,7 +506,7 @@ export default async function View() {
 }
 
 function formatDate(dateString?: string): string {
-  if (!dateString) return "Inconnue";
+  if (!dateString) return t('common.unknown');
 
   try {
     const date = new Date(dateString);
@@ -528,6 +516,6 @@ function formatDate(dateString?: string): string {
       day: 'numeric'
     });
   } catch {
-    return "Inconnue";
+    return t('common.unknown');
   }
 }

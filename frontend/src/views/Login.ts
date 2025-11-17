@@ -114,17 +114,17 @@ export default async function View() {
     oauth42Btn.addEventListener("click", async () => {
       try {
         oauth42Btn.disabled = true;
-        oauth42Btn.textContent = "Connexion...";
+        oauth42Btn.textContent = t('auth.loggingIn');
 
         const state = crypto.randomUUID();
         localStorage.setItem('oauth_state', state);
         window.location.href = oauth42Manager.generateAuthUrl(state);
       } catch (error) {
-        showError(error instanceof Error ? error.message : "Erreur lors de la connexion OAuth2");
+        showError(error instanceof Error ? error.message : t('errors.oauthError'));
         oauth42Btn.disabled = false;
         oauth42Btn.innerHTML = `
           <span class="text-xl">🚀</span>
-          <span>Se connecter avec 42</span>
+          <span>${t('auth.loginWith42')}</span>
         `;
       }
     });
