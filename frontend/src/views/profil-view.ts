@@ -1,25 +1,26 @@
-import { api } from "../apiClient";
+import { api } from "../api-client";
 import { router } from "../router";
+import { i18n } from "../i18n";
 
 export async function ProfilView() {
   const wrap = document.createElement("div");
   wrap.className = "max-w-4xl mx-auto mt-8";
-  
+
   wrap.innerHTML = `
     <h1 class="font-display font-black text-4xl font-bold text-text mb-6">Mon Profil</h1>
     <div id="profile-content"></div>
   `;
-  
+
   const content = wrap.querySelector("#profile-content") as HTMLDivElement;
-  
+
   try {
     const user = await api("/auth/me");
-    
+
     content.innerHTML = `
       <div class="bg-prem rounded-lg shadow-xl p-6 mb-6">
         <h2 class="font-display font-black text-3xl font-black text-text mb-4">Informations du compte</h2>
         <div class="space-y-2 font-sans text-text">
-          <p><strong>Nom d'utilisateur:</strong> ${user.username || "N/A"}</p>
+          <p><strong>Username:</strong> ${user.username || "N/A"}</p>
           <p><strong>Email:</strong> ${user.email || "N/A"}</p>
           <p><strong>ID:</strong> ${user.id || "N/A"}</p>
         </div>
@@ -29,7 +30,7 @@ export async function ProfilView() {
           </button>
         </div>
       </div>
-      
+
       <div class="bg-prem rounded-lg shadow-xl p-6">
         <h2 class="font-display font-black text-3xl font-black text-text mb-4">Statistiques</h2>
         <div class="grid grid-cols-3 gap-4 text-center">
@@ -48,17 +49,17 @@ export async function ProfilView() {
         </div>
       </div>
     `;
-    
+
     const logoutBtn = content.querySelector("#logout") as HTMLButtonElement;
     logoutBtn.onclick = async () => {
       try {
         await api("/auth/logout", { method: "POST" });
         router.navigate("/");
       } catch (err) {
-        alert("Erreur lors de la déconnexion");
+        alert(i18n.translate('errors.logoutError'));
       }
     };
-    
+
   } catch (err: any) {
     content.innerHTML = `
       <div class="bg-prem rounded-lg shadow-xl p-6 text-center">
@@ -69,6 +70,6 @@ export async function ProfilView() {
       </div>
     `;
   }
-  
+
   return wrap;
 }

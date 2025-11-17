@@ -1,53 +1,53 @@
-import { api } from "../apiClient";
+import { api } from "../api-client";
+import { t } from "../i18n/index.js";
 
 export async function TournoiView() {
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-8";
-  
+
   wrap.innerHTML = `
-    <h1 class="font-display font-black text-4xl font-bold text-text mb-6">Tournois</h1>
-    
+    <h1 class="font-display font-black text-4xl font-bold text-text mb-6">${t('tournament.title')}</h1>
+
     <div id="tournament-content"></div>
   `;
-  
+
   const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
-  
+
   try {
-    // Vérifier si l'utilisateur est connecté
     await api("/auth/me");
-    
+
     content.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-prem rounded-lg shadow-xl p-6">
-          <h2 class="font-display font-black text-3xl font-black text-text mb-4">Tournois Actifs</h2>
+          <h2 class="font-display font-black text-3xl font-black text-text mb-4">${t('tournament.availableTournaments')}</h2>
           <ul class="space-y-2 font-sans text-text mb-4">
-            <li class="p-3 bg-sec rounded-lg">🏆 Tournoi Hebdomadaire - 128 joueurs</li>
-            <li class="p-3 bg-sec rounded-lg">🏆 Championnat du Mois - 256 joueurs</li>
-            <li class="p-3 bg-sec rounded-lg">🏆 Coupe des Débutants - 64 joueurs</li>
+            <li class="p-3 bg-sec rounded-lg">🏆 ${t('tournament.weekly')} - 128 ${t('tournament.participants')}</li>
+            <li class="p-3 bg-sec rounded-lg">🏆 ${t('tournament.monthly')} - 256 ${t('tournament.participants')}</li>
+            <li class="p-3 bg-sec rounded-lg">🏆 ${t('tournament.beginners')} - 64 ${t('tournament.participants')}</li>
           </ul>
           <button class="w-full bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-4 rounded-lg transition">
-            Rejoindre un tournoi
+            ${t('tournament.joinTournament')}
           </button>
         </div>
-        
+
         <div class="bg-prem rounded-lg shadow-xl p-6">
-          <h2 class="font-display font-black text-3xl font-black text-text mb-4">Mes Inscriptions</h2>
+          <h2 class="font-display font-black text-3xl font-black text-text mb-4">${t('tournament.myTournaments')}</h2>
           <p class="text-center font-sans text-text/50 py-8">
-            Vous n'êtes inscrit à aucun tournoi pour le moment.
+            ${t('messages.noData')}
           </p>
         </div>
       </div>
-      
+
       <div class="mt-6 bg-prem rounded-lg shadow-xl p-6">
-        <h2 class="font-display font-black text-3xl font-black text-text mb-4">Classement Global</h2>
+        <h2 class="font-display font-black text-3xl font-black text-text mb-4">${t('tournament.globalRanking')}</h2>
         <div class="overflow-x-auto">
           <table class="w-full font-sans text-text">
             <thead class="border-b border-sec">
               <tr>
-                <th class="py-3 text-left">Rang</th>
-                <th class="py-3 text-left">Joueur</th>
-                <th class="py-3 text-right">Victoires</th>
-                <th class="py-3 text-right">Points</th>
+                <th class="py-3 text-left">${t('stats.rank')}</th>
+                <th class="py-3 text-left">${t('common.player')}</th>
+                <th class="py-3 text-right">${t('stats.gamesWon')}</th>
+                <th class="py-3 text-right">${t('stats.points')}</th>
               </tr>
             </thead>
             <tbody>
@@ -84,17 +84,17 @@ export async function TournoiView() {
         </div>
       </div>
     `;
-    
+
   } catch (err) {
     content.innerHTML = `
       <div class="bg-prem rounded-lg shadow-xl p-6 text-center">
-        <p class="font-sans text-text mb-4">Vous devez être connecté pour participer aux tournois.</p>
+        <p class="font-sans text-text mb-4">${t('auth.loginRequiredTournaments')}</p>
         <a href="/login" class="inline-block bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-6 rounded-lg transition">
-          Se connecter
+          ${t('auth.login')}
         </a>
       </div>
     `;
   }
-  
+
   return wrap;
 }

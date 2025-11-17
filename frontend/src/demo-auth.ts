@@ -1,9 +1,10 @@
-// Système de mode démo pour simuler une connexion
+import { i18n } from "./i18n";
 
 const DEMO_USER = {
   id: 999,
-  username: "demo_user",
   email: "demo@ft_transcendence.com",
+  get displayName() { return i18n.translate('auth.demoUser'); },
+  createdAt: "2024-01-01T00:00:00Z",
   isDemo: true
 };
 
@@ -11,7 +12,6 @@ class DemoAuth {
   private isDemoMode = false;
 
   constructor() {
-    // Vérifier si le mode démo est activé au chargement
     const stored = localStorage.getItem('demo_mode');
     this.isDemoMode = stored === 'true';
   }
