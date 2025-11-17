@@ -1,20 +1,13 @@
-# Utiliser une image Node.js comme base
-FROM node:20-alpine
-
-# Définir le répertoire de travail
+# Stage 1 : Build avec Node
+FROM node:20-bookworm-slim AS build
 WORKDIR /app
-
-# Copier les fichiers de dépendances
-COPY package*.json ./
-
-# Installer les dépendances
+COPY package.json ./
 RUN npm install
-
-# Copier tous les fichiers du projet
 COPY . .
+RUN npm run build
 
-# Exposer le port 3000
-EXPOSE 3000
-
-# Démarrer l'application en mode développement
-CMD ["npm", "run", "dev"]
+# Stage 2 : Servir avec Nginx
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80

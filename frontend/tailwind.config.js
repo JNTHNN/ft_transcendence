@@ -9,8 +9,7 @@ export default {
       colors: {
         prem: '#06492D',
         sec: '#BB5522',
-        text: '#FFFFFF',
-        red: '#FF0000'
+        text: '#FFFFFF'
       },
     },
   },

@@ -1,59 +1,36 @@
-// Interface pour les routes
-export interface Route {
-  path: string;
-  component: () => Promise<string>;
+const routes: Record<string, () => Promise<HTMLElement>> = {
+  "/": async () => (await import("./views/MenuView")).MenuView(),
+  "/login": async () => (await import("./views/Login")).default(),
+  "/signup": async () => (await import("./views/Signup")).default(),
+  "/profil": async () => (await import("./views/ProfilView")).ProfilView(),
+  "/chat": async () => (await import("./views/Chat")).default(),
+  "/match": async () => (await import("./views/Match")).default(),
+  "/partie": async () => (await import("./views/PartieView")).PartieView(),
+  "/tournoi": async () => (await import("./views/TournoiView")).TournoiView()
+};
+
+function navigate(path: string) { 
+  history.pushState({}, "", path); 
+  render(); 
 }
 
-// Classe Router pour gérer la navigation SPA
-export class Router {
-  private routes: Route[] = [];
-  private currentPath: string = '/';
+async function render() {
+  const root = document.getElementById("app")!;
+  const path = location.pathname in routes ? location.pathname : "/";
+  root.replaceChildren(await routes[path]());
+}
 
-  constructor() {
-    // Écouter les changements d'historique (boutons précédent/suivant)
-    window.addEventListener('popstate', () => {
-      this.loadRoute(window.location.pathname);
-    });
-  }
-
-  // Ajouter une route
-  addRoute(path: string, component: () => Promise<string>): void {
-    this.routes.push({ path, component });
-  }
-
-  // Naviguer vers une route
-  async navigate(path: string): Promise<void> {
-    if (this.currentPath !== path) {
-      this.currentPath = path;
-      window.history.pushState({}, '', path);
-      await this.loadRoute(path);
-    }
-  }
-
-  // Charger une route
-  private async loadRoute(path: string): Promise<void> {
-    const route = this.routes.find(r => r.path === path);
-    
-    if (route) {
-      const content = await route.component();
-      const appElement = document.getElementById('app-content');
-      
-      if (appElement) {
-        appElement.innerHTML = content;
+export const router = {
+  start() {
+    window.addEventListener("popstate", render);
+    document.body.addEventListener("click", (e) => {
+      const a = (e.target as HTMLElement).closest("a[href]");
+      if (a && a.getAttribute("href")?.startsWith("/")) { 
+        e.preventDefault(); 
+        navigate(a.getAttribute("href")!); 
       }
-    } else {
-      // Route par défaut (404)
-      this.navigate('/');
-    }
-  }
-
-  // Initialiser le router
-  async init(): Promise<void> {
-    const path = window.location.pathname;
-    this.currentPath = path;
-    await this.loadRoute(path);
-  }
-}
-
-// Instance unique du router
-export const router = new Router();
+    });
+    render();
+  }, 
+  navigate
+};

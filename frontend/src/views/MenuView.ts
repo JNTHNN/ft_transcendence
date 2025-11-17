@@ -1,30 +1,45 @@
-import { Template } from '../template';
+import { api } from "../apiClient";
 
-// Vue pour la page d'accueil / Menu
-export async function MenuView(): Promise<string> {
-  const content = `
-    <p class="text-lg mb-4">
-      Bienvenue dans l'application SPA ! Cette application est construite avec TypeScript et Tailwind CSS.
-    </p>
-    <p class="mb-4">
-      Utilisez le menu à gauche pour naviguer entre les différentes sections.
-    </p>
-  `;
-
-  return `
-    <div class="max-w-4xl mx-auto">
-      ${Template.card('Accueil', content)}
-      
-      <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        ${Template.card(
-          'Navigation SPA',
-          '<p>Cette application utilise un système de routing personnalisé qui supporte les boutons Précédent et Suivant du navigateur.</p>'
-        )}
-        ${Template.card(
-          'Style',
-          '<p>Design avec Tailwind CSS et palette de couleurs personnalisée.</p>'
-        )}
+export async function MenuView() {
+  const wrap = document.createElement("div");
+  wrap.className = "max-w-4xl mx-auto mt-8";
+  
+  wrap.innerHTML = `
+    <h1 class="text-3xl font-bold text-text mb-6">Tournois</h1>
+    <div class="bg-prem rounded-lg shadow-xl p-6 mb-6">
+      <h2 class="text-2xl font-bold text-text mb-4">Bienvenue sur ft_transcendence</h2>
+      <p class="text-text mb-4">
+        Participez à des tournois de Pong en ligne, affrontez d'autres joueurs et grimpez dans le classement !
+      </p>
+      <div class="flex gap-4">
+        <a href="/login" class="bg-sec hover:bg-opacity-80 text-text font-bold py-2 px-6 rounded-lg transition">
+          Se connecter
+        </a>
+        <a href="/signup" class="bg-gray-700 hover:bg-gray-600 text-text font-bold py-2 px-6 rounded-lg border border-sec transition">
+          S'inscrire
+        </a>
       </div>
     </div>
+    
+    <div class="bg-prem rounded-lg shadow-xl p-6">
+      <h3 class="text-xl font-bold text-text mb-4">État du serveur</h3>
+      <pre id="health" class="p-4 bg-gray-700 text-text rounded-lg text-sm overflow-auto"></pre>
+    </div>
+    
+    <div class="mt-6">
+      <p class="text-center">
+        <a href="/match" class="text-sec hover:underline">Voir un match de démonstration →</a>
+      </p>
+    </div>
   `;
+  
+  const pre = wrap.querySelector("#health") as HTMLPreElement;
+  try { 
+    pre.textContent = JSON.stringify(await api("/health"), null, 2); 
+  } catch { 
+    pre.textContent = "API hors ligne"; 
+  }
+  
+  return wrap;
 }
+

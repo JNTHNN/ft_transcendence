@@ -3,26 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPA - TypeScript & Tailwind</title>
+  <title>ft_transcendence - Tournois de Pong</title>
 </head>
 <body class="bg-gray-900 text-text font-sans antialiased">
   <div class="flex h-screen overflow-hidden">
     <!-- Menu vertical -->
     <aside class="w-64 bg-prem shadow-2xl flex-shrink-0">
       <div class="p-6 border-b border-sec">
-        <h1 class="text-2xl font-bold text-text">Transcendence</h1>
+        <h1 class="text-2xl font-bold text-text">ft_transcendence</h1>
       </div>
-      <nav id="sidebar-menu" class="h-[calc(100vh-88px)]">
-        <!-- Le menu sera injecté ici par JavaScript -->
+      <nav class="flex flex-col p-4 space-y-2">
+        <a href="/" class="px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          🏠 Accueil
+        </a>
+        <a href="/tournoi" class="px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          🏆 Tournois
+        </a>
+        <a href="/partie" class="px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          🎮 Jouer
+        </a>
+        <a href="/chat" class="px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          💬 Chat
+        </a>
+        <a href="/profil" class="px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          👤 Profil
+        </a>
+        <a href="/login" class="px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          🔑 Connexion
+        </a>
+        
+        <div class="pt-4 border-t border-sec mt-4">
+          <button id="demo-mode-btn" class="w-full px-4 py-3 text-text bg-sec hover:bg-opacity-80 rounded-lg transition-colors font-semibold">
+            🎭 Mode Démo
+          </button>
+          <p id="demo-status" class="text-xs text-text/50 mt-2 px-4 hidden">Connecté en mode démo</p>
+        </div>
       </nav>
     </aside>
 
     <!-- Contenu principal -->
-    <main class="flex-1 overflow-y-auto bg-sec/75">
-      <div class="container mx-auto px-8 py-8">
-        <div id="app-content">
-          <!-- Le contenu des vues sera injecté ici -->
-        </div>
+    <main class="flex-1 overflow-y-auto bg-gray-800">
+      <div id="app" class="container mx-auto px-8 py-8">
+        <!-- Le contenu des vues sera injecté ici -->
       </div>
     </main>
   </div>
