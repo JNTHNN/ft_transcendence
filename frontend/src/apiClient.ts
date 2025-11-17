@@ -32,7 +32,7 @@ export async function api(path: string, init: RequestInit = {}) {
 }
 
 // Simuler les réponses API en mode démo
-function handleDemoAPI(path: string, init: RequestInit = {}) {
+function handleDemoAPI(path: string, _init: RequestInit = {}) {
   console.log('🎭 Mode démo - API call:', path);
   
   // Simule un délai réseau

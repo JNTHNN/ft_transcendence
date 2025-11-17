@@ -1,0 +1,33 @@
+# --- Certificats SSL locaux (mkcert / traefik) ---
+traefik/certs/
+*.pem
+*.crt
+*.key
+
+# --- Fichiers de build et dépendances ---
+node_modules/
+dist/
+build/
+*.log
+
+# --- Environnements locaux ---
+.env
+.env.local
+.env.development
+.env.production
+
+# --- Docker ---
+*.sqlite
+*.db
+*.pid
+*.sock
+*.tar
+*.bak
+*.tmp
+docker-compose.override.yml
+
+# --- Éditeurs / IDE ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

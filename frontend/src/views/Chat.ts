@@ -24,7 +24,7 @@ export default async function View() {
   const chatForm = wrap.querySelector("#chatForm") as HTMLFormElement;
   
   try {
-    const ws = connectWS("/chat", (msg) => {
+    const ws = connectWS('/chat', (msg: any) => {
       const p = document.createElement("p");
       p.className = "mb-2 font-sans text-text";
       p.textContent = `${msg.username || "Anonyme"}: ${msg.text || JSON.stringify(msg)}`;

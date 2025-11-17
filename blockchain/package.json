@@ -1,0 +1,14 @@
+{
+  "name": "ftt-chain",
+  "private": true,
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.8.0",
+    "hardhat": "^2.22.0"
+  }
+}
