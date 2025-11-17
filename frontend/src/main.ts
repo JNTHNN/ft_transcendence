@@ -1,6 +1,6 @@
 import './style.css';
 import { router } from './router';
-import { menuManager } from './views/menu';
+import { menuManager } from './views/Menu';
 import { authManager } from './auth';
 import { i18n, t } from './i18n/index.js';
 
