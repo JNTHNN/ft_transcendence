@@ -211,7 +211,8 @@ class AuthManager {
       await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({})
       });
     } catch (error) {
       console.warn('Server logout failed:', error);
