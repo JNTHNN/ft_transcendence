@@ -11,7 +11,33 @@ export default {
         sec: '#BB5522',
         text: '#FFFFFF'
       },
+      fontFamily: {
+        'display': ['Playfair Display', 'serif'],
+        'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+	  fontWeight: {
+		'normal': '400',
+	  },
     },
   },
-  plugins: [],
+  plugins: [
+    // Plugin personnalisé pour la scrollbar
+    function({ addBase }) {
+      addBase({
+        '::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '::-webkit-scrollbar-track': {
+          backgroundColor: '#1a1a1a',
+        },
+        '::-webkit-scrollbar-thumb': {
+          backgroundColor: '#06492D',
+          borderRadius: '4px',
+        },
+        '::-webkit-scrollbar-thumb:hover': {
+          backgroundColor: '#BB5522',
+        },
+      })
+    }
+  ],
 }

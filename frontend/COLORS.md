@@ -8,7 +8,7 @@
   - Vert foncé
   - Utilisée pour : fond principal, sidebar, cartes
   
-- **Couleur secondColoraire (secondColorary)** : `#BB5522`
+- **Couleur secondColoraire (sec)** : `#BB5522`
   - Orange/Cuivre
   - Utilisée pour : boutons, bordures, accents, titres
   
@@ -23,18 +23,18 @@ Les couleurs sont configurées dans `tailwind.config.js` et peuvent être utilis
 ```html
 <!-- Fond -->
 <div class="bg-mainColor">...</div>
-<div class="bg-secondColorary">...</div>
+<div class="bg-sec">...</div>
 
 <!-- Texte -->
 <p class="text-text">...</p>
-<h1 class="text-secondColorary">...</h1>
+<h1 class="text-sec">...</h1>
 
 <!-- Bordures -->
-<div class="border-secondColorary">...</div>
+<div class="border-sec">...</div>
 <div class="border-text">...</div>
 
 <!-- Hover -->
-<button class="hover:bg-secondColorary">...</button>
+<button class="hover:bg-sec">...</button>
 ```
 
 ## Exemples d'utilisation
@@ -44,8 +44,8 @@ Les couleurs sont configurées dans `tailwind.config.js` et peuvent être utilis
 Template.card('Titre', 'Contenu')
 // Génère une carte avec:
 // - Fond: #06492D (mainColor)
-// - Bordure: #BB5522 (secondColorary)
-// - Titre: #BB5522 (secondColorary)
+// - Bordure: #BB5522 (sec)
+// - Titre: #BB5522 (sec)
 // - Texte: #FFFFFF (text)
 ```
 
@@ -53,7 +53,7 @@ Template.card('Titre', 'Contenu')
 ```typescript
 Template.button('Cliquez-moi')
 // Génère un bouton avec:
-// - Fond: #BB5522 (secondColorary)
+// - Fond: #BB5522 (sec)
 // - Texte: #FFFFFF (text)
 // - Hover: orange plus clair
 ```
@@ -63,6 +63,6 @@ Template.button('Cliquez-moi')
 // Menu avec:
 // - Fond: #06492D (mainColor)
 // - Texte: #FFFFFF (text)
-// - Hover: #BB5522 (secondColorary)
+// - Hover: #BB5522 (sec)
 // - Bordure active: #FFFFFF (text)
 ```
