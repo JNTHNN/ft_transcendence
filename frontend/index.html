@@ -1,7 +1,34 @@
-<!doctype html><html lang="fr"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ft_transcendence</title></head>
-<body><nav>
-  <a href="/">Tournaments</a> | <a href="/login">Login</a> | <a href="/signup">Signup</a> | <a href="/chat">Chat</a>
-</nav><hr/><div id="app"></div>
-<script type="module" src="/src/main.ts"></script></body></html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ft_transcendence - Tournois de Pong</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-sec text-text font-sans antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Menu vertical -->
+    <aside class="w-64 bg-prem shadow-2xl flex-shrink-0">
+      <div class="p-6 border-b border-sec flex items-center justify-center">
+        <img src="/logo.png" alt="Roland Garros Ping Pong" class="w-32 h-32 object-contain">
+      </div>
+      <!-- Le menu sera injecté ici par menu.ts -->
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="flex-1 overflow-y-auto bg-sec/80">
+      <div id="app" class="container mx-auto px-8 py-8">
+        <!-- Le contenu des vues sera injecté ici -->
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
