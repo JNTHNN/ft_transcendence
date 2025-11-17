@@ -7,7 +7,7 @@ export default async function View() {
   wrap.innerHTML = `
     <h1 class="font-display font-black text-4xl font-bold text-text mb-6">Chat en direct</h1>
     <div class="bg-prem rounded-lg shadow-xl p-6">
-      <div id="messages" class="h-96 overflow-y-auto mb-4 p-4 bg-sec rounded-lg">
+      <div id="messages" class="h-96 overflow-y-auto mb-4 p-4 bg-text/70 rounded-lg">
         <p class="font-sans text-text/50">Connexion au chat...</p>
       </div>
       <form id="chatForm" class="flex gap-2">
