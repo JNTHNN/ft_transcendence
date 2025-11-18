@@ -3,6 +3,7 @@ interface User {
   email: string;
   displayName: string;
   createdAt?: string;
+  accountType?: string;
   isDemo?: boolean;
 }
 
@@ -359,11 +360,14 @@ class AuthManager {
     this.updateState({ user: null, token: null });
   }
 
-  async deleteAccount(password: string): Promise<{ success: boolean; error?: string }> {
+  async deleteAccount(password?: string): Promise<{ success: boolean; error?: string }> {
     try {
       if (!this.state.user || !this.state.token) {
         return { success: false, error: 'Non authentifié' };
       }
+
+      // For OAuth42 accounts, don't send password in the request body
+      const requestBody = this.state.user.accountType === 'oauth42' ? {} : { password };
 
       const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/delete-account`, {
         method: 'DELETE',
@@ -372,7 +376,7 @@ class AuthManager {
           'Authorization': `Bearer ${this.state.token}`
         },
         credentials: 'include',
-        body: JSON.stringify({ password })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();

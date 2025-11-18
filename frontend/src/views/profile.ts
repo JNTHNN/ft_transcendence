@@ -413,15 +413,22 @@ export default async function View() {
     deleteAccountBtn.textContent = t('messages.deletingAccount');
 
     try {
-      const requestBody = isOAuth42 ? {} : { password: deletePasswordInput.value };
-      await api('/auth/delete-account', {
-        method: 'DELETE',
-        body: JSON.stringify(requestBody)
-      });
+      let result;
+      if (isOAuth42) {
+        // For OAuth42 accounts, use empty password
+        result = await authManager.deleteAccount('');
+      } else {
+        result = await authManager.deleteAccount(deletePasswordInput.value);
+      }
 
-      alert(t('messages.accountDeletedSuccess'));
-      await authManager.logout();
-      router.navigate("/");
+      if (result.success) {
+        alert(t('messages.accountDeletedSuccess'));
+        router.navigate("/");
+      } else {
+        showDeleteError(result.error || t('errors.deleteError'));
+        deleteAccountBtn.disabled = false;
+        deleteAccountBtn.textContent = t('profile.deleteAccount');
+      }
     } catch (error: any) {
       showDeleteError(t('errors.deleteError') + ": " + error.message);
       deleteAccountBtn.disabled = false;
