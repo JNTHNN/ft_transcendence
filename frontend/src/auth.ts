@@ -1,10 +1,11 @@
+import { api } from './api-client';
+
 interface User {
   id: number;
   email: string;
   displayName: string;
   createdAt?: string;
   accountType?: string;
-  isDemo?: boolean;
 }
 
 interface AuthState {
@@ -61,15 +62,14 @@ class AuthManager {
             isAuthenticated: true,
             isLoading: false
           });
-          console.log('🔑 Restored authentication from storage');
+
           return;
         } else {
-          console.log('🔑 Stored token expired, clearing...');
+
           this.clearStoredAuth();
         }
       }
     } catch (error) {
-      console.error('Failed to load stored auth:', error);
       this.clearStoredAuth();
     }
 
@@ -86,7 +86,7 @@ class AuthManager {
         expiresAt
       }));
 
-      console.log('🔑 Authentication stored successfully');
+
     } catch (error) {
       console.error('Failed to store auth:', error);
     }
@@ -110,29 +110,22 @@ class AuthManager {
 
   private async refreshToken(): Promise<boolean> {
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' }
+      const data = await api('/auth/refresh', {
+        method: 'POST'
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.token) {
-          this.updateState({ token: data.token });
-          if (this.state.user) {
-            this.storeAuth(this.state.user, data.token);
-          }
-          console.log('🔑 Token refreshed successfully');
-          return true;
+      if (data.token) {
+        this.updateState({ token: data.token });
+        if (this.state.user) {
+          this.storeAuth(this.state.user, data.token);
         }
+
+        return true;
       }
 
-      console.warn('🔑 Token refresh failed, logging out...');
       this.logout();
       return false;
     } catch (error) {
-      console.error('Token refresh error:', error);
       return false;
     }
   }
@@ -141,16 +134,12 @@ class AuthManager {
     try {
       this.updateState({ isLoading: true });
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/login`, {
+      const data = await api('/auth/login', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password })
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.user && data.token) {
+      if (data.user && data.token) {
         this.updateState({
           user: data.user,
           token: data.token,
@@ -159,7 +148,7 @@ class AuthManager {
         });
 
         this.storeAuth(data.user, data.token);
-        console.log('🔑 Login successful');
+
         return { success: true };
       } else {
         this.updateState({ isLoading: false });
@@ -167,8 +156,7 @@ class AuthManager {
       }
     } catch (error) {
       this.updateState({ isLoading: false });
-      console.error('Login error:', error);
-      return { success: false, error: 'Network error' };
+      return { success: false, error: error instanceof Error ? error.message : 'Network error' };
     }
   }
 
@@ -176,16 +164,12 @@ class AuthManager {
     try {
       this.updateState({ isLoading: true });
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/signup`, {
+      const data = await api('/auth/signup', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password, displayName })
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.user && data.token) {
+      if (data.user && data.token) {
         this.updateState({
           user: data.user,
           token: data.token,
@@ -194,7 +178,7 @@ class AuthManager {
         });
 
         this.storeAuth(data.user, data.token);
-        console.log('🔑 Signup successful');
+
         return { success: true };
       } else {
         this.updateState({ isLoading: false });
@@ -202,17 +186,14 @@ class AuthManager {
       }
     } catch (error) {
       this.updateState({ isLoading: false });
-      console.error('Signup error:', error);
-      return { success: false, error: 'Network error' };
+      return { success: false, error: error instanceof Error ? error.message : 'Network error' };
     }
   }
 
   async logout() {
     try {
-      await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/logout`, {
+      await api('/auth/logout', {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({})
       });
     } catch (error) {
@@ -227,7 +208,7 @@ class AuthManager {
       isLoading: false
     });
 
-    console.log('🔑 Logged out successfully');
+
   }
 
   getState(): AuthState {
@@ -256,27 +237,20 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/users/profile`, {
+      await api('/users/profile', {
         method: 'PATCH',
         headers: {
-          'content-type': 'application/json',
           'Authorization': `Bearer ${this.state.token}`
         },
-        credentials: 'include',
         body: JSON.stringify(updates)
       });
 
-      if (response.ok) {
-        const updatedUser = { ...this.state.user, ...updates };
-        this.updateState({ user: updatedUser });
-        this.storeAuth(updatedUser, this.state.token);
-        return { success: true };
-      } else {
-        const data = await response.json();
-        return { success: false, error: data.error || 'Échec de la mise à jour' };
-      }
+      const updatedUser = { ...this.state.user, ...updates };
+      this.updateState({ user: updatedUser });
+      this.storeAuth(updatedUser, this.state.token);
+      return { success: true };
     } catch (error: any) {
-      return { success: false, error: 'Erreur de réseau: ' + error.message };
+      return { success: false, error: error.message || 'Network error' };
     }
   }
 
@@ -286,34 +260,26 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/change-password`, {
+      const data = await api('/auth/change-password', {
         method: 'POST',
         headers: {
-          'content-type': 'application/json',
           'Authorization': `Bearer ${this.state.token}`
         },
-        credentials: 'include',
         body: JSON.stringify({
           currentPassword,
           newPassword
         })
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.token) {
-          this.updateState({ token: data.token });
-          if (this.state.user) {
-            this.storeAuth(this.state.user, data.token);
-          }
+      if (data.token) {
+        this.updateState({ token: data.token });
+        if (this.state.user) {
+          this.storeAuth(this.state.user, data.token);
         }
-        return { success: true };
-      } else {
-        return { success: false, error: data.error || 'Échec du changement de mot de passe' };
       }
+      return { success: true };
     } catch (error: any) {
-      return { success: false, error: 'Erreur de réseau: ' + error.message };
+      return { success: false, error: error.message || 'Network error' };
     }
   }
 
@@ -323,41 +289,38 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/change-email`, {
+      await api('/auth/change-email', {
         method: 'POST',
         headers: {
-          'content-type': 'application/json',
           'Authorization': `Bearer ${this.state.token}`
         },
-        credentials: 'include',
         body: JSON.stringify({
           newEmail,
           password
         })
       });
 
-      const data = await response.json();
+      const updatedUser = { ...this.state.user, email: newEmail };
+      this.updateState({ user: updatedUser });
 
-      if (response.ok) {
-        const updatedUser = { ...this.state.user, email: newEmail };
-        this.updateState({ user: updatedUser });
-
-        if (this.state.token) {
-          this.storeAuth(updatedUser, this.state.token);
-        }
-
-        return { success: true };
-      } else {
-        return { success: false, error: data.error || 'Échec du changement d\'email' };
+      if (this.state.token) {
+        this.storeAuth(updatedUser, this.state.token);
       }
+
+      return { success: true };
     } catch (error: any) {
-      return { success: false, error: 'Erreur de réseau: ' + error.message };
+      return { success: false, error: error.message || 'Network error' };
     }
   }
 
   clearAuth(): void {
     localStorage.removeItem('ft_transcendence_auth');
-    this.updateState({ user: null, token: null });
+    this.updateState({ 
+      user: null, 
+      token: null, 
+      isAuthenticated: false,
+      isLoading: false 
+    });
   }
 
   async deleteAccount(password?: string): Promise<{ success: boolean; error?: string }> {
@@ -366,40 +329,27 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      // For OAuth42 accounts, don't send password in the request body
       const requestBody = this.state.user.accountType === 'oauth42' ? {} : { password };
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/delete-account`, {
+      await api('/auth/delete-account', {
         method: 'DELETE',
         headers: {
-          'content-type': 'application/json',
           'Authorization': `Bearer ${this.state.token}`
         },
-        credentials: 'include',
         body: JSON.stringify(requestBody)
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        this.clearAuth();
-        return { success: true };
-      } else {
-        return { success: false, error: data.error || 'Échec de la suppression du compte' };
-      }
+      this.clearAuth();
+      return { success: true };
     } catch (error: any) {
-      return { success: false, error: 'Erreur de réseau: ' + error.message };
+      return { success: false, error: error.message || 'Network error' };
     }
   }
 
   async loginWithOAuth42(code: string, state?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/oauth42/callback`, {
+      const data = await api('/auth/oauth42/callback', {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        credentials: 'include',
         body: JSON.stringify({
           code,
           state,
@@ -407,24 +357,18 @@ class AuthManager {
         })
       });
 
-      const data = await response.json();
+      this.updateState({
+        user: data.user,
+        token: data.token,
+        isAuthenticated: true,
+        isLoading: false
+      });
 
-      if (response.ok) {
-        this.updateState({
-          user: data.user,
-          token: data.token,
-          isAuthenticated: true,
-          isLoading: false
-        });
-
-        this.storeAuth(data.user, data.token);
-        this.startTokenRefresh();
-        return { success: true };
-      } else {
-        return { success: false, error: data.error || 'Échec de la connexion OAuth' };
-      }
+      this.storeAuth(data.user, data.token);
+      this.startTokenRefresh();
+      return { success: true };
     } catch (error: any) {
-      return { success: false, error: 'Erreur de réseau: ' + error.message };
+      return { success: false, error: error.message || 'Network error' };
     }
   }
 }

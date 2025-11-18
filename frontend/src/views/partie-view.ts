@@ -15,7 +15,7 @@ export async function PartieView() {
 
   try {
     await api("/auth/me");
-
+    
     content.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-prem rounded-lg shadow-xl p-6 flex flex-col justify-between">
@@ -54,7 +54,7 @@ ${t('common.create')}
       </div>
     `;
 
-  } catch (err) {
+  } catch (error) {
     content.innerHTML = `
       <div class="bg-prem rounded-lg shadow-xl p-6 text-center">
         <p class="font-sans text-text mb-4">${t('auth.loginRequired')}</p>

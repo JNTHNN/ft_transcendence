@@ -21,7 +21,6 @@ export default {
     },
   },
   plugins: [
-    // Plugin personnalisé pour la scrollbar
     function({ addBase }) {
       addBase({
         '::-webkit-scrollbar': {

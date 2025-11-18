@@ -27,9 +27,7 @@ export default {
     signupHere: "Sign up here",
     loginButton: "Log in",
     signupButton: "Sign up",
-    demoMode: "Demo Mode",
-    exitDemoMode: "Exit Demo Mode",
-    demoModeActive: "Connected in demo mode",
+
     loggingIn: "Logging in...",
     signingUp: "Signing up...",
     loginRequired: "You must be logged in to access this page",
@@ -90,12 +88,10 @@ export default {
     passwordChanged: "Password changed successfully!",
     accountDeleted: "Your account has been successfully deleted.\\nYou will be redirected to the homepage.",
     oauth42AccountDeleted: "OAuth2 account deleted successfully. Note: This only deletes your account from our platform, not from 42.",
-    accountDeletedSuccess: "Your account has been successfully deleted.\\nYou will be redirected to the homepage.",
-    confirmDeleteAccountTitle: "WARNING!\\n\\nAre you absolutely sure you want to delete your account?\\n\\nThis action is IRREVERSIBLE and will delete:\\n• Your profile and personal data\\n• All your game history\\n• Your statistics and rankings\\n• Your chat messages\\n\\nType 'DELETE' in the next dialog to confirm.",
-    confirmDeleteAccountFinal: "To definitively confirm account deletion, type exactly:\\n\\nDELETE",
-    incorrectDeleteConfirmation: "Incorrect confirmation. Deletion cancelled.",
+
+
     deletingAccount: "Deleting account...",
-    confirmLogout: "Are you sure you want to log out?",
+
     confirmDeleteAccount: "Are you absolutely sure you want to delete your account?",
     noChangesDetected: "No changes detected",
     invalidEmailFormat: "Invalid email format",
@@ -136,7 +132,7 @@ export default {
     deleteError: "Account deletion failed",
     passwordChangeFailed: "Password change failed",
     apiOffline: "API server is offline",
-    logoutError: "Logout failed",
+
     accessDenied: "Access denied. You cancelled the OAuth2 authentication."
   },
 

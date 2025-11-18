@@ -15,7 +15,7 @@ export async function TournoiView() {
 
   try {
     await api("/auth/me");
-
+    
     content.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-prem rounded-lg shadow-xl p-6">
@@ -85,7 +85,7 @@ export async function TournoiView() {
       </div>
     `;
 
-  } catch (err) {
+  } catch (error) {
     content.innerHTML = `
       <div class="bg-prem rounded-lg shadow-xl p-6 text-center">
         <p class="font-sans text-text mb-4">${t('auth.loginRequiredTournaments')}</p>

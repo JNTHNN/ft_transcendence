@@ -130,7 +130,7 @@ export default async function View() {
         showError(result.error || t('errors.signupFailed'));
       }
     } catch (error: any) {
-      showError(t('errors.networkError') + ": " + error.message);
+      showError(`${t('errors.networkError')}: ${error.message}`);
     } finally {
       signupBtn.disabled = false;
       signupBtn.textContent = t('auth.signup');

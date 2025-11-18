@@ -47,7 +47,7 @@ export default async function View() {
     ws.onerror = () => {
       messages.innerHTML = `<p class="font-sans text-red-500">✗ ${t('chat.disconnected')}</p>`;
     };
-  } catch (err) {
+  } catch (error) {
     messages.innerHTML = `<p class="font-sans text-red-500">✗ ${t('chat.disconnected')}</p>`;
   }
 

@@ -1,5 +1,4 @@
 import { router } from '../router';
-import { demoAuth } from '../demo-auth';
 import { authManager, type AuthState } from '../auth';
 import { api } from '../api-client';
 import { i18n, t } from '../i18n/index.js';
@@ -14,8 +13,6 @@ interface FullUser {
 }
 
 export class MenuManager {
-  private demoBtn: HTMLButtonElement | null = null;
-  private demoStatus: HTMLParagraphElement | null = null;
   private authState: AuthState = authManager.getState();
   private unsubscribeAuth: (() => void) | null = null;
   private unsubscribeI18n: (() => void) | null = null;
@@ -23,7 +20,6 @@ export class MenuManager {
 
   constructor() {
     this.initializeMenu();
-    this.setupDemoMode();
     this.setupAuthListener();
     this.setupLanguageListener();
   }
@@ -37,9 +33,10 @@ export class MenuManager {
   }
 
   private setupAuthListener() {
-    this.unsubscribeAuth = authManager.onAuthChange(async (state) => {
-      this.authState = state;
-      if (state.isAuthenticated) {
+    this.unsubscribeAuth = authManager.onAuthChange(async () => {
+      this.authState = authManager.getState();
+      
+      if (this.authState.isAuthenticated && !this.authState.isLoading) {
         await this.loadFullUserData();
       } else {
         this.fullUser = null;
@@ -50,11 +47,18 @@ export class MenuManager {
 
   private async loadFullUserData() {
     try {
-      if (this.authState.isAuthenticated) {
+      const authState = authManager.getState();
+      if (authState.isAuthenticated && 
+          !authState.isLoading && 
+          authState.user && 
+          authState.token && 
+          authManager.isAuthenticated()) {
         this.fullUser = await api('/auth/me');
       }
-    } catch (error) {
-      console.error('Failed to load full user data:', error);
+    } catch (error: any) {
+      if (error?.message !== 'Authentication expired') {
+        console.error('Failed to load full user data:', error);
+      }
       this.fullUser = null;
     }
   }
@@ -68,8 +72,9 @@ export class MenuManager {
   }
 
   private updateMenuForAuthState() {
-    const isAuthenticated = this.authState.isAuthenticated;
-    const user = this.authState.user;
+    const currentState = authManager.getState();
+    const isAuthenticated = currentState.isAuthenticated;
+    const user = currentState.user;
 
     const menuHTML = `
       <nav class="font-display text-2xl font-black flex flex-col p-4 space-y-2">
@@ -130,11 +135,7 @@ export class MenuManager {
           <div class="pt-4 border-t border-sec mt-4">
             <div class="space-y-2">
               ${createLanguageButton()}
-              <button id="demo-mode-btn" class="w-full px-4 py-3 text-text bg-sec hover:bg-opacity-80 rounded-lg transition-colors font-black">
-                🎭 ${t('auth.demoMode')}
-              </button>
             </div>
-            <p id="demo-status" class="text-xs text-text/50 mt-2 px-4 hidden">${t('auth.demoModeActive')}</p>
           </div>
         `}
       </nav>
@@ -150,8 +151,7 @@ export class MenuManager {
       }
     }
 
-    this.demoBtn = document.getElementById('demo-mode-btn') as HTMLButtonElement;
-    this.demoStatus = document.getElementById('demo-status') as HTMLParagraphElement;
+
 
     this.setupEventHandlers();
   }
@@ -173,10 +173,8 @@ export class MenuManager {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
-        if (confirm(t('messages.confirmLogout'))) {
-          await authManager.logout();
-          router.navigate('/');
-        }
+        await authManager.logout();
+        router.navigate('/');
       });
     }
 
@@ -188,40 +186,10 @@ export class MenuManager {
       });
     }
 
-    if (this.demoBtn && this.demoStatus) {
-      this.demoBtn.addEventListener('click', () => {
-        if (demoAuth.isActive()) {
-          demoAuth.disableDemoMode();
-          this.updateDemoUI(false);
-          router.navigate('/');
-        } else {
-          demoAuth.enableDemoMode();
-          this.updateDemoUI(true);
-          router.navigate('/profile');
-        }
-      });
 
-      const initialState = demoAuth.isActive();
-      this.updateDemoUI(initialState);
-    }
   }
 
-  private setupDemoMode() {
-  }
 
-  private updateDemoUI(isActive: boolean) {
-    if (!this.demoBtn || !this.demoStatus) return;
-
-    if (isActive) {
-      this.demoBtn.textContent = `🔓 ${t('auth.exitDemoMode')}`;
-      this.demoBtn.className = 'w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-black';
-      this.demoStatus.classList.remove('hidden');
-    } else {
-      this.demoBtn.textContent = `🎭 ${t('auth.demoMode')}`;
-      this.demoBtn.className = 'w-full px-4 py-3 text-text bg-sec hover:bg-opacity-80 rounded-lg transition-colors font-black';
-      this.demoStatus.classList.add('hidden');
-    }
-  }
 
   public setActiveLink(path: string) {
 
@@ -235,6 +203,16 @@ export class MenuManager {
       activeLink.classList.add('bg-sec', 'text-prem');
       activeLink.classList.remove('text-text');
     }
+  }
+
+  public forceUpdate() {
+    this.authState = authManager.getState();
+    if (this.authState.isAuthenticated) {
+      this.loadFullUserData();
+    } else {
+      this.fullUser = null;
+    }
+    this.updateMenuForAuthState();
   }
 
   public destroy() {

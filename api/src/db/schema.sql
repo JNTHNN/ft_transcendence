@@ -1,6 +1,5 @@
 PRAGMA foreign_keys = ON;
 
--- Utilisateurs
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT UNIQUE NOT NULL,
@@ -10,13 +9,12 @@ CREATE TABLE IF NOT EXISTS users (
   account_type TEXT NOT NULL DEFAULT 'local' CHECK (account_type IN ('local', 'oauth42')),
   oauth42_id INTEGER UNIQUE,
   oauth42_login TEXT UNIQUE,
-  oauth42_data TEXT, -- JSON stockant les données 42 (campus, niveau, etc.)
+  oauth42_data TEXT,
   last_42_sync DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Refresh tokens persistants (opaques, rotatifs)
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,

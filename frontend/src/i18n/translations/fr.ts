@@ -27,9 +27,7 @@ export default {
     signupHere: "Inscrivez-vous ici",
     loginButton: "Se connecter",
     signupButton: "S'inscrire",
-    demoMode: "Mode Démo",
-    exitDemoMode: "Quitter le mode démo",
-    demoModeActive: "Connecté en mode démo",
+
     loggingIn: "Connexion...",
     signingUp: "Inscription...",
     loginRequired: "Vous devez être connecté pour accéder à cette page",
@@ -90,12 +88,10 @@ export default {
     passwordChanged: "Mot de passe changé avec succès !",
     accountDeleted: "Votre compte a été supprimé avec succès.\\nVous allez être redirigé vers la page d'accueil.",
     oauth42AccountDeleted: "Compte OAuth2 supprimé avec succès. Note: Cela ne supprime que votre compte de notre plateforme, pas de 42.",
-    accountDeletedSuccess: "Votre compte a été supprimé avec succès.\\nVous allez être redirigé vers la page d'accueil.",
-    confirmDeleteAccountTitle: "ATTENTION !\\n\\nÊtes-vous absolument certain de vouloir supprimer votre compte ?\\n\\nCette action est IRRÉVERSIBLE et supprimera :\\n• Votre profil et vos données personnelles\\n• Tout votre historique de parties\\n• Vos statistiques et classements\\n• Vos messages de chat\\n\\nTapez 'SUPPRIMER' dans la prochaine boîte de dialogue pour confirmer.",
-    confirmDeleteAccountFinal: "Pour confirmer définitivement la suppression de votre compte, tapez exactement :\\n\\nSUPPRIMER",
-    incorrectDeleteConfirmation: "Confirmation incorrecte. Suppression annulée.",
+
+
     deletingAccount: "Suppression en cours...",
-    confirmLogout: "Êtes-vous sûr de vouloir vous déconnecter ?",
+
     confirmDeleteAccount: "Êtes-vous absolument certain de vouloir supprimer votre compte ?",
     noChangesDetected: "Aucune modification détectée",
     invalidEmailFormat: "Format d'email invalide",
@@ -136,7 +132,7 @@ export default {
     deleteError: "Échec de la suppression du compte",
     passwordChangeFailed: "Échec du changement de mot de passe",
     apiOffline: "Le serveur API est hors ligne",
-    logoutError: "Échec de la déconnexion",
+
     accessDenied: "Accès refusé. Vous avez annulé l'authentification OAuth2."
   },
 

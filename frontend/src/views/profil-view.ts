@@ -15,7 +15,7 @@ export async function ProfilView() {
 
   try {
     const user = await api("/auth/me");
-
+    
     content.innerHTML = `
       <div class="bg-prem rounded-lg shadow-xl p-6 mb-6">
         <h2 class="font-display font-black text-3xl font-black text-text mb-4">${t('common.accountInfo')}</h2>
@@ -55,12 +55,12 @@ export async function ProfilView() {
       try {
         await api("/auth/logout", { method: "POST" });
         router.navigate("/");
-      } catch (err) {
-        alert(t('errors.logoutError'));
-      }
+      } catch (error) {
+        router.navigate("/");
+      };
     };
 
-  } catch (err: any) {
+  } catch (error) {
     content.innerHTML = `
       <div class="bg-prem rounded-lg shadow-xl p-6 text-center">
         <p class="font-sans text-text mb-4">${t('auth.loginRequired')}</p>

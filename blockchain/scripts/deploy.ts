@@ -10,6 +10,5 @@ async function main() {
   const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, wallet);
   const c = await factory.deploy();
   const deployed = await c.waitForDeployment();
-  console.log("Scores deployed at:", await deployed.getAddress());
 }
 main().catch((e)=>{ console.error(e); process.exit(1); });

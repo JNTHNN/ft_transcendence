@@ -4,12 +4,8 @@ import { menuManager } from './views/Menu';
 import { authManager } from './auth';
 import { i18n, t } from './i18n/index.js';
 
-console.log('🔑 Initializing authentication system...');
-
 const initApp = async () => {
-  console.log('🌍 Initializing i18n system...');
   i18n.initialize().then(() => {
-    console.log('✅ i18n system fully loaded');
     window.dispatchEvent(new CustomEvent('i18nReady'));
   });
 
@@ -34,8 +30,6 @@ const initApp = async () => {
   menuManager;
 
   router.start();
-
-  console.log('🚀 Application initialized successfully');
 };
 
 initApp();

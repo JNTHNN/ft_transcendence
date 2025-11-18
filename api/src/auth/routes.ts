@@ -3,12 +3,13 @@ import { signupSchema, loginSchema } from './schemas.js';
 import Database from 'better-sqlite3';
 import argon2 from 'argon2';
 import crypto from 'crypto';
+import { createI18nForRequest } from '../i18n/translations.js';
 
 declare const process: any;
 
-const ACCESS_TTL = '15m';       // short JWT
-const REFRESH_DAYS = 7;         // refresh duration
-const COOKIE_NAME = 'rt';       // refresh cookie name
+const ACCESS_TTL = '15m';
+const REFRESH_DAYS = 7;
+const COOKIE_NAME = 'rt';
 
 function nowPlusDays(days: number) {
   const d = new Date();
@@ -16,7 +17,6 @@ function nowPlusDays(days: number) {
   return d;
 }
 function toSqliteDate(d: Date) {
-  // YYYY-MM-DD HH:MM:SS
   return d.toISOString().replace('T', ' ').slice(0, 19);
 }
 
@@ -52,43 +52,66 @@ function rotateRefreshToken(db: Database.Database, oldToken: string, userId: num
 }
 
 export async function registerAuthRoutes(app: FastifyInstance, db: Database.Database) {
-  // --- POST /auth/signup ---
-  app.post('/auth/signup', async (req, res) => {
-    const body = signupSchema.parse(req.body);
-    const hash = await argon2.hash(body.password);
+  app.post('/auth/signup', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
+    
     try {
-      const stmt = db.prepare(
-        'INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)'
-      );
-      const info = stmt.run(body.email, hash, body.displayName);
+      const body = signupSchema.parse(req.body);
+      const hash = await argon2.hash(body.password);
+      
+      try {
+        const stmt = db.prepare(
+          'INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)'
+        );
+        const info = stmt.run(body.email, hash, body.displayName);
 
-      const access = app.jwt.sign(
-        { uid: info.lastInsertRowid, email: body.email },
-        { expiresIn: ACCESS_TTL }
-      );
-      const rt = createRefreshToken(db, Number(info.lastInsertRowid));
-      setRefreshCookie(res, rt);
+        const access = app.jwt.sign(
+          { uid: info.lastInsertRowid, email: body.email },
+          { expiresIn: ACCESS_TTL }
+        );
+        const rt = createRefreshToken(db, Number(info.lastInsertRowid));
+        setRefreshCookie(res, rt);
 
-      return res.send({ token: access, user: { id: info.lastInsertRowid, email: body.email, displayName: body.displayName } });
+        return res.send({ token: access, user: { id: info.lastInsertRowid, email: body.email, displayName: body.displayName } });
+      } catch (e: any) {
+        if (String(e?.message || '').includes('UNIQUE')) {
+          return res.status(409).send({ error: reqI18n.t('emailAlreadyExists') });
+        }
+        app.log.error(e);
+        return res.status(500).send({ error: reqI18n.t('signupFailed') });
+      }
     } catch (e: any) {
-      if (String(e?.message || '').includes('UNIQUE')) {
-        return res.status(409).send({ error: 'Email already exists' });
+      if (e.name === 'ZodError') {
+        const firstError = e.errors[0];
+        let errorMessage = reqI18n.t('validationError');
+        
+        if (firstError.path[0] === 'email' && firstError.code === 'invalid_string') {
+          errorMessage = reqI18n.t('invalidEmail');
+        } else if (firstError.path[0] === 'password' && firstError.code === 'too_small') {
+          errorMessage = reqI18n.t('passwordMinLength');
+        } else if (firstError.path[0] === 'displayName') {
+          errorMessage = reqI18n.t('displayNameRequired');
+        }
+        
+        return res.status(400).send({ error: errorMessage });
       }
       app.log.error(e);
-      return res.status(500).send({ error: 'Signup failed' });
+      return res.status(500).send({ error: reqI18n.t('signupFailed') });
     }
   });
 
-  // --- POST /auth/login ---
-  app.post('/auth/login', async (req, res) => {
-    const body = loginSchema.parse(req.body);
-    const row = db
-      .prepare('SELECT id, password_hash, email, display_name FROM users WHERE email = ?')
-      .get(body.email) as any;
+  app.post('/auth/login', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
+    
+    try {
+      const body = loginSchema.parse(req.body);
+      const row = db
+        .prepare('SELECT id, password_hash, email, display_name FROM users WHERE email = ?')
+        .get(body.email) as any;
 
-    if (!row) return res.status(401).send({ error: 'Invalid credentials' });
-    const ok = await argon2.verify(row.password_hash, body.password);
-    if (!ok) return res.status(401).send({ error: 'Invalid credentials' });
+      if (!row) return res.status(401).send({ error: reqI18n.t('invalidCredentials') });
+      const ok = await argon2.verify(row.password_hash, body.password);
+      if (!ok) return res.status(401).send({ error: reqI18n.t('invalidCredentials') });
 
     const access = app.jwt.sign(
       { uid: row.id, email: row.email },
@@ -97,30 +120,47 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
     const rt = createRefreshToken(db, row.id);
     setRefreshCookie(res, rt);
 
-    return res.send({
-      token: access,
-      user: { id: row.id, email: row.email, displayName: row.display_name }
-    });
+      return res.send({
+        token: access,
+        user: { id: row.id, email: row.email, displayName: row.display_name }
+      });
+    } catch (e: any) {
+      const reqI18n = createI18nForRequest(req.headers);
+      if (e.name === 'ZodError') {
+        const firstError = e.errors[0];
+        let errorMessage = reqI18n.t('validationError');
+        
+        if (firstError.path[0] === 'email' && firstError.code === 'invalid_string') {
+          errorMessage = reqI18n.t('invalidEmail');
+        } else if (firstError.path[0] === 'password' && firstError.code === 'too_small') {
+          errorMessage = reqI18n.t('passwordMinLength');
+        }
+        
+        return res.status(400).send({ error: errorMessage });
+      }
+      app.log.error(e);
+      return res.status(500).send({ error: reqI18n.t('invalidCredentials') });
+    }
   });
 
-  // --- GET /auth/me ---
-  app.get('/auth/me', async (req: any, res) => {
+  app.get('/auth/me', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const auth = req.headers.authorization;
       if (!auth?.startsWith('Bearer ')) {
-        return res.status(401).send({ error: 'Missing token' });
+        return res.status(401).send({ error: reqI18n.t('missingToken') });
       }
       const token = auth.slice(7);
       const decoded: any = app.jwt.verify(token);
       const uid = decoded?.uid;
       if (!uid) {
-        return res.status(400).send({ error: 'Invalid token payload' });
+        return res.status(400).send({ error: reqI18n.t('invalidTokenPayload') });
       }
       const row = db
         .prepare('SELECT id, email, display_name, created_at, avatar_url, account_type, oauth42_login, oauth42_data, last_42_sync FROM users WHERE id = ?')
         .get(uid) as any;
 
-      if (!row) return res.status(404).send({ error: 'User not found' });
+      if (!row) return res.status(404).send({ error: reqI18n.t('userNotFound') });
 
       const oauth42Data = row.oauth42_data ? JSON.parse(row.oauth42_data) : null;
 
@@ -137,17 +177,17 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       });
     } catch (e) {
       app.log.error(e);
-      return res.status(401).send({ error: 'Invalid token' });
+      return res.status(401).send({ error: reqI18n.t('sessionExpired') });
     }
   });
 
-  // --- POST /auth/refresh ---
-  app.post('/auth/refresh', async (req: any, res) => {
+  app.post('/auth/refresh', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const cookieRt = req.cookies?.[COOKIE_NAME];
       const bodyRt = (req.body && typeof req.body === 'object') ? (req.body.refreshToken as string | undefined) : undefined;
       const rt = cookieRt || bodyRt;
-      if (!rt) return res.status(401).send({ error: 'Missing refresh token' });
+      if (!rt) return res.status(401).send({ error: reqI18n.t('missingRefreshToken') });
 
       const row = db.prepare(
         `SELECT rt.token, rt.expires_at, rt.revoked, u.id AS user_id, u.email, u.display_name
@@ -156,11 +196,11 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
          WHERE rt.token = ?`
       ).get(rt) as any;
 
-      if (!row) return res.status(401).send({ error: 'Invalid refresh token' });
-      if (row.revoked) return res.status(401).send({ error: 'Refresh token revoked' });
+      if (!row) return res.status(401).send({ error: reqI18n.t('invalidRefreshToken') });
+      if (row.revoked) return res.status(401).send({ error: reqI18n.t('refreshTokenRevoked') });
       if (new Date(row.expires_at).getTime() < Date.now()) {
         db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE token = ?').run(rt);
-        return res.status(401).send({ error: 'Refresh token expired' });
+        return res.status(401).send({ error: reqI18n.t('refreshTokenExpired') });
       }
 
       const newRt = rotateRefreshToken(db, rt, row.user_id);
@@ -170,12 +210,12 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       return res.send({ token: access });
     } catch (e) {
       app.log.error(e);
-      return res.status(401).send({ error: 'Invalid token' });
+      return res.status(401).send({ error: reqI18n.t('sessionExpired') });
     }
   });
 
-  // --- POST /auth/logout ---
-  app.post('/auth/logout', async (req: any, res) => {
+  app.post('/auth/logout', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const rt = req.cookies?.[COOKIE_NAME];
       if (rt) {
@@ -189,7 +229,8 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  app.delete('/auth/sessions', async (req: any, res) => {
+  app.get('/auth/sessions', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const auth = req.headers.authorization;
       if (!auth?.startsWith('Bearer ')) {
@@ -209,35 +250,35 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // --- POST /auth/change-password ---
-  app.post('/auth/change-password', async (req: any, res) => {
+  app.post('/auth/change-password', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const auth = req.headers.authorization;
       if (!auth?.startsWith('Bearer ')) {
-        return res.status(401).send({ error: 'Missing token' });
+        return res.status(401).send({ error: reqI18n.t('missingToken') });
       }
       const token = auth.slice(7);
       const decoded: any = app.jwt.verify(token);
       const uid = decoded?.uid;
-      if (!uid) return res.status(400).send({ error: 'Invalid token payload' });
+      if (!uid) return res.status(400).send({ error: reqI18n.t('invalidTokenPayload') });
 
       const { currentPassword, newPassword } = req.body;
       if (!currentPassword || !newPassword) {
-        return res.status(400).send({ error: 'Current password and new password are required' });
+        return res.status(400).send({ error: reqI18n.t('currentPasswordRequired') });
       }
 
       if (newPassword.length < 6) {
-        return res.status(400).send({ error: 'New password must be at least 6 characters' });
+        return res.status(400).send({ error: reqI18n.t('passwordTooShort') });
       }
 
       const user = db.prepare('SELECT id, password_hash FROM users WHERE id = ?').get(uid) as any;
       if (!user) {
-        return res.status(404).send({ error: 'User not found' });
+        return res.status(404).send({ error: reqI18n.t('userNotFound') });
       }
 
       const isCurrentPasswordValid = await argon2.verify(user.password_hash, currentPassword);
       if (!isCurrentPasswordValid) {
-        return res.status(401).send({ error: 'Current password is incorrect' });
+        return res.status(401).send({ error: reqI18n.t('currentPasswordIncorrect') });
       }
 
       const newPasswordHash = await argon2.hash(newPassword);
@@ -250,31 +291,30 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       return res.send({ success: true, message: 'Password changed successfully' });
     } catch (e) {
       app.log.error(e);
-      return res.status(500).send({ error: 'Failed to change password' });
+      return res.status(500).send({ error: reqI18n.t('changePasswordFailed') });
     }
   });
 
-  // --- POST /auth/change-email ---
-  app.post('/auth/change-email', async (req: any, res) => {
+  app.post('/auth/change-email', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const auth = req.headers.authorization;
       if (!auth?.startsWith('Bearer ')) {
-        return res.status(401).send({ error: 'Missing token' });
+        return res.status(401).send({ error: reqI18n.t('missingToken') });
       }
       const token = auth.slice(7);
       const decoded: any = app.jwt.verify(token);
       const uid = decoded?.uid;
-      if (!uid) return res.status(400).send({ error: 'Invalid token payload' });
+      if (!uid) return res.status(400).send({ error: reqI18n.t('invalidTokenPayload') });
 
       const { newEmail, password } = req.body;
       if (!newEmail || !password) {
-        return res.status(400).send({ error: 'New email and password are required' });
+        return res.status(400).send({ error: reqI18n.t('emailAndPasswordRequired') });
       }
 
-      // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(newEmail)) {
-        return res.status(400).send({ error: 'Invalid email format' });
+        return res.status(400).send({ error: reqI18n.t('invalidEmailFormat') });
       }
 
       const user = db.prepare('SELECT id, email, password_hash FROM users WHERE id = ?').get(uid) as any;
@@ -283,31 +323,30 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       }
 
       if (user.email === newEmail) {
-        return res.status(400).send({ error: 'New email must be different from current email' });
+        return res.status(400).send({ error: reqI18n.t('emailMustBeDifferent') });
       }
 
       const isPasswordValid = await argon2.verify(user.password_hash, password);
       if (!isPasswordValid) {
-        return res.status(401).send({ error: 'Password is incorrect' });
+        return res.status(401).send({ error: reqI18n.t('passwordIncorrect') });
       }
 
       const existingUser = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(newEmail, uid) as any;
       if (existingUser) {
-        return res.status(409).send({ error: 'Email already exists' });
+        return res.status(409).send({ error: reqI18n.t('emailAlreadyExists') });
       }
-
 
       db.prepare('UPDATE users SET email = ? WHERE id = ?').run(newEmail, uid);
 
       return res.send({ success: true, message: 'Email changed successfully' });
     } catch (e) {
       app.log.error(e);
-      return res.status(500).send({ error: 'Failed to change email' });
+      return res.status(500).send({ error: reqI18n.t('changeEmailFailed') });
     }
   });
 
-  // --- DELETE /auth/delete-account ---
-  app.delete('/auth/delete-account', async (req: any, res) => {
+  app.delete('/auth/delete-account', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const auth = req.headers.authorization;
       if (!auth?.startsWith('Bearer ')) {
@@ -320,10 +359,9 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
 
       const user = db.prepare('SELECT id, password_hash, account_type, oauth42_login FROM users WHERE id = ?').get(uid) as any;
       if (!user) {
-        return res.status(404).send({ error: 'User not found' });
+        return res.status(404).send({ error: reqI18n.t('userNotFound') });
       }
 
-      // Pour les comptes OAuth2, pas besoin de mot de passe
       if (user.account_type === 'oauth42') {
         const deleteTransaction = db.transaction(() => {
           db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?').run(uid);
@@ -339,15 +377,14 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
           message: 'OAuth2 account deleted successfully. Note: This only removes your account from our platform, not from 42.' 
         });
       } else {
-        // Pour les comptes locaux, vérifier le mot de passe
         const { password } = req.body;
         if (!password) {
-          return res.status(400).send({ error: 'Password is required for local accounts' });
+          return res.status(400).send({ error: reqI18n.t('passwordRequired') });
         }
 
         const isPasswordValid = await argon2.verify(user.password_hash, password);
         if (!isPasswordValid) {
-          return res.status(401).send({ error: 'Password is incorrect' });
+          return res.status(401).send({ error: reqI18n.t('passwordIncorrect') });
         }
 
         const deleteTransaction = db.transaction(() => {
@@ -363,38 +400,36 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       }
     } catch (e) {
       app.log.error(e);
-      return res.status(500).send({ error: 'Failed to delete account' });
+      return res.status(500).send({ error: reqI18n.t('deleteAccountFailed') });
     }
   });
 
-  // --- PUT /auth/profile ---
-  app.put('/auth/profile', async (req: any, res) => {
+  app.put('/auth/profile', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
       const auth = req.headers.authorization;
       if (!auth?.startsWith('Bearer ')) {
-        return res.status(401).send({ error: 'Missing token' });
+        return res.status(401).send({ error: reqI18n.t('missingToken') });
       }
       const token = auth.slice(7);
       const decoded: any = app.jwt.verify(token);
       const uid = decoded?.uid;
       if (!uid) {
-        return res.status(400).send({ error: 'Invalid token payload' });
+        return res.status(400).send({ error: reqI18n.t('invalidTokenPayload') });
       }
 
       const user = db
         .prepare('SELECT email, account_type, oauth42_login FROM users WHERE id = ?')
         .get(uid) as any;
 
-      if (!user) return res.status(404).send({ error: 'User not found' });
+      if (!user) return res.status(404).send({ error: reqI18n.t('userNotFound') });
 
       const { displayName, email } = req.body;
 
-      // Restrictions pour les comptes OAuth2
       if (user.account_type === 'oauth42') {
-        // Les utilisateurs OAuth2 ne peuvent pas changer leur email
         if (email && email !== user.email) {
           return res.status(400).send({ 
-            error: 'OAuth2 users cannot change their email address. Please use your 42 account settings.' 
+            error: reqI18n.t('oauth42EmailRestriction') 
           });
         }
       }
@@ -408,19 +443,18 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       }
 
       if (email && user.account_type !== 'oauth42') {
-        // Vérifier que l'email n'est pas déjà utilisé
         const existing = db
           .prepare('SELECT id FROM users WHERE email = ? AND id != ?')
           .get(email, uid);
         if (existing) {
-          return res.status(400).send({ error: 'Email already in use' });
+          return res.status(400).send({ error: reqI18n.t('emailAlreadyInUse') });
         }
         updates.push('email = ?');
         params.push(email);
       }
 
       if (updates.length === 0) {
-        return res.status(400).send({ error: 'No valid updates provided' });
+        return res.status(400).send({ error: reqI18n.t('noValidUpdates') });
       }
 
       params.push(uid);
@@ -434,14 +468,15 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  app.post('/auth/oauth42/callback', async (req: any, res) => {
+  app.post('/auth/oauth42/callback', async (req: any, res: any) => {
+    const reqI18n = createI18nForRequest(req.headers);
     try {
-      console.log('OAuth2 callback received:', req.body);
+
       const { code, redirect_uri } = req.body;
       
       if (!code) {
-        console.log('Missing authorization code');
-        return res.status(400).send({ error: 'Authorization code is required' });
+
+        return res.status(400).send({ error: reqI18n.t('authCodeRequired') });
       }
 
       const tokenParams = {
@@ -452,7 +487,7 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
           redirect_uri: process.env.OAUTH42_REDIRECT_URI || redirect_uri || 'https://app.localhost/auth/oauth42/callback'
       };
       
-      console.log('Token exchange params:', { ...tokenParams, client_secret: '[HIDDEN]' });
+
       
       const tokenResponse = await fetch('https://api.intra.42.fr/oauth/token', {
         method: 'POST',
@@ -464,8 +499,8 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
-        console.log('Token exchange failed:', tokenResponse.status, errorText);
-        return res.status(400).send({ error: 'Failed to exchange code for token', details: errorText });
+
+        return res.status(400).send({ error: reqI18n.t('tokenExchangeFailed'), details: errorText });
       }
 
       const tokenData = await tokenResponse.json();
@@ -478,13 +513,12 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       });
 
       if (!userResponse.ok) {
-        return res.status(400).send({ error: 'Failed to fetch user data' });
+        return res.status(400).send({ error: reqI18n.t('userDataFetchFailed') });
       }
 
       const userData = await userResponse.json();
-      console.log('User data from 42:', userData);
+
       
-      // Préparer les données utilisateur
       const oauth42Data = JSON.stringify({
         campus: userData.campus?.[0]?.name,
         level: userData.cursus_users?.find((c: any) => c.cursus?.name === '42')?.level,
@@ -497,7 +531,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       let user = db.prepare('SELECT * FROM users WHERE email = ? OR oauth42_id = ?').get(userData.email, userData.id) as any;
       
       if (!user) {
-        // Création d'un nouveau utilisateur OAuth2
         const result = db.prepare(`
           INSERT INTO users (email, display_name, avatar_url, account_type, oauth42_id, oauth42_login, oauth42_data, last_42_sync) 
           VALUES (?, ?, ?, 'oauth42', ?, ?, ?, datetime('now'))
@@ -513,7 +546,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         const userId = result.lastInsertRowid as number;
         user = { id: userId, email: userData.email, display_name: userData.displayname || userData.login, account_type: 'oauth42', avatar_url: userData.image?.versions?.medium || userData.image?.link };
       } else if (!user.oauth42_id) {
-        // Compte local existant, on lie avec 42
         db.prepare(`
           UPDATE users SET 
             oauth42_id = ?, oauth42_login = ?, oauth42_data = ?, 
@@ -526,7 +558,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         user.oauth42_login = userData.login;
         user.avatar_url = user.avatar_url || userData.image?.versions?.medium || userData.image?.link;
       } else {
-        // Utilisateur OAuth42 existant, on synchronise les données
         db.prepare(`
           UPDATE users SET 
             display_name = ?, avatar_url = ?, oauth42_data = ?,
@@ -559,7 +590,7 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       });
     } catch (e) {
       app.log.error(e);
-      return res.status(500).send({ error: 'OAuth callback failed' });
+      return res.status(500).send({ error: reqI18n.t('oauthCallbackFailed') });
     }
   });
 }

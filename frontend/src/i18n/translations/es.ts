@@ -27,9 +27,7 @@ export default {
     signupHere: "Regístrate aquí",
     loginButton: "Iniciar sesión",
     signupButton: "Registrarse",
-    demoMode: "Modo Demo",
-    exitDemoMode: "Salir del modo demo",
-    demoModeActive: "Conectado en modo demo",
+
     loggingIn: "Iniciando sesión...",
     signingUp: "Registrándose...",
     loginRequired: "Debes iniciar sesión para acceder a esta página",
@@ -90,7 +88,7 @@ export default {
     passwordChanged: "¡Contraseña cambiada con éxito!",
     accountDeleted: "Tu cuenta ha sido eliminada con éxito.\\nSerás redirigido a la página de inicio.",
     oauth42AccountDeleted: "Cuenta OAuth2 eliminada con éxito. Nota: Esto solo elimina tu cuenta de nuestra plataforma, no de 42.",
-    confirmLogout: "¿Estás seguro de que quieres cerrar sesión?",
+
     confirmDeleteAccount: "¿Estás absolutamente seguro de que quieres eliminar tu cuenta?",
     noChangesDetected: "No se detectaron cambios",
     invalidEmailFormat: "Formato de correo inválido",
@@ -107,10 +105,8 @@ export default {
     signupSuccess: "¡Cuenta creada con éxito!",
     noData: "No hay datos disponibles",
     fillAllFields: "Por favor, completa todos los campos",
-    accountDeletedSuccess: "Tu cuenta ha sido eliminada con éxito.\nSerás redirigido a la página de inicio.",
-    confirmDeleteAccountTitle: "¡ATENCIÓN!\n\n¿Estás absolutamente seguro de que quieres eliminar tu cuenta?\n\nEsta acción es IRREVERSIBLE y eliminará:\n• Tu perfil y datos personales\n• Todo tu historial de partidas\n• Tus estadísticas y rankings\n• Tus mensajes de chat\n\nEscribe 'ELIMINAR' en el siguiente diálogo para confirmar.",
-    confirmDeleteAccountFinal: "Para confirmar definitivamente la eliminación de la cuenta, escribe exactamente:\n\nELIMINAR",
-    incorrectDeleteConfirmation: "Confirmación incorrecta. Eliminación cancelada.",
+
+
     deletingAccount: "Eliminando cuenta..."
   },
 
@@ -136,7 +132,7 @@ export default {
     deleteError: "Error al eliminar cuenta",
     passwordChangeFailed: "Error al cambiar contraseña",
     apiOffline: "El servidor API está desconectado",
-    logoutError: "Error al cerrar sesión",
+
     accessDenied: "Acceso denegado. Cancelaste la autenticación OAuth2."
   },
 

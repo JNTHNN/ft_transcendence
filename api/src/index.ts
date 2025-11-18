@@ -16,7 +16,7 @@ import { registerGameWS } from './game/ws.js';
 
 const app = Fastify({
   logger: {
-    level: process.env.LOG_LEVEL || 'info'
+    level: process.env.LOG_LEVEL || 'warn'
   }
 });
 
@@ -31,7 +31,7 @@ await app.register(authPlugin);
 
 try {
   await migrate();
-  app.log.info('✅ Database migrated successfully');
+
 } catch (e) {
   app.log.error(e, '❌ Migration failed');
   process.exit(1);
@@ -54,5 +54,5 @@ registerGameWS(app);
 
 const port = Number(process.env.PORT || 3000);
 app.listen({ port, host: '0.0.0.0' })
-  .then(() => app.log.info(`🚀 API running on port ${port}`))
+  .then(() => {})
   .catch((e: any) => { app.log.error(e); process.exit(1); });

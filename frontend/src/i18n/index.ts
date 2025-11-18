@@ -36,7 +36,7 @@ class I18nManager {
   async initialize(): Promise<void> {
     if (this.initialized) return;
     this.initialized = true;
-    console.log('✅ i18n initialized with language:', this.currentLanguage);
+
   }
 
   private isValidLanguage(lang: string): lang is Language {

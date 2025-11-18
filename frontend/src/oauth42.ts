@@ -1,3 +1,5 @@
+import { api } from './api-client';
+
 interface OAuth42Config {
   clientId: string;
   redirectUri: string;
@@ -59,12 +61,8 @@ class OAuth42Manager {
 
   async exchangeCodeForToken(code: string, state?: string): Promise<{ success: boolean; token?: string; error?: string }> {
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/oauth42/callback`, {
+      const data = await api('/auth/oauth42/callback', {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        credentials: 'include',
         body: JSON.stringify({
           code,
           state,
@@ -72,15 +70,13 @@ class OAuth42Manager {
         })
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (data.token) {
         return { success: true, token: data.token };
       } else {
-        return { success: false, error: data.error || 'Échec de l\'authentification OAuth' };
+        return { success: false, error: data.error || 'Token exchange failed' };
       }
     } catch (error: any) {
-      return { success: false, error: 'Erreur de réseau: ' + error.message };
+      return { success: false, error: `Network error: ${error.message}` };
     }
   }
 
@@ -88,7 +84,8 @@ class OAuth42Manager {
     try {
       const response = await fetch('https://api.intra.42.fr/v2/me', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -109,10 +106,11 @@ class OAuth42Manager {
 
         return { success: true, user };
       } else {
-        return { success: false, error: 'Impossible de récupérer les données utilisateur' };
+        const errorText = await response.text();
+        return { success: false, error: `API 42 Error [${response.status}]: ${errorText || response.statusText}` };
       }
     } catch (error: any) {
-      return { success: false, error: 'Erreur lors de la récupération des données: ' + error.message };
+      return { success: false, error: `Network error: ${error.message}` };
     }
   }
 

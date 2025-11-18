@@ -26,7 +26,6 @@ export default async function View() {
     const response = await api('/auth/me');
     user = response;
   } catch (error) {
-    console.error('Error loading user profile:', error);
     router.navigate("/login");
     return document.createElement("div");
   }
@@ -305,10 +304,8 @@ export default async function View() {
   confirmDeleteCheckbox.addEventListener('change', updateDeleteButtonState);
 
   logoutBtn.onclick = async () => {
-    if (confirm(t('messages.confirmLogout'))) {
-      await authManager.logout();
-      router.navigate("/login");
-    }
+    await authManager.logout();
+    router.navigate("/login");
   };
 
   cancelProfileBtn.onclick = () => {
@@ -398,32 +395,19 @@ export default async function View() {
       }
     }
 
-    const confirmed = confirm(t('messages.confirmDeleteAccountTitle'));
-
-    if (!confirmed) return;
-
-    const finalConfirmation = prompt(t('messages.confirmDeleteAccountFinal'));
-
-    if (finalConfirmation !== "SUPPRIMER") {
-      showDeleteError(t('messages.incorrectDeleteConfirmation'));
-      return;
-    }
-
     deleteAccountBtn.disabled = true;
     deleteAccountBtn.textContent = t('messages.deletingAccount');
 
     try {
       let result;
       if (isOAuth42) {
-        // For OAuth42 accounts, use empty password
         result = await authManager.deleteAccount('');
       } else {
         result = await authManager.deleteAccount(deletePasswordInput.value);
       }
 
       if (result.success) {
-        alert(t('messages.accountDeletedSuccess'));
-        router.navigate("/");
+        router.navigate('/');
       } else {
         showDeleteError(result.error || t('errors.deleteError'));
         deleteAccountBtn.disabled = false;

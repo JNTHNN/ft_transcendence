@@ -103,7 +103,7 @@ export default async function View() {
         showError(result.error || t('errors.loginFailed'));
       }
     } catch (error: any) {
-      showError(t('errors.networkError') + ": " + error.message);
+      showError(`${t('errors.networkError')}: ${error.message}`);
     } finally {
       loginBtn.disabled = false;
       loginBtn.textContent = t('auth.login');

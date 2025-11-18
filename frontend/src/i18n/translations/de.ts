@@ -27,9 +27,7 @@ export default {
     signupHere: "Hier registrieren",
     loginButton: "Anmelden",
     signupButton: "Registrieren",
-    demoMode: "Demo-Modus",
-    exitDemoMode: "Demo-Modus verlassen",
-    demoModeActive: "Im Demo-Modus verbunden",
+
     loggingIn: "Anmeldung...",
     signingUp: "Registrierung...",
     loginRequired: "Sie müssen angemeldet sein, um auf diese Seite zugreifen zu können",
@@ -90,7 +88,7 @@ export default {
     passwordChanged: "Passwort erfolgreich geändert!",
     accountDeleted: "Ihr Konto wurde erfolgreich gelöscht.\\nSie werden zur Startseite weitergeleitet.",
     oauth42AccountDeleted: "OAuth2-Konto erfolgreich gelöscht. Hinweis: Dies entfernt nur Ihr Konto von unserer Plattform, nicht von 42.",
-    confirmLogout: "Sind Sie sicher, dass Sie sich abmelden möchten?",
+
     confirmDeleteAccount: "Sind Sie absolut sicher, dass Sie Ihr Konto löschen möchten?",
     noChangesDetected: "Keine Änderungen erkannt",
     invalidEmailFormat: "Ungültiges E-Mail-Format",
@@ -107,10 +105,8 @@ export default {
     signupSuccess: "Konto erfolgreich erstellt!",
     noData: "Keine Daten verfügbar",
     fillAllFields: "Bitte füllen Sie alle Felder aus",
-    accountDeletedSuccess: "Ihr Konto wurde erfolgreich gelöscht.\\nSie werden zur Startseite weitergeleitet.",
-    confirmDeleteAccountTitle: "WARNUNG!\\n\\nSind Sie absolut sicher, dass Sie Ihr Konto löschen möchten?\\n\\nDiese Aktion ist UNWIDERRUFLICH und löscht:\\n• Ihr Profil und persönliche Daten\\n• Ihre gesamte Spielhistorie\\n• Ihre Statistiken und Rankings\\n• Ihre Chat-Nachrichten\\n\\nGeben Sie 'LÖSCHEN' in den nächsten Dialog ein, um zu bestätigen.",
-    confirmDeleteAccountFinal: "Um die Kontolöschung endgültig zu bestätigen, geben Sie genau ein:\\n\\nLÖSCHEN",
-    incorrectDeleteConfirmation: "Falsche Bestätigung. Löschung abgebrochen.",
+
+
     deletingAccount: "Konto wird gelöscht..."
   },
 
@@ -136,7 +132,7 @@ export default {
     deleteError: "Kontolöschung fehlgeschlagen",
     passwordChangeFailed: "Passwort-Änderung fehlgeschlagen",
     apiOffline: "API-Server ist offline",
-    logoutError: "Abmeldung fehlgeschlagen",
+
     accessDenied: "Zugriff verweigert. Sie haben die OAuth2-Authentifizierung abgebrochen."
   },
 
