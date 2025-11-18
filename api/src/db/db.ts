@@ -33,6 +33,8 @@ export function migrate(): void {
     const columns = db.pragma("table_info(users)") as any[];
     const hasAvatarUrl = columns.some(col => col.name === 'avatar_url');
     const hasAccountType = columns.some(col => col.name === 'account_type');
+    const hasOAuth42Id = columns.some(col => col.name === 'oauth42_id');
+    const hasOAuth42Login = columns.some(col => col.name === 'oauth42_login');
     
     if (!hasAvatarUrl) {
       db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT");
@@ -46,9 +48,19 @@ export function migrate(): void {
       
       // Initialiser updated_at pour les lignes existantes
       db.exec("UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL");
-      
-      // Marquer les utilisateurs existants avec oauth42_id comme 'oauth42'
-      db.exec("UPDATE users SET account_type = 'oauth42' WHERE oauth42_id IS NOT NULL");
+    }
+    
+    if (!hasOAuth42Id) {
+      db.exec("ALTER TABLE users ADD COLUMN oauth42_id INTEGER UNIQUE");
+    }
+    
+    if (!hasOAuth42Login) {
+      db.exec("ALTER TABLE users ADD COLUMN oauth42_login TEXT UNIQUE");
+    }
+    
+    // Marquer les utilisateurs existants avec oauth42_id comme 'oauth42'
+    if (hasOAuth42Id && hasAccountType) {
+      db.exec("UPDATE users SET account_type = 'oauth42' WHERE oauth42_id IS NOT NULL AND account_type = 'local'");
     }
     
   } catch (e) {
