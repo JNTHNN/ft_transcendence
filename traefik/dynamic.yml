@@ -1,10 +1,37 @@
+http:
+  routers:
+    app:
+      rule: "Host(`app.localhost`)"
+      service: frontend
+      entrypoints:
+        - websecure
+      tls: {}
+    
+    api:
+      rule: "Host(`api.localhost`)"
+      service: api
+      entrypoints:
+        - websecure
+      tls: {}
+
+  services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://ft_transcendence-frontend-1:80"
+    
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://ft_transcendence-api-1:3000"
+
 tls:
   certificates:
-    - certFile: /certs/app.localhost+1.pem
-      keyFile:  /certs/app.localhost+1-key.pem
+    - certFile: /certs/app.localhost+3.pem
+      keyFile:  /certs/app.localhost+3-key.pem
 
   stores:
     default:
       defaultCertificate:
-        certFile: /certs/app.localhost+1.pem
-        keyFile:  /certs/app.localhost+1-key.pem
+        certFile: /certs/app.localhost+3.pem
+        keyFile:  /certs/app.localhost+3-key.pem

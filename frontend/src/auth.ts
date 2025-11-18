@@ -109,7 +109,7 @@ class AuthManager {
 
   private async refreshToken(): Promise<boolean> {
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/refresh`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/refresh`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' }
@@ -140,7 +140,7 @@ class AuthManager {
     try {
       this.updateState({ isLoading: true });
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/login`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/login`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
@@ -175,7 +175,7 @@ class AuthManager {
     try {
       this.updateState({ isLoading: true });
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/signup`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/signup`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
@@ -208,7 +208,7 @@ class AuthManager {
 
   async logout() {
     try {
-      await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/logout`, {
+      await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -255,7 +255,7 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/users/profile`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/users/profile`, {
         method: 'PATCH',
         headers: {
           'content-type': 'application/json',
@@ -285,7 +285,7 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/change-password`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/change-password`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -322,7 +322,7 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/change-email`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/change-email`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -365,7 +365,7 @@ class AuthManager {
         return { success: false, error: 'Non authentifié' };
       }
 
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/delete-account`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/delete-account`, {
         method: 'DELETE',
         headers: {
           'content-type': 'application/json',

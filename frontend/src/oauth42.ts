@@ -59,7 +59,7 @@ class OAuth42Manager {
 
   async exchangeCodeForToken(code: string, state?: string): Promise<{ success: boolean; token?: string; error?: string }> {
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || "https://api.localhost"}/auth/oauth42/callback`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost"}/auth/oauth42/callback`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json'
