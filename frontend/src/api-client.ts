@@ -86,3 +86,96 @@ export async function api(path: string, init: RequestInit = {}) {
     return {};
   }
 }
+
+export async function uploadAvatar(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const token = authManager.getToken();
+  const response = await fetch(`${API}/users/avatar`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept-Language': i18n.getCurrentLanguage()
+    },
+    body: formData,
+    credentials: 'include'
+  });
+
+  if (response.status === 401) {
+    const refreshed = await authManager['refreshToken']?.() || false;
+    if (refreshed) {
+      const newToken = authManager.getToken();
+      if (newToken) {
+        const retryResponse = await fetch(`${API}/users/avatar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${newToken}`,
+            'Accept-Language': i18n.getCurrentLanguage()
+          },
+          body: formData,
+          credentials: 'include'
+        });
+        if (!retryResponse.ok) {
+          const error = await retryResponse.json();
+          throw new Error(error.error || error.message || 'Avatar upload failed');
+        }
+        return retryResponse.json();
+      }
+    }
+    throw new Error('Authentication expired');
+  }
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || error.message || 'Avatar upload failed');
+  }
+
+  return response.json();
+}
+
+export async function deleteAvatar() {
+  return api('/users/avatar', { method: 'DELETE' });
+}
+
+export async function sync42Avatar() {
+  const token = authManager.getToken();
+  const response = await fetch(`${API}/users/sync-42-avatar`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept-Language': i18n.getCurrentLanguage()
+    },
+    credentials: 'include'
+  });
+
+  if (response.status === 401) {
+    const refreshed = await authManager['refreshToken']?.() || false;
+    if (refreshed) {
+      const newToken = authManager.getToken();
+      if (newToken) {
+        const retryResponse = await fetch(`${API}/users/sync-42-avatar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${newToken}`,
+            'Accept-Language': i18n.getCurrentLanguage()
+          },
+          credentials: 'include'
+        });
+        if (!retryResponse.ok) {
+          const error = await retryResponse.json();
+          throw new Error(error.error || error.message || '42 avatar sync failed');
+        }
+        return retryResponse.json();
+      }
+    }
+    throw new Error('Authentication expired');
+  }
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || error.message || '42 avatar sync failed');
+  }
+
+  return response.json();
+}

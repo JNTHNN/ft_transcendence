@@ -68,7 +68,26 @@ export default {
     memberSince: "Mitglied seit",
     lastSync: "Letzte 42-Synchronisation:",
     accountType: "Kontotyp:",
-    account42: "42-Konto"
+    account42: "42-Konto",
+    avatar: "Avatar",
+    uploadAvatar: "Avatar hochladen",
+    deleteAvatar: "Avatar löschen",
+    changeAvatar: "Avatar ändern",
+    dragDropAvatar: "Foto hier ablegen oder klicken zum Auswählen",
+    confirmDeleteAvatar: "Sind Sie sicher, dass Sie Ihren Avatar löschen möchten?",
+    noAvatar: "Kein Avatar gesetzt",
+    currentAvatar: "Aktueller Avatar",
+    sync42Avatar: "Mit 42-Avatar synchronisieren",
+    confirm42Sync: "Sind Sie sicher, dass Sie Ihren Avatar durch den von 42 ersetzen möchten?",
+    avatar42SyncSuccess: "Avatar erfolgreich mit 42 synchronisiert.",
+    avatar42SyncFailed: "Synchronisation mit 42-Avatar fehlgeschlagen.",
+    no42AvatarError: "Kein Avatar auf Ihrem 42-Profil verfügbar. Bitte setzen Sie einen Avatar auf intra.42.fr und verbinden sich dann erneut.",
+    avatarUploadSuccess: "Avatar erfolgreich hochgeladen.",
+    avatarDeleteSuccess: "Avatar erfolgreich gelöscht.",
+    avatarUploadFailed: "Avatar-Upload fehlgeschlagen.",
+    avatarDeleteFailed: "Avatar-Löschung fehlgeschlagen.",
+    invalidFileType: "Ungültiger Dateityp. Nur JPEG, PNG, GIF und WebP sind erlaubt.",
+    fileTooLarge: "Datei zu groß. Maximale Größe ist 5MB."
   },
 
   stats: {
@@ -130,7 +149,9 @@ export default {
     deleteError: "Kontolöschung fehlgeschlagen",
     passwordChangeFailed: "Passwort-Änderung fehlgeschlagen",
     apiOffline: "API-Server ist offline",
-    accessDenied: "Zugriff verweigert. Sie haben die OAuth2-Authentifizierung abgebrochen."
+    accessDenied: "Zugriff verweigert. Sie haben die OAuth2-Authentifizierung abgebrochen.",
+    loginFailedGeneric: "Anmeldung fehlgeschlagen",
+    signupFailedGeneric: "Registrierung fehlgeschlagen"
   },
 
   game: {
@@ -233,6 +254,20 @@ export default {
     serverStatus: "Server-Status",
     viewDemoMatch: "Ein Demonstrationsspiel ansehen",
     anonymous: "Anonym",
-    accountInfo: "Kontoinformationen"
+    accountInfo: "Kontoinformationen",
+    avatarUploadSuccess: "Avatar erfolgreich hochgeladen.",
+    avatarDeleteSuccess: "Avatar erfolgreich gelöscht.",
+    avatarUploadFailed: "Avatar-Upload fehlgeschlagen.",
+    avatarDeleteFailed: "Avatar-Löschung fehlgeschlagen.",
+    invalidFileType: "Ungültiger Dateityp. Nur JPEG, PNG, GIF und WebP sind erlaubt.",
+    fileTooLarge: "Datei zu groß. Maximale Größe beträgt 5MB.",
+    uploadAvatar: "Avatar hochladen",
+    deleteAvatar: "Avatar löschen",
+    changeAvatar: "Avatar ändern",
+    dragDropAvatar: "Foto hier ablegen oder klicken zum Auswählen",
+    confirmDeleteAvatar: "Sind Sie sicher, dass Sie Ihren Avatar löschen möchten?",
+    noAvatar: "Kein Avatar gesetzt",
+    customAvatar: "Benutzerdefinierter Avatar",
+    avatarSyncFrom42: "Avatar von 42 synchronisiert"
   }
 };

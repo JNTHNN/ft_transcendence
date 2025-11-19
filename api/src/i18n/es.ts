@@ -34,6 +34,23 @@ export const es = {
     passwordMinLength: "La contraseña debe contener al menos 8 caracteres.",
     displayNameRequired: "El nombre de visualización debe tener entre 2 y 40 caracteres.",
     displayNameAlreadyExists: "Este nombre de usuario ya está en uso. Por favor, elige otro.",
-    fieldRequired: "Este campo es requerido."
+    avatarUploadSuccess: "Avatar subido con éxito.",
+    avatarDeleteSuccess: "Avatar eliminado con éxito.",
+    avatarUploadFailed: "Error al subir el avatar.",
+    avatarDeleteFailed: "Error al eliminar el avatar.",
+    invalidFileType: "Tipo de archivo inválido. Solo se permiten JPEG, PNG, GIF y WebP.",
+    fileTooLarge: "Archivo demasiado grande. El tamaño máximo es de 5MB.",
+    noFileUploaded: "No se ha subido ningún archivo.",
+    fileNotFound: "Archivo no encontrado.",
+    fileServingFailed: "Error al servir el archivo.",
+    fieldRequired: "Este campo es requerido.",
+    unauthorized: "No autorizado",
+    nothingToUpdate: "Nada que actualizar",
+    updateFailed: "Error en la actualización",
+    multipartRequired: "Content-Type debe ser multipart/form-data",
+    oauth42Only: "Solo las cuentas OAuth42 pueden sincronizar con el avatar de 42",
+    avatar42SyncSuccess: "Avatar de 42 sincronizado con éxito.",
+    avatar42SyncFailed: "Error al sincronizar el avatar de 42.",
+    no42Avatar: "No hay avatar de 42 disponible. Por favor establece un avatar en tu perfil de 42 primero, luego reconéctate para actualizar tus datos."
   }
 };

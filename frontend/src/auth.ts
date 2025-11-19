@@ -1,4 +1,5 @@
 import { api } from './api-client';
+import { t } from './i18n/index.js';
 
 interface User {
   id: number;
@@ -85,8 +86,6 @@ class AuthManager {
         token,
         expiresAt
       }));
-
-
     } catch (error) {
       console.error('Failed to store auth:', error);
     }
@@ -152,11 +151,11 @@ class AuthManager {
         return { success: true };
       } else {
         this.updateState({ isLoading: false });
-        return { success: false, error: data.error || 'Login failed' };
+        return { success: false, error: data.error || t('errors.loginFailedGeneric') };
       }
     } catch (error) {
       this.updateState({ isLoading: false });
-      return { success: false, error: error instanceof Error ? error.message : 'Network error' };
+      return { success: false, error: error instanceof Error ? error.message : t('errors.networkError') };
     }
   }
 
@@ -182,11 +181,11 @@ class AuthManager {
         return { success: true };
       } else {
         this.updateState({ isLoading: false });
-        return { success: false, error: data.error || 'Signup failed' };
+        return { success: false, error: data.error || t('errors.signupFailedGeneric') };
       }
     } catch (error) {
       this.updateState({ isLoading: false });
-      return { success: false, error: error instanceof Error ? error.message : 'Network error' };
+      return { success: false, error: error instanceof Error ? error.message : t('errors.networkError') };
     }
   }
 
@@ -207,8 +206,6 @@ class AuthManager {
       isAuthenticated: false,
       isLoading: false
     });
-
-
   }
 
   getState(): AuthState {
@@ -250,7 +247,7 @@ class AuthManager {
       this.storeAuth(updatedUser, this.state.token);
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Network error' };
+      return { success: false, error: error.message || t('errors.networkError') };
     }
   }
 
@@ -279,7 +276,7 @@ class AuthManager {
       }
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Network error' };
+      return { success: false, error: error.message || t('errors.networkError') };
     }
   }
 
@@ -309,7 +306,7 @@ class AuthManager {
 
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Network error' };
+      return { success: false, error: error.message || t('errors.networkError') };
     }
   }
 
@@ -342,7 +339,7 @@ class AuthManager {
       this.clearAuth();
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Network error' };
+      return { success: false, error: error.message || t('errors.networkError') };
     }
   }
 
@@ -368,7 +365,7 @@ class AuthManager {
       this.startTokenRefresh();
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Network error' };
+      return { success: false, error: error.message || t('errors.networkError') };
     }
   }
 }

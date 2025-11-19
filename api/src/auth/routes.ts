@@ -292,7 +292,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
 
       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newPasswordHash, uid);
 
-
       db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ? AND revoked = 0').run(uid);
 
       return res.send({ success: true, message: 'Password changed successfully' });
@@ -445,7 +444,7 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       const params: any[] = [];
 
       if (displayName) {
-        // Vérifier l'unicité du display name
+
         const existingDisplayName = db
           .prepare('SELECT id FROM users WHERE display_name = ? AND id != ?')
           .get(displayName, uid);
@@ -552,13 +551,14 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         grade: userData.cursus_users?.find((c: any) => c.cursus?.name === '42')?.grade,
         coalition: userData.coalitions?.[0]?.name,
         wallet: userData.wallet,
-        correction_points: userData.correction_point
+        correction_points: userData.correction_point,
+        image: userData.image
       });
       
       let user = db.prepare('SELECT * FROM users WHERE email = ? OR oauth42_id = ?').get(userData.email, userData.id) as any;
       
       if (!user) {
-        // Générer un display_name unique si nécessaire
+
         let displayName = userData.displayname || userData.login;
         let counter = 0;
         let uniqueDisplayName = displayName;
@@ -595,15 +595,32 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         user.oauth42_login = userData.login;
         user.avatar_url = user.avatar_url || userData.image?.versions?.medium || userData.image?.link;
       } else {
-        db.prepare(`
-          UPDATE users SET 
-            display_name = ?, avatar_url = ?, oauth42_data = ?,
-            last_42_sync = datetime('now'), updated_at = datetime('now')
-          WHERE id = ?
-        `).run(userData.displayname || userData.login, userData.image?.versions?.medium || userData.image?.link, oauth42Data, user.id);
+
+        const shouldUpdateAvatar = !user.avatar_url || !user.avatar_url.startsWith('/uploads/');
+        const oauth42Avatar = userData.image?.versions?.medium || userData.image?.link;
         
-        user.display_name = userData.displayname || userData.login;
-        user.avatar_url = userData.image?.versions?.medium || userData.image?.link;
+        if (shouldUpdateAvatar && oauth42Avatar) {
+          db.prepare(`
+            UPDATE users SET 
+              display_name = ?, avatar_url = ?, oauth42_data = ?,
+              last_42_sync = datetime('now'), updated_at = datetime('now')
+            WHERE id = ?
+          `).run(userData.displayname || userData.login, oauth42Avatar, oauth42Data, user.id);
+          
+          user.display_name = userData.displayname || userData.login;
+          user.avatar_url = oauth42Avatar;
+        } else {
+
+          db.prepare(`
+            UPDATE users SET 
+              display_name = ?, oauth42_data = ?,
+              last_42_sync = datetime('now'), updated_at = datetime('now')
+            WHERE id = ?
+          `).run(userData.displayname || userData.login, oauth42Data, user.id);
+          
+          user.display_name = userData.displayname || userData.login;
+
+        }
       }
 
       const jwtToken = app.jwt.sign(

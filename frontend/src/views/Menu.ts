@@ -75,6 +75,11 @@ export class MenuManager {
     const currentState = authManager.getState();
     const isAuthenticated = currentState.isAuthenticated;
     const user = currentState.user;
+    
+    const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || 'https://api.localhost:8443';
+    const menuAvatarUrl = this.fullUser?.avatarUrl && this.fullUser.avatarUrl.startsWith('/uploads/') 
+      ? `${apiBaseUrl}${this.fullUser.avatarUrl}`
+      : this.fullUser?.avatarUrl;
 
     const menuHTML = `
       <nav class="font-display text-2xl font-black flex flex-col p-4 space-y-2">
@@ -107,8 +112,8 @@ export class MenuManager {
           <div class="pt-4 border-t border-sec mt-4">
             <div class="px-4 py-2 text-sm">
               <div class="flex items-center space-x-2 mb-2">
-                ${this.fullUser?.avatarUrl ? `
-                  <img src="${this.fullUser.avatarUrl}" alt="Avatar" class="w-8 h-8 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                ${menuAvatarUrl ? `
+                  <img src="${menuAvatarUrl}" alt="Avatar" class="w-8 h-8 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                   <div class="w-8 h-8 bg-sec rounded-full flex items-center justify-center" style="display:none;">
                     <span class="text-sm font-bold text-text">${this.fullUser?.displayName?.charAt(0).toUpperCase() || user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
                   </div>
@@ -151,8 +156,6 @@ export class MenuManager {
       }
     }
 
-
-
     this.setupEventHandlers();
   }
 
@@ -185,11 +188,7 @@ export class MenuManager {
         document.body.appendChild(modal);
       });
     }
-
-
   }
-
-
 
   public setActiveLink(path: string) {
 
@@ -209,6 +208,16 @@ export class MenuManager {
     this.authState = authManager.getState();
     if (this.authState.isAuthenticated) {
       this.loadFullUserData();
+    } else {
+      this.fullUser = null;
+    }
+    this.updateMenuForAuthState();
+  }
+
+  public async forceUpdateAsync() {
+    this.authState = authManager.getState();
+    if (this.authState.isAuthenticated) {
+      await this.loadFullUserData();
     } else {
       this.fullUser = null;
     }

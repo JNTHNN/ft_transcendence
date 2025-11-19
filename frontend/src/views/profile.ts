@@ -2,6 +2,7 @@ import { authManager } from "../auth";
 import { router } from "../router";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
+import { menuManager } from "./Menu.js";
 
 interface User {
   id: number;
@@ -38,8 +39,14 @@ export default async function View() {
   const header = document.createElement("div");
   header.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
 
-  const avatarContent = user.avatarUrl
-    ? `<img src="${user.avatarUrl}" alt="Avatar" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+  const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+  const transformAvatarUrl = (avatarUrl: string | undefined) => 
+    avatarUrl && avatarUrl.startsWith('/uploads/') ? `${apiBaseUrl}${avatarUrl}` : avatarUrl;
+
+  const headerAvatarUrl = transformAvatarUrl(user.avatarUrl);
+    
+  const avatarContent = headerAvatarUrl
+    ? `<img src="${headerAvatarUrl}" alt="Avatar" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
        <div class="w-16 h-16 bg-sec rounded-full flex items-center justify-center" style="display:none;">
          <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
        </div>`
@@ -58,7 +65,7 @@ export default async function View() {
       </div>
     </div>
     <div class="flex items-center space-x-4">
-      <div class="relative">
+      <div class="relative" id="profile-header-avatar">
         ${avatarContent}
       </div>
       <div>
@@ -71,22 +78,65 @@ export default async function View() {
     </div>
   `;
 
+  const avatarSection = document.createElement("div");
+  avatarSection.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
+  
+  const avatarUrl = user.avatarUrl;
+  const displayImageUrl = transformAvatarUrl(avatarUrl);
+
+  avatarSection.innerHTML = `
+    <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.avatar')}</h3>
+    
+    <div class="flex items-center space-x-6 mb-6">
+      <div class="relative">
+        ${avatarUrl ? 
+          `<img src="${displayImageUrl}" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-sec">` :
+          `<div class="w-20 h-20 bg-sec rounded-full flex items-center justify-center border-2 border-sec">
+             <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+           </div>`
+        }
+      </div>
+      
+      <div class="flex-1">
+        <p class="font-sans text-sm text-gray-400 mb-2">
+          ${avatarUrl ? t('profile.currentAvatar') : t('profile.noAvatar')}
+        </p>
+        
+        <div class="flex flex-wrap gap-2">
+          <div class="relative">
+            <input type="file" id="avatarInput" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
+            <label for="avatarInput" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg cursor-pointer transition">
+              ${avatarUrl ? t('profile.changeAvatar') : t('profile.uploadAvatar')}
+            </label>
+          </div>
+          ${avatarUrl ? 
+            `<button type="button" id="deleteAvatarBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
+               ${t('profile.deleteAvatar')}
+             </button>` : ''
+          }
+          ${isOAuth42 ? 
+            `<button type="button" id="sync42AvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
+               ${t('profile.sync42Avatar')}
+             </button>` : ''
+          }
+        </div>
+      </div>
+    </div>
+    
+    <div id="dropZone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-sec transition-colors cursor-pointer">
+      <div class="text-gray-400 mb-2">📷</div>
+      <p class="font-sans text-gray-400">${t('profile.dragDropAvatar')}</p>
+      <p class="font-sans text-xs text-gray-500 mt-2">JPEG, PNG, GIF, WebP - Max 5MB</p>
+    </div>
+    
+    <div id="avatarError" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-sm font-sans hidden"></div>
+    <div id="avatarSuccess" class="mt-4 p-3 bg-green-900 text-green-200 rounded-lg text-sm font-sans hidden"></div>
+  `;
+
   const profileForm = document.createElement("form");
   profileForm.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
   profileForm.innerHTML = `
     <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.editProfile')}</h3>
-
-    ${user.avatarUrl ? `
-      <div class="mb-6">
-        <label class="block font-sans text-text mb-2">${t('profile.profilePhoto')}</label>
-        <div class="flex items-center space-x-4">
-          <img src="${user.avatarUrl}" alt="Avatar" class="w-20 h-20 rounded-full object-cover" onerror="this.style.display='none';">
-          <div class="text-sm text-gray-400">
-            ${isOAuth42 ? t('profile.avatarSyncFrom42') : t('profile.customAvatar')}
-          </div>
-        </div>
-      </div>
-    ` : ''}
 
     <div class="mb-4">
       <label class="block font-sans text-text mb-2">${t('auth.displayName')}</label>
@@ -487,7 +537,219 @@ export default async function View() {
 
   updateCancelButtonState();
 
+  const avatarInput = avatarSection.querySelector("#avatarInput") as HTMLInputElement;
+  const deleteAvatarBtn = avatarSection.querySelector("#deleteAvatarBtn") as HTMLButtonElement;
+  const dropZone = avatarSection.querySelector("#dropZone") as HTMLDivElement;
+  const avatarErrorDiv = avatarSection.querySelector("#avatarError") as HTMLDivElement;
+  const avatarSuccessDiv = avatarSection.querySelector("#avatarSuccess") as HTMLDivElement;
+
+  const showAvatarError = (message: string) => {
+    avatarErrorDiv.textContent = message;
+    avatarErrorDiv.classList.remove("hidden");
+    avatarSuccessDiv.classList.add("hidden");
+  };
+
+  const showAvatarSuccess = (message: string) => {
+    avatarSuccessDiv.textContent = message;
+    avatarSuccessDiv.classList.remove("hidden");
+    avatarErrorDiv.classList.add("hidden");
+  };
+
+  const updateAvatarsInInterface = (newAvatarUrl: string | null) => {
+    const displayImageUrl = transformAvatarUrl(newAvatarUrl || undefined);
+
+    const headerAvatarContainer = document.querySelector('#profile-header-avatar') as HTMLElement;
+    if (headerAvatarContainer) {
+      if (newAvatarUrl) {
+        headerAvatarContainer.innerHTML = `
+          <img src="${displayImageUrl}" alt="Avatar" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="w-16 h-16 bg-sec rounded-full flex items-center justify-center" style="display:none;">
+            <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+          </div>`;
+      } else {
+        headerAvatarContainer.innerHTML = `
+          <div class="w-16 h-16 bg-sec rounded-full flex items-center justify-center">
+            <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+          </div>`;
+      }
+    }
+
+    const avatarSectionImg = avatarSection.querySelector('.w-20.h-20') as HTMLElement;
+    if (avatarSectionImg) {
+      if (newAvatarUrl) {
+        avatarSectionImg.outerHTML = `<img src="${displayImageUrl}" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-sec">`;
+      } else {
+        avatarSectionImg.outerHTML = `<div class="w-20 h-20 bg-sec rounded-full flex items-center justify-center border-2 border-sec">
+           <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+         </div>`;
+      }
+    }
+
+    const avatarDescription = avatarSection.querySelector('p.font-sans.text-sm.text-gray-400');
+    if (avatarDescription) {
+      avatarDescription.textContent = newAvatarUrl ? t('profile.currentAvatar') : t('profile.noAvatar');
+    }
+
+    const buttonContainer = avatarSection.querySelector('.flex.flex-wrap.gap-2');
+    if (buttonContainer) {
+      buttonContainer.innerHTML = `
+        <div class="relative">
+          <input type="file" id="avatarInput" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
+          <label for="avatarInput" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg cursor-pointer transition">
+            ${newAvatarUrl ? t('profile.changeAvatar') : t('profile.uploadAvatar')}
+          </label>
+        </div>
+        ${newAvatarUrl ? 
+          `<button type="button" id="deleteAvatarBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
+             ${t('profile.deleteAvatar')}
+           </button>` : ''
+        }
+        ${isOAuth42 ? 
+          `<button type="button" id="sync42AvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
+             ${t('profile.sync42Avatar')}
+           </button>` : ''
+        }
+      `;
+      
+      const avatarInput = buttonContainer.querySelector('#avatarInput') as HTMLInputElement;
+      if (avatarInput) {
+        avatarInput.addEventListener('change', (e: any) => {
+          const file = e.target.files[0];
+          if (file) handleFileUpload(file);
+        });
+      }
+      
+      const deleteBtn = buttonContainer.querySelector('#deleteAvatarBtn') as HTMLElement;
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', handleDeleteAvatar);
+      }
+      
+      const sync42Btn = buttonContainer.querySelector('#sync42AvatarBtn') as HTMLElement;
+      if (sync42Btn) {
+        sync42Btn.addEventListener('click', handleSync42Avatar);
+      }
+    }
+
+    (async () => {
+      try {
+        await menuManager.forceUpdateAsync();
+      } catch (error) {
+        console.warn('Menu update error:', error);
+
+        menuManager.forceUpdate();
+      }
+    })();
+
+    user.avatarUrl = newAvatarUrl || undefined;
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (confirm(t('profile.confirmDeleteAvatar'))) {
+      try {
+        const { deleteAvatar } = await import('../api-client.js');
+        const result = await deleteAvatar();
+        
+        if (result.success) {
+          showAvatarSuccess(t('profile.avatarDeleteSuccess'));
+          updateAvatarsInInterface(null);
+        } else {
+          showAvatarError(result.error || t('profile.avatarDeleteFailed'));
+        }
+      } catch (error: any) {
+        showAvatarError(error.message || t('profile.avatarDeleteFailed'));
+      }
+    }
+  };
+
+  const handleSync42Avatar = async () => {
+    if (confirm(t('profile.confirm42Sync'))) {
+      try {
+        const { sync42Avatar } = await import('../api-client.js');
+        const result = await sync42Avatar();
+        
+        if (result.success) {
+          showAvatarSuccess(t('profile.avatar42SyncSuccess'));
+          updateAvatarsInInterface(result.avatarUrl);
+        } else {
+          showAvatarError(result.error || t('profile.avatar42SyncFailed'));
+        }
+      } catch (error: any) {
+        showAvatarError(error.message || t('profile.avatar42SyncFailed'));
+      }
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      showAvatarError(t('profile.invalidFileType'));
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      showAvatarError(t('profile.fileTooLarge'));
+      return;
+    }
+
+    try {
+      const { uploadAvatar } = await import('../api-client.js');
+      const result = await uploadAvatar(file);
+      
+      if (result.success) {
+        showAvatarSuccess(t('profile.avatarUploadSuccess'));
+
+        updateAvatarsInInterface(result.avatarUrl);
+      } else {
+        showAvatarError(result.error || t('profile.avatarUploadFailed'));
+      }
+    } catch (error: any) {
+      showAvatarError(error.message || t('profile.avatarUploadFailed'));
+    }
+  };
+
+  avatarInput.addEventListener('change', (e) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+      handleFileUpload(target.files[0]);
+    }
+  });
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-sec');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-sec');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-sec');
+    
+    if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  });
+
+  dropZone.addEventListener('click', () => {
+    avatarInput.click();
+  });
+
+  if (deleteAvatarBtn) {
+    deleteAvatarBtn.addEventListener('click', handleDeleteAvatar);
+  }
+
+  const sync42AvatarBtn = avatarSection.querySelector("#sync42AvatarBtn") as HTMLButtonElement;
+  if (sync42AvatarBtn) {
+    sync42AvatarBtn.addEventListener('click', handleSync42Avatar);
+  }
+
   container.appendChild(header);
+  container.appendChild(avatarSection);
   container.appendChild(profileForm);
   container.appendChild(passwordForm);
   container.appendChild(deleteAccountSection);

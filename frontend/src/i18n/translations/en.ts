@@ -68,7 +68,26 @@ export default {
     memberSince: "Member since",
     lastSync: "Last 42 sync:",
     accountType: "Account type:",
-    account42: "42 Account"
+    account42: "42 Account",
+    avatar: "Avatar",
+    uploadAvatar: "Upload Avatar",
+    deleteAvatar: "Delete Avatar",
+    changeAvatar: "Change Avatar",
+    dragDropAvatar: "Drag & drop your photo here or click to choose",
+    confirmDeleteAvatar: "Are you sure you want to delete your avatar?",
+    noAvatar: "No avatar set",
+    currentAvatar: "Current avatar",
+    sync42Avatar: "Sync with 42 avatar",
+    confirm42Sync: "Are you sure you want to replace your avatar with the one from 42?",
+    avatar42SyncSuccess: "Avatar synced with 42 successfully.",
+    avatar42SyncFailed: "Failed to sync with 42 avatar.",
+    no42AvatarError: "No avatar available on your 42 profile. Please set an avatar on intra.42.fr then reconnect.",
+    avatarUploadSuccess: "Avatar uploaded successfully.",
+    avatarDeleteSuccess: "Avatar deleted successfully.",
+    avatarUploadFailed: "Avatar upload failed.",
+    avatarDeleteFailed: "Avatar deletion failed.",
+    invalidFileType: "Invalid file type. Only JPEG, PNG, GIF and WebP are allowed.",
+    fileTooLarge: "File too large. Maximum size is 5MB."
   },
 
   stats: {
@@ -129,7 +148,9 @@ export default {
     deleteError: "Account deletion failed",
     passwordChangeFailed: "Password change failed",
     apiOffline: "API server is offline",
-    accessDenied: "Access denied. You cancelled the OAuth2 authentication."
+    accessDenied: "Access denied. You cancelled the OAuth2 authentication.",
+    loginFailedGeneric: "Login failed",
+    signupFailedGeneric: "Signup failed"
   },
 
   game: {
@@ -232,6 +253,20 @@ export default {
     serverStatus: "Server Status",
     viewDemoMatch: "View a demonstration match",
     anonymous: "Anonymous",
-    accountInfo: "Account Information"
+    accountInfo: "Account Information",
+    avatarUploadSuccess: "Avatar uploaded successfully.",
+    avatarDeleteSuccess: "Avatar deleted successfully.",
+    avatarUploadFailed: "Avatar upload failed.",
+    avatarDeleteFailed: "Avatar deletion failed.",
+    invalidFileType: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.",
+    fileTooLarge: "File too large. Maximum size is 5MB.",
+    uploadAvatar: "Upload Avatar",
+    deleteAvatar: "Delete Avatar",
+    changeAvatar: "Change Avatar",
+    dragDropAvatar: "Drag & drop your photo here or click to choose",
+    confirmDeleteAvatar: "Are you sure you want to delete your avatar?",
+    noAvatar: "No avatar set",
+    customAvatar: "Custom avatar",
+    avatarSyncFrom42: "Avatar synced from 42"
   }
 };

@@ -68,7 +68,26 @@ export default {
     memberSince: "Miembro desde",
     lastSync: "Última sincronización 42:",
     accountType: "Tipo de cuenta:",
-    account42: "Cuenta 42"
+    account42: "Cuenta 42",
+    avatar: "Avatar",
+    uploadAvatar: "Subir Avatar",
+    deleteAvatar: "Eliminar Avatar",
+    changeAvatar: "Cambiar Avatar",
+    dragDropAvatar: "Arrastra y suelta tu foto aquí o haz clic para elegir",
+    confirmDeleteAvatar: "¿Estás seguro de que quieres eliminar tu avatar?",
+    noAvatar: "Sin avatar definido",
+    currentAvatar: "Avatar actual",
+    sync42Avatar: "Sincronizar con avatar de 42",
+    confirm42Sync: "¿Estás seguro de que quieres reemplazar tu avatar con el de 42?",
+    avatar42SyncSuccess: "Avatar sincronizado con 42 exitosamente.",
+    avatar42SyncFailed: "Error al sincronizar con el avatar de 42.",
+    no42AvatarError: "No hay avatar disponible en tu perfil de 42. Por favor define un avatar en intra.42.fr y vuelve a conectarte.",
+    avatarUploadSuccess: "Avatar subido con éxito.",
+    avatarDeleteSuccess: "Avatar eliminado con éxito.",
+    avatarUploadFailed: "Error al subir el avatar.",
+    avatarDeleteFailed: "Error al eliminar el avatar.",
+    invalidFileType: "Tipo de archivo inválido. Solo se permiten JPEG, PNG, GIF y WebP.",
+    fileTooLarge: "Archivo demasiado grande. El tamaño máximo es 5MB."
   },
 
   stats: {
@@ -130,7 +149,9 @@ export default {
     deleteError: "Error al eliminar cuenta",
     passwordChangeFailed: "Error al cambiar contraseña",
     apiOffline: "El servidor API está desconectado",
-    accessDenied: "Acceso denegado. Cancelaste la autenticación OAuth2."
+    accessDenied: "Acceso denegado. Cancelaste la autenticación OAuth2.",
+    loginFailedGeneric: "Inicio de sesión fallido",
+    signupFailedGeneric: "Registro fallido"
   },
 
   game: {
@@ -233,6 +254,20 @@ export default {
     serverStatus: "Estado del Servidor",
     viewDemoMatch: "Ver una partida de demostración",
     anonymous: "Anónimo",
-    accountInfo: "Información de la Cuenta"
+    accountInfo: "Información de la cuenta",
+    avatarUploadSuccess: "Avatar subido con éxito.",
+    avatarDeleteSuccess: "Avatar eliminado con éxito.",
+    avatarUploadFailed: "Error al subir el avatar.",
+    avatarDeleteFailed: "Error al eliminar el avatar.",
+    invalidFileType: "Tipo de archivo inválido. Solo se permiten JPEG, PNG, GIF y WebP.",
+    fileTooLarge: "Archivo demasiado grande. El tamaño máximo es de 5MB.",
+    uploadAvatar: "Subir Avatar",
+    deleteAvatar: "Eliminar Avatar",
+    changeAvatar: "Cambiar Avatar",
+    dragDropAvatar: "Arrastra y suelta tu foto aquí o haz clic para elegir",
+    confirmDeleteAvatar: "¿Estás seguro de que quieres eliminar tu avatar?",
+    noAvatar: "Sin avatar configurado",
+    customAvatar: "Avatar personalizado",
+    avatarSyncFrom42: "Avatar sincronizado desde 42"
   }
 };

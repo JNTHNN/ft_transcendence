@@ -4,6 +4,10 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import cookie from '@fastify/cookie';
+import multipart from '@fastify/multipart';
+
+import fs from 'fs';
+import path from 'path';
 
 declare const process: any;
 
@@ -21,12 +25,26 @@ const app = Fastify({
 });
 
 await app.register(cors, {
-  origin: process.env.CORS_ORIGIN || 'https://localhost',
-  credentials: true
+  origin: [
+    process.env.CORS_ORIGIN || 'https://localhost',
+    'https://localhost:8443',
+    'https://app.localhost:8443'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language']
 });
-await app.register(helmet, { contentSecurityPolicy: false });
+await app.register(helmet, { 
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: false
+});
 await app.register(websocket);
 await app.register(cookie);
+await app.register(multipart, {
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB max
+  }
+});
 await app.register(authPlugin);
 
 try {
@@ -49,8 +67,45 @@ app.get('/ready', async (_req: FastifyRequest, res: FastifyReply) => {
 
 await registerAuthRoutes(app, db);
 await registerUserRoutes(app, db);
-registerChatWS(app);
-registerGameWS(app);
+
+app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: string}}>, res: FastifyReply) => {
+  const { filename } = req.params;
+  
+  try {
+    const filePath = path.join('/data/uploads', filename);
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send({ error: 'File not found' });
+    }
+
+    const ext = path.extname(filename).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp'
+    };
+
+    const mimeType = mimeTypes[ext];
+    if (!mimeType) {
+      return res.status(400).send({ error: 'Invalid file type' });
+    }
+
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Cache-Control', 'public, max-age=86400');
+    res.type(mimeType);
+    
+    return res.send(fs.readFileSync(filePath));
+  } catch (e) {
+    app.log.error(e);
+    return res.status(500).send({ error: 'File serving failed' });
+  }
+});
+
+await registerChatWS(app);
+await registerGameWS(app);
 
 const port = Number(process.env.PORT || 3000);
 app.listen({ port, host: '0.0.0.0' })

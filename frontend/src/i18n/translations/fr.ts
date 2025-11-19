@@ -68,7 +68,26 @@ export default {
     memberSince: "Membre depuis",
     lastSync: "Dernière sync 42:",
     accountType: "Type de compte:",
-    account42: "Compte 42"
+    account42: "Compte 42",
+    avatar: "Avatar",
+    uploadAvatar: "Télécharger un avatar",
+    deleteAvatar: "Supprimer l'avatar",
+    changeAvatar: "Changer d'avatar",
+    dragDropAvatar: "Glissez-déposez votre photo ici ou cliquez pour choisir",
+    confirmDeleteAvatar: "Êtes-vous sûr de vouloir supprimer votre avatar ?",
+    noAvatar: "Aucun avatar défini",
+    currentAvatar: "Avatar actuel",
+    sync42Avatar: "Synchroniser avec l'avatar 42",
+    confirm42Sync: "Êtes-vous sûr de vouloir remplacer votre avatar par celui de 42 ?",
+    avatar42SyncSuccess: "Avatar synchronisé avec 42 avec succès.",
+    avatar42SyncFailed: "Échec de la synchronisation avec l'avatar 42.",
+    no42AvatarError: "Aucun avatar disponible sur votre profil 42. Veuillez définir un avatar sur intra.42.fr puis vous reconnecter.",
+    avatarUploadSuccess: "Avatar téléchargé avec succès.",
+    avatarDeleteSuccess: "Avatar supprimé avec succès.",
+    avatarUploadFailed: "Échec du téléchargement de l'avatar.",
+    avatarDeleteFailed: "Échec de la suppression de l'avatar.",
+    invalidFileType: "Type de fichier invalide. Seuls JPEG, PNG, GIF et WebP sont autorisés.",
+    fileTooLarge: "Fichier trop volumineux. La taille maximale est de 5MB."
   },
 
   stats: {
@@ -87,10 +106,7 @@ export default {
     passwordChanged: "Mot de passe changé avec succès !",
     accountDeleted: "Votre compte a été supprimé avec succès.\\nVous allez être redirigé vers la page d'accueil.",
     oauth42AccountDeleted: "Compte OAuth2 supprimé avec succès. Note: Cela ne supprime que votre compte de notre plateforme, pas de 42.",
-
-
     deletingAccount: "Suppression en cours...",
-
     confirmDeleteAccount: "Êtes-vous absolument certain de vouloir supprimer votre compte ?",
     noChangesDetected: "Aucune modification détectée",
     invalidEmailFormat: "Format d'email invalide",
@@ -132,7 +148,9 @@ export default {
     deleteError: "Échec de la suppression du compte",
     passwordChangeFailed: "Échec du changement de mot de passe",
     apiOffline: "Le serveur API est hors ligne",
-    accessDenied: "Accès refusé. Vous avez annulé l'authentification OAuth2."
+    accessDenied: "Accès refusé. Vous avez annulé l'authentification OAuth2.",
+    loginFailedGeneric: "Connexion échouée",
+    signupFailedGeneric: "Inscription échouée"
   },
 
   game: {
@@ -235,6 +253,20 @@ export default {
     serverStatus: "État du serveur",
     viewDemoMatch: "Voir un match de démonstration",
     anonymous: "Anonyme",
-    accountInfo: "Informations du compte"
+    accountInfo: "Informations du compte",
+    avatarUploadSuccess: "Avatar téléchargé avec succès.",
+    avatarDeleteSuccess: "Avatar supprimé avec succès.",
+    avatarUploadFailed: "Échec du téléchargement de l'avatar.",
+    avatarDeleteFailed: "Échec de la suppression de l'avatar.",
+    invalidFileType: "Type de fichier invalide. Seuls JPEG, PNG, GIF et WebP sont autorisés.",
+    fileTooLarge: "Fichier trop volumineux. La taille maximale est de 5MB.",
+    uploadAvatar: "Télécharger un avatar",
+    deleteAvatar: "Supprimer l'avatar",
+    changeAvatar: "Changer d'avatar",
+    dragDropAvatar: "Glissez-déposez votre photo ici ou cliquez pour choisir",
+    confirmDeleteAvatar: "Êtes-vous sûr de vouloir supprimer votre avatar ?",
+    noAvatar: "Aucun avatar défini",
+    customAvatar: "Avatar personnalisé",
+    avatarSyncFrom42: "Avatar synchronisé depuis 42"
   }
 };

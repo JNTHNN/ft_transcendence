@@ -17,6 +17,8 @@
     "@fastify/rate-limit": "^8.0.3",
     "@fastify/jwt": "^7.2.0",
     "@fastify/cookie": "^9.3.0",
+    "@fastify/multipart": "^8.0.0",
+    "@fastify/static": "^7.0.0",
     "argon2": "^0.40.1",
     "better-sqlite3": "^9.4.0",
     "pino": "^9.3.2",
