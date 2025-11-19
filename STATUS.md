@@ -172,7 +172,7 @@
 
 ---
 
-### 🔐 **CYBERSECURITY** - 1/1 module (90%)
+### 🔐 **CYBERSECURITY** - 1/1 module (50%)
 
 | Module | Status | Progression | Fonctionnalités |
 |--------|--------|-------------|-----------------|
