@@ -27,7 +27,6 @@ export default {
     signupHere: "Inscrivez-vous ici",
     loginButton: "Se connecter",
     signupButton: "S'inscrire",
-
     loggingIn: "Connexion...",
     signingUp: "Inscription...",
     loginRequired: "Vous devez être connecté pour accéder à cette page",
@@ -107,7 +106,8 @@ export default {
     loginSuccess: "Connexion réussie !",
     signupSuccess: "Compte créé avec succès !",
     noData: "Aucune donnée disponible",
-    fillAllFields: "Veuillez remplir tous les champs"
+    fillAllFields: "Veuillez remplir tous les champs",
+    displayNameTaken: "Ce nom d'utilisateur est déjà pris. Veuillez en choisir un autre.",
   },
 
   language: {
@@ -132,7 +132,6 @@ export default {
     deleteError: "Échec de la suppression du compte",
     passwordChangeFailed: "Échec du changement de mot de passe",
     apiOffline: "Le serveur API est hors ligne",
-
     accessDenied: "Accès refusé. Vous avez annulé l'authentification OAuth2."
   },
 

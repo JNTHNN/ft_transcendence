@@ -27,7 +27,6 @@ export default {
     signupHere: "Sign up here",
     loginButton: "Log in",
     signupButton: "Sign up",
-
     loggingIn: "Logging in...",
     signingUp: "Signing up...",
     loginRequired: "You must be logged in to access this page",
@@ -88,10 +87,7 @@ export default {
     passwordChanged: "Password changed successfully!",
     accountDeleted: "Your account has been successfully deleted.\\nYou will be redirected to the homepage.",
     oauth42AccountDeleted: "OAuth2 account deleted successfully. Note: This only deletes your account from our platform, not from 42.",
-
-
     deletingAccount: "Deleting account...",
-
     confirmDeleteAccount: "Are you absolutely sure you want to delete your account?",
     noChangesDetected: "No changes detected",
     invalidEmailFormat: "Invalid email format",
@@ -107,7 +103,8 @@ export default {
     loginSuccess: "Successfully logged in!",
     signupSuccess: "Account created successfully!",
     noData: "No data available",
-    fillAllFields: "Please fill in all fields"
+    fillAllFields: "Please fill all fields",
+    displayNameTaken: "This username is already taken. Please choose another one.",
   },
 
   language: {
@@ -132,7 +129,6 @@ export default {
     deleteError: "Account deletion failed",
     passwordChangeFailed: "Password change failed",
     apiOffline: "API server is offline",
-
     accessDenied: "Access denied. You cancelled the OAuth2 authentication."
   },
 

@@ -33,6 +33,7 @@ export const fr = {
     invalidEmail: "Adresse email invalide.",
     passwordMinLength: "Le mot de passe doit contenir au moins 8 caractères.",
     displayNameRequired: "Le nom d'affichage doit contenir entre 2 et 40 caractères.",
+    displayNameAlreadyExists: "Ce nom d'affichage est déjà utilisé. Veuillez en choisir un autre.",
     fieldRequired: "Ce champ est requis."
   }
 };

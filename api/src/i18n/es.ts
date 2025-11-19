@@ -33,6 +33,7 @@ export const es = {
     invalidEmail: "Dirección de correo electrónico inválida.",
     passwordMinLength: "La contraseña debe contener al menos 8 caracteres.",
     displayNameRequired: "El nombre de visualización debe tener entre 2 y 40 caracteres.",
+    displayNameAlreadyExists: "Este nombre de usuario ya está en uso. Por favor, elige otro.",
     fieldRequired: "Este campo es requerido."
   }
 };

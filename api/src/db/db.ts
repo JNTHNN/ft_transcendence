@@ -58,6 +58,19 @@ export function migrate(): void {
     if (hasOAuth42Id && hasAccountType) {
       db.exec("UPDATE users SET account_type = 'oauth42' WHERE oauth42_id IS NOT NULL AND account_type = 'local'");
     }
+
+    // Migration pour l'unicité du display_name
+    try {
+      const indexes = db.pragma("index_list(users)") as any[];
+      const hasDisplayNameIndex = indexes.some(idx => idx.name.includes('display_name'));
+      
+      if (!hasDisplayNameIndex) {
+        // Créer un index unique sur display_name
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_display_name_unique ON users(display_name)");
+      }
+    } catch (indexError) {
+      console.warn("Display name unique index warning:", indexError);
+    }
     
   } catch (e) {
     console.warn("Migration warning:", e);

@@ -33,6 +33,7 @@ export const de = {
     invalidEmail: "Ungültige E-Mail-Adresse.",
     passwordMinLength: "Das Passwort muss mindestens 8 Zeichen enthalten.",
     displayNameRequired: "Der Anzeigename muss zwischen 2 und 40 Zeichen lang sein.",
+    displayNameAlreadyExists: "Dieser Anzeigename ist bereits vergeben. Bitte wählen Sie einen anderen.",
     fieldRequired: "Dieses Feld ist erforderlich."
   }
 };

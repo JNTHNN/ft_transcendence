@@ -64,21 +64,22 @@
 
 ---
 
-### 👤 **USER MANAGEMENT** - 2/2 modules (95%)
+### 👤 **USER MANAGEMENT** - 2/2 modules (96%)
 
 | Module | Status | Progression | Fonctionnalités |
 |--------|--------|-------------|-----------------|
-| **Major: Standard User Management** | ✅ QUASI-COMPLET | 90% | Auth + Profils + Stats |
+| **Major: Standard User Management** | ✅ QUASI-COMPLET | 92% | Auth + Profils + Stats |
 | **Major: Remote Authentication** | ✅ COMPLET | 100% | OAuth 2.0 (42) |
 
 #### 🔧 **User Management - Détail par module**
 
-**✅ Standard User Management (90%)**
+**✅ Standard User Management (92%)**
 - ✅ Système d'inscription/connexion sécurisé
 - ✅ Gestion des profils utilisateur
 - ✅ Upload d'avatars
 - ✅ Mise à jour des informations
 - ✅ Gestion des comptes OAuth42
+- ✅ Unicité des noms d'affichage (display names)
 - ❌ Système d'amis (add/remove/status en ligne)
 - ❌ Historique des matchs 1v1
 - ❌ Statistiques complètes (wins/losses)
@@ -266,7 +267,7 @@
 ### **📈 Progression par Catégorie**
 ```
 Web:            ███████░░░ 77.5%
-User Mgmt:      █████████░ 95%
+User Mgmt:      █████████░ 96%
 Gameplay:       ██░░░░░░░░ 15%
 AI-Algo:        ░░░░░░░░░░ 0%
 Cybersecurity:  █████░░░░░ 50%
@@ -274,7 +275,7 @@ Accessibility:  █████████░ 92.5%
 Server Pong:    ██░░░░░░░░ 20%
 ```
 
-### **🎯 Score Global Estimé: 50%**
+### **🎯 Score Global Estimé: 52%**
 
 ---
 

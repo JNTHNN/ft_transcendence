@@ -75,7 +75,14 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         return res.send({ token: access, user: { id: info.lastInsertRowid, email: body.email, displayName: body.displayName } });
       } catch (e: any) {
         if (String(e?.message || '').includes('UNIQUE')) {
-          return res.status(409).send({ error: reqI18n.t('emailAlreadyExists') });
+          const constraintError = String(e?.message || '');
+          if (constraintError.includes('email') || constraintError.includes('users.email')) {
+            return res.status(409).send({ error: reqI18n.t('emailAlreadyExists') });
+          } else if (constraintError.includes('display_name') || constraintError.includes('users.display_name')) {
+            return res.status(409).send({ error: reqI18n.t('displayNameAlreadyExists') });
+          } else {
+            return res.status(409).send({ error: reqI18n.t('emailAlreadyExists') });
+          }
         }
         app.log.error(e);
         return res.status(500).send({ error: reqI18n.t('signupFailed') });
@@ -438,6 +445,13 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       const params: any[] = [];
 
       if (displayName) {
+        // Vérifier l'unicité du display name
+        const existingDisplayName = db
+          .prepare('SELECT id FROM users WHERE display_name = ? AND id != ?')
+          .get(displayName, uid);
+        if (existingDisplayName) {
+          return res.status(400).send({ error: reqI18n.t('displayNameAlreadyExists') });
+        }
         updates.push('display_name = ?');
         params.push(displayName);
       }
@@ -459,7 +473,20 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
 
       params.push(uid);
       const sql = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
-      db.prepare(sql).run(...params);
+      
+      try {
+        db.prepare(sql).run(...params);
+      } catch (e: any) {
+        if (String(e?.message || '').includes('UNIQUE')) {
+          const constraintError = String(e?.message || '');
+          if (constraintError.includes('display_name') || constraintError.includes('users.display_name')) {
+            return res.status(409).send({ error: reqI18n.t('displayNameAlreadyExists') });
+          } else if (constraintError.includes('email') || constraintError.includes('users.email')) {
+            return res.status(409).send({ error: reqI18n.t('emailAlreadyInUse') });
+          }
+        }
+        throw e;
+      }
 
       return res.send({ success: true });
     } catch (e) {
@@ -531,12 +558,22 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       let user = db.prepare('SELECT * FROM users WHERE email = ? OR oauth42_id = ?').get(userData.email, userData.id) as any;
       
       if (!user) {
+        // Générer un display_name unique si nécessaire
+        let displayName = userData.displayname || userData.login;
+        let counter = 0;
+        let uniqueDisplayName = displayName;
+        
+        while (db.prepare('SELECT id FROM users WHERE display_name = ?').get(uniqueDisplayName)) {
+          counter++;
+          uniqueDisplayName = `${displayName}_${counter}`;
+        }
+        
         const result = db.prepare(`
           INSERT INTO users (email, display_name, avatar_url, account_type, oauth42_id, oauth42_login, oauth42_data, last_42_sync) 
           VALUES (?, ?, ?, 'oauth42', ?, ?, ?, datetime('now'))
         `).run(
           userData.email, 
-          userData.displayname || userData.login,
+          uniqueDisplayName,
           userData.image?.versions?.medium || userData.image?.link,
           userData.id, 
           userData.login,
@@ -544,7 +581,7 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         );
         
         const userId = result.lastInsertRowid as number;
-        user = { id: userId, email: userData.email, display_name: userData.displayname || userData.login, account_type: 'oauth42', avatar_url: userData.image?.versions?.medium || userData.image?.link };
+        user = { id: userId, email: userData.email, display_name: uniqueDisplayName, account_type: 'oauth42', avatar_url: userData.image?.versions?.medium || userData.image?.link };
       } else if (!user.oauth42_id) {
         db.prepare(`
           UPDATE users SET 

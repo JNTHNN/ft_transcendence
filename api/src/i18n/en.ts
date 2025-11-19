@@ -33,6 +33,7 @@ export const en = {
     invalidEmail: "Invalid email address.",
     passwordMinLength: "Password must contain at least 8 characters.",
     displayNameRequired: "Display name must be between 2 and 40 characters.",
+    displayNameAlreadyExists: "This display name is already taken. Please choose another one.",
     fieldRequired: "This field is required."
   }
 };

@@ -27,7 +27,6 @@ export default {
     signupHere: "Hier registrieren",
     loginButton: "Anmelden",
     signupButton: "Registrieren",
-
     loggingIn: "Anmeldung...",
     signingUp: "Registrierung...",
     loginRequired: "Sie müssen angemeldet sein, um auf diese Seite zugreifen zu können",
@@ -54,7 +53,8 @@ export default {
     confirmNewPassword: "Neues Passwort bestätigen",
     dangerZone: "Gefahrenzone",
     deleteAccount: "Mein Konto dauerhaft löschen",
-    deleteAccountWarning: "Diese Aktion ist unwiderruflich und löscht dauerhaft:",
+    deleteAccountWarning: "⚠️ Warnung: Diese Aktion ist unwiderruflich",
+    deleteAccountNote: "Das Löschen Ihres Kontos wird dauerhaft löschen:",
     deleteAccountItems: {
       profile: "Ihr Profil und persönliche Informationen",
       history: "Ihre gesamte Spielhistorie",
@@ -62,13 +62,12 @@ export default {
       messages: "Ihre Chat-Nachrichten",
       tokens: "Alle Ihre Verbindungstoken"
     },
-    oauth42DeleteNote: "Dies entfernt nur Ihr Konto von unserer Plattform, nicht Ihr 42-Konto.",
-    deleteAccountNote: "Das Löschen Ihres Kontos wird dauerhaft löschen:",
+    oauth42DeleteNote: "Hinweis: Dies entfernt nur Ihr Konto von unserer Plattform, nicht Ihr 42-Konto.",
     deletePasswordConfirm: "Passwort (zur Bestätigung der Löschung)",
     deleteConfirmation: "Ich verstehe, dass diese Aktion unwiderruflich ist und alle meine Daten dauerhaft gelöscht werden",
-    memberSince: "Mitglied seit {{date}}",
-    lastSync: "Letzte 42-Synchronisation: {{date}}",
-    accountType: "Kontotyp: {{type}}",
+    memberSince: "Mitglied seit",
+    lastSync: "Letzte 42-Synchronisation:",
+    accountType: "Kontotyp:",
     account42: "42-Konto"
   },
 
@@ -105,8 +104,7 @@ export default {
     signupSuccess: "Konto erfolgreich erstellt!",
     noData: "Keine Daten verfügbar",
     fillAllFields: "Bitte füllen Sie alle Felder aus",
-
-
+    displayNameTaken: "Dieser Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.",
     deletingAccount: "Konto wird gelöscht..."
   },
 
@@ -132,7 +130,6 @@ export default {
     deleteError: "Kontolöschung fehlgeschlagen",
     passwordChangeFailed: "Passwort-Änderung fehlgeschlagen",
     apiOffline: "API-Server ist offline",
-
     accessDenied: "Zugriff verweigert. Sie haben die OAuth2-Authentifizierung abgebrochen."
   },
 

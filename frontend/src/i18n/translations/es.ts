@@ -27,7 +27,6 @@ export default {
     signupHere: "Regístrate aquí",
     loginButton: "Iniciar sesión",
     signupButton: "Registrarse",
-
     loggingIn: "Iniciando sesión...",
     signingUp: "Registrándose...",
     loginRequired: "Debes iniciar sesión para acceder a esta página",
@@ -54,7 +53,8 @@ export default {
     confirmNewPassword: "Confirmar Nueva Contraseña",
     dangerZone: "Zona Peligrosa",
     deleteAccount: "Eliminar permanentemente mi cuenta",
-    deleteAccountWarning: "Esta acción es irreversible y eliminará permanentemente:",
+    deleteAccountWarning: "⚠️ Advertencia: Esta acción es irreversible",
+    deleteAccountNote: "Eliminar tu cuenta borrará permanentemente:",
     deleteAccountItems: {
       profile: "Tu perfil e información personal",
       history: "Todo tu historial de partidas",
@@ -62,13 +62,12 @@ export default {
       messages: "Tus mensajes de chat",
       tokens: "Todos tus tokens de conexión"
     },
-    oauth42DeleteNote: "Esto solo eliminará tu cuenta de nuestra plataforma, no tu cuenta de 42.",
-    deleteAccountNote: "Eliminar tu cuenta borrará permanentemente:",
+    oauth42DeleteNote: "Nota: Esto solo eliminará tu cuenta de nuestra plataforma, no tu cuenta de 42.",
     deletePasswordConfirm: "Contraseña (para confirmar la eliminación)",
     deleteConfirmation: "Entiendo que esta acción es irreversible y que todos mis datos serán eliminados permanentemente",
-    memberSince: "Miembro desde {{date}}",
-    lastSync: "Última sincronización 42: {{date}}",
-    accountType: "Tipo de cuenta: {{type}}",
+    memberSince: "Miembro desde",
+    lastSync: "Última sincronización 42:",
+    accountType: "Tipo de cuenta:",
     account42: "Cuenta 42"
   },
 
@@ -105,8 +104,7 @@ export default {
     signupSuccess: "¡Cuenta creada con éxito!",
     noData: "No hay datos disponibles",
     fillAllFields: "Por favor, completa todos los campos",
-
-
+    displayNameTaken: "Este nombre de usuario ya está en uso. Por favor, elige otro.",
     deletingAccount: "Eliminando cuenta..."
   },
 
@@ -132,7 +130,6 @@ export default {
     deleteError: "Error al eliminar cuenta",
     passwordChangeFailed: "Error al cambiar contraseña",
     apiOffline: "El servidor API está desconectado",
-
     accessDenied: "Acceso denegado. Cancelaste la autenticación OAuth2."
   },
 
