@@ -113,18 +113,18 @@ export class MenuManager {
             <div class="px-4 py-2 text-sm">
               <div class="flex items-center space-x-2 mb-2">
                 ${menuAvatarUrl ? `
-                  <img src="${menuAvatarUrl}" alt="Avatar" class="w-8 h-8 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                  <div class="w-8 h-8 bg-sec rounded-full flex items-center justify-center" style="display:none;">
+                  <img src="${menuAvatarUrl}" alt="Avatar" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                  <div class="w-8 h-8 bg-sec rounded-full flex items-center justify-center flex-shrink-0" style="display:none;">
                     <span class="text-sm font-bold text-text">${this.fullUser?.displayName?.charAt(0).toUpperCase() || user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
                   </div>
                 ` : `
-                  <div class="w-8 h-8 bg-sec rounded-full flex items-center justify-center">
+                  <div class="w-8 h-8 bg-sec rounded-full flex items-center justify-center flex-shrink-0">
                     <span class="text-sm font-bold text-text">${this.fullUser?.displayName?.charAt(0).toUpperCase() || user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
                   </div>
                 `}
-                <div>
-                  <div class="text-text font-bold text-base">${this.fullUser?.displayName || user?.displayName || t('common.user')}</div>
-                  <div class="text-text/70 text-xs">${this.fullUser?.email || user?.email || ''}</div>
+                <div class="min-w-0">
+                  <div class="text-text font-bold text-base truncate">${this.fullUser?.displayName || user?.displayName || t('common.user')}</div>
+                  <div class="text-text/70 text-xs truncate max-w-[12rem]">${this.fullUser?.email || user?.email || ''}</div>
                   ${this.fullUser?.accountType === 'oauth42' ? '<div class="text-blue-400 text-xs">👤 42</div>' : ''}
                 </div>
               </div>

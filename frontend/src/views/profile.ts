@@ -46,19 +46,22 @@ export default async function View() {
   const headerAvatarUrl = transformAvatarUrl(user.avatarUrl);
     
   const avatarContent = headerAvatarUrl
-    ? `<img src="${headerAvatarUrl}" alt="Avatar" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-       <div class="w-16 h-16 bg-sec rounded-full flex items-center justify-center" style="display:none;">
-         <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+    ? `<img src="${headerAvatarUrl}" alt="Avatar" class="w-12 sm:w-16 aspect-square rounded-full object-cover flex-shrink-0" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+       <div class="w-12 sm:w-16 aspect-square bg-sec rounded-full flex items-center justify-center flex-shrink-0" style="display:none;">
+         <span class="text-lg sm:text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
        </div>`
-    : `<div class="w-16 h-16 bg-sec rounded-full flex items-center justify-center">
-         <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+    : `<div class="w-12 sm:w-16 aspect-square bg-sec rounded-full flex items-center justify-center flex-shrink-0">
+         <span class="text-lg sm:text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
        </div>`;
 
   header.innerHTML = `
     <div class="flex items-center justify-between mb-6">
       <h1 class="font-display font-black text-4xl text-text">${t('profile.title')}</h1>
       <div class="flex items-center space-x-4">
-        ${isOAuth42 ? `<span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-sans">${t('profile.oauth42Account')}</span>` : ''}
+        ${isOAuth42 ? `<div class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-sans font-medium flex items-center space-x-1">
+          <span class="text-blue-200">👤</span>
+          <span>${t('profile.oauth42Account')}</span>
+        </div>` : ''}
         <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
           ${t('auth.logout')}
         </button>
@@ -90,9 +93,9 @@ export default async function View() {
     <div class="flex items-center space-x-6 mb-6">
       <div class="relative">
         ${avatarUrl ? 
-          `<img src="${displayImageUrl}" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-sec">` :
-          `<div class="w-20 h-20 bg-sec rounded-full flex items-center justify-center border-2 border-sec">
-             <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+          `<img src="${displayImageUrl}" alt="Avatar" class="w-16 sm:w-20 aspect-square rounded-full object-cover border-2 border-sec flex-shrink-0">` :
+          `<div class="w-16 sm:w-20 aspect-square bg-sec rounded-full flex items-center justify-center border-2 border-sec flex-shrink-0">
+             <span class="text-xl sm:text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
            </div>`
         }
       </div>
@@ -103,12 +106,10 @@ export default async function View() {
         </p>
         
         <div class="flex flex-wrap gap-2">
-          <div class="relative">
-            <input type="file" id="avatarInput" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
-            <label for="avatarInput" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg cursor-pointer transition">
-              ${avatarUrl ? t('profile.changeAvatar') : t('profile.uploadAvatar')}
-            </label>
-          </div>
+          <input type="file" id="avatarInput" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
+          <button type="button" id="uploadAvatarBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
+            ${avatarUrl ? t('profile.changeAvatar') : t('profile.uploadAvatar')}
+          </button>
           ${avatarUrl ? 
             `<button type="button" id="deleteAvatarBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
                ${t('profile.deleteAvatar')}
@@ -171,7 +172,10 @@ export default async function View() {
     passwordForm.innerHTML = `
       <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.accountSecurity')}</h3>
       <div class="bg-blue-900 border border-blue-600 rounded-lg p-4">
-        <p class="font-sans text-blue-200 mb-2">🔒 ${t('profile.oauth42Account')}</p>
+        <div class="bg-blue-600/20 text-blue-200 px-3 py-2 rounded-lg text-sm font-sans mb-2 flex items-center space-x-2">
+          <span>🔒</span>
+          <span>${t('profile.oauth42Account')}</span>
+        </div>
         <p class="font-sans text-blue-300 text-sm">
           ${t('profile.oauth42SecurityMessage')}
         </p>
@@ -562,14 +566,14 @@ export default async function View() {
     if (headerAvatarContainer) {
       if (newAvatarUrl) {
         headerAvatarContainer.innerHTML = `
-          <img src="${displayImageUrl}" alt="Avatar" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="w-16 h-16 bg-sec rounded-full flex items-center justify-center" style="display:none;">
-            <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+          <img src="${displayImageUrl}" alt="Avatar" class="w-12 sm:w-16 aspect-square rounded-full object-cover flex-shrink-0" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="w-12 sm:w-16 aspect-square bg-sec rounded-full flex items-center justify-center flex-shrink-0" style="display:none;">
+            <span class="text-lg sm:text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
           </div>`;
       } else {
         headerAvatarContainer.innerHTML = `
-          <div class="w-16 h-16 bg-sec rounded-full flex items-center justify-center">
-            <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+          <div class="w-12 sm:w-16 aspect-square bg-sec rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="text-lg sm:text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
           </div>`;
       }
     }
@@ -577,10 +581,10 @@ export default async function View() {
     const avatarSectionImg = avatarSection.querySelector('.w-20.h-20') as HTMLElement;
     if (avatarSectionImg) {
       if (newAvatarUrl) {
-        avatarSectionImg.outerHTML = `<img src="${displayImageUrl}" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-sec">`;
+        avatarSectionImg.outerHTML = `<img src="${displayImageUrl}" alt="Avatar" class="w-16 sm:w-20 aspect-square rounded-full object-cover border-2 border-sec flex-shrink-0">`;
       } else {
-        avatarSectionImg.outerHTML = `<div class="w-20 h-20 bg-sec rounded-full flex items-center justify-center border-2 border-sec">
-           <span class="text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
+        avatarSectionImg.outerHTML = `<div class="w-16 sm:w-20 aspect-square bg-sec rounded-full flex items-center justify-center border-2 border-sec flex-shrink-0">
+           <span class="text-xl sm:text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
          </div>`;
       }
     }
@@ -593,12 +597,10 @@ export default async function View() {
     const buttonContainer = avatarSection.querySelector('.flex.flex-wrap.gap-2');
     if (buttonContainer) {
       buttonContainer.innerHTML = `
-        <div class="relative">
-          <input type="file" id="avatarInput" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
-          <label for="avatarInput" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg cursor-pointer transition">
-            ${newAvatarUrl ? t('profile.changeAvatar') : t('profile.uploadAvatar')}
-          </label>
-        </div>
+        <input type="file" id="avatarInput" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
+        <button type="button" id="uploadAvatarBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
+          ${newAvatarUrl ? t('profile.changeAvatar') : t('profile.uploadAvatar')}
+        </button>
         ${newAvatarUrl ? 
           `<button type="button" id="deleteAvatarBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
              ${t('profile.deleteAvatar')}
@@ -612,6 +614,14 @@ export default async function View() {
       `;
       
       const avatarInput = buttonContainer.querySelector('#avatarInput') as HTMLInputElement;
+      const uploadBtn = buttonContainer.querySelector('#uploadAvatarBtn') as HTMLElement;
+      
+      if (uploadBtn && avatarInput) {
+        uploadBtn.addEventListener('click', () => {
+          avatarInput.click();
+        });
+      }
+      
       if (avatarInput) {
         avatarInput.addEventListener('change', (e: any) => {
           const file = e.target.files[0];
@@ -708,6 +718,13 @@ export default async function View() {
       showAvatarError(error.message || t('profile.avatarUploadFailed'));
     }
   };
+
+  const uploadAvatarBtn = avatarSection.querySelector("#uploadAvatarBtn") as HTMLButtonElement;
+  if (uploadAvatarBtn) {
+    uploadAvatarBtn.addEventListener('click', () => {
+      avatarInput.click();
+    });
+  }
 
   avatarInput.addEventListener('change', (e) => {
     const target = e.target as HTMLInputElement;
