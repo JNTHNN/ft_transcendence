@@ -59,6 +59,30 @@ export function migrate(): void {
       db.exec("UPDATE users SET account_type = 'oauth42' WHERE oauth42_id IS NOT NULL AND account_type = 'local'");
     }
 
+    const has2FAColumns = columns.some(col => col.name === 'totp_secret');
+    if (!has2FAColumns) {
+      db.exec("ALTER TABLE users ADD COLUMN totp_secret TEXT");
+      db.exec("ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE");
+      db.exec("ALTER TABLE users ADD COLUMN backup_codes TEXT");
+      db.exec("ALTER TABLE users ADD COLUMN totp_setup_at DATETIME");
+    }
+
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS temp_login_tokens (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          token TEXT NOT NULL UNIQUE,
+          expires_at DATETIME NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      db.exec("CREATE INDEX IF NOT EXISTS idx_temp_tokens_user_id ON temp_login_tokens(user_id)");
+      db.exec("CREATE INDEX IF NOT EXISTS idx_temp_tokens_expires ON temp_login_tokens(expires_at)");
+    } catch (e) {
+      console.warn("Temp login tokens table creation warning:", e);
+    }
+
     try {
       const indexes = db.pragma("index_list(users)") as any[];
       const hasDisplayNameIndex = indexes.some(idx => idx.name.includes('display_name'));

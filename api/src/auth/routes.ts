@@ -3,6 +3,7 @@ import { signupSchema, loginSchema } from './schemas.js';
 import Database from 'better-sqlite3';
 import argon2 from 'argon2';
 import crypto from 'crypto';
+import fs from 'fs';
 import { createI18nForRequest } from '../i18n/translations.js';
 
 declare const process: any;
@@ -113,19 +114,34 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
     try {
       const body = loginSchema.parse(req.body);
       const row = db
-        .prepare('SELECT id, password_hash, email, display_name FROM users WHERE email = ?')
+        .prepare('SELECT id, password_hash, email, display_name, totp_enabled FROM users WHERE email = ?')
         .get(body.email) as any;
 
       if (!row) return res.status(401).send({ error: reqI18n.t('invalidCredentials') });
       const ok = await argon2.verify(row.password_hash, body.password);
       if (!ok) return res.status(401).send({ error: reqI18n.t('invalidCredentials') });
 
-    const access = app.jwt.sign(
-      { uid: row.id, email: row.email },
-      { expiresIn: ACCESS_TTL }
-    );
-    const rt = createRefreshToken(db, row.id);
-    setRefreshCookie(res, rt);
+      if (row.totp_enabled) {
+        const tempToken = crypto.randomBytes(32).toString('base64url');
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        
+        db.prepare(`
+          INSERT OR REPLACE INTO temp_login_tokens (user_id, token, expires_at)
+          VALUES (?, ?, ?)
+        `).run(row.id, tempToken, toSqliteDate(expiresAt));
+        
+        return res.send({
+          requiresTwoFactor: true,
+          tempToken: tempToken
+        });
+      }
+
+      const access = app.jwt.sign(
+        { uid: row.id, email: row.email },
+        { expiresIn: ACCESS_TTL }
+      );
+      const rt = createRefreshToken(db, row.id);
+      setRefreshCookie(res, rt);
 
       return res.send({
         token: access,
@@ -370,7 +386,21 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
 
       if (user.account_type === 'oauth42') {
         const deleteTransaction = db.transaction(() => {
+          const userWithAvatar = db.prepare('SELECT avatar_url FROM users WHERE id = ?').get(uid) as any;
+          if (userWithAvatar?.avatar_url && userWithAvatar.avatar_url.startsWith('/uploads/')) {
+            const avatarPath = `/data${userWithAvatar.avatar_url}`;
+            if (fs.existsSync(avatarPath)) {
+              try {
+                fs.unlinkSync(avatarPath);
+              } catch (e) {
+                app.log.warn(`Failed to delete avatar file: ${avatarPath}`);
+              }
+            }
+          }
+          
           db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?').run(uid);
+          db.prepare('DELETE FROM temp_login_tokens WHERE user_id = ?').run(uid);
+          
           db.prepare('DELETE FROM users WHERE id = ?').run(uid);
         });
 
@@ -394,7 +424,21 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         }
 
         const deleteTransaction = db.transaction(() => {
+          const userWithAvatar = db.prepare('SELECT avatar_url FROM users WHERE id = ?').get(uid) as any;
+          if (userWithAvatar?.avatar_url && userWithAvatar.avatar_url.startsWith('/uploads/')) {
+            const avatarPath = `/data${userWithAvatar.avatar_url}`;
+            if (fs.existsSync(avatarPath)) {
+              try {
+                fs.unlinkSync(avatarPath);
+              } catch (e) {
+                app.log.warn(`Failed to delete avatar file: ${avatarPath}`);
+              }
+            }
+          }
+          
           db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?').run(uid);
+          db.prepare('DELETE FROM temp_login_tokens WHERE user_id = ?').run(uid);
+          
           db.prepare('DELETE FROM users WHERE id = ?').run(uid);
         });
 
@@ -621,6 +665,22 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
           user.display_name = userData.displayname || userData.login;
 
         }
+      }
+
+      if (user.totp_enabled) {
+        const tempToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        
+        db.prepare(`
+          INSERT INTO temp_login_tokens (token, user_id, expires_at) 
+          VALUES (?, ?, ?)
+        `).run(tempToken, user.id, expiresAt.toISOString());
+
+        return res.send({
+          requires2FA: true,
+          tempToken,
+          message: reqI18n.t('twoFactorInvalidStage')
+        });
       }
 
       const jwtToken = app.jwt.sign(

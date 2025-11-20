@@ -13,6 +13,7 @@ declare const process: any;
 
 import authPlugin from './middleware/auth.js';
 import { registerAuthRoutes } from './auth/routes.js';
+import { register2FARoutes } from './auth/2fa-routes.js';
 import { registerUserRoutes } from './users/routes.js';
 import db, { migrate } from './db/db.js';
 import { registerChatWS } from './chat/ws.js';
@@ -66,6 +67,7 @@ app.get('/ready', async (_req: FastifyRequest, res: FastifyReply) => {
 });
 
 await registerAuthRoutes(app, db);
+await register2FARoutes(app, db);
 await registerUserRoutes(app, db);
 
 app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: string}}>, res: FastifyReply) => {

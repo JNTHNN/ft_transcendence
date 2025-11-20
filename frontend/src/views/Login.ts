@@ -99,6 +99,9 @@ export default async function View() {
         setTimeout(() => {
           router.navigate("/");
         }, 1000);
+      } else if (result.requiresTwoFactor && result.tempToken) {
+        sessionStorage.setItem('2fa_temp_token', result.tempToken);
+        router.navigate('/2fa-login');
       } else {
         showError(result.error || t('errors.loginFailed'));
       }

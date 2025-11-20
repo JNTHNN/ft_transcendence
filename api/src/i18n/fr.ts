@@ -51,6 +51,27 @@ export const fr = {
     oauth42Only: "Seuls les comptes OAuth42 peuvent synchroniser avec l'avatar 42",
     avatar42SyncSuccess: "Avatar 42 synchronisé avec succès.",
     avatar42SyncFailed: "Échec de la synchronisation de l'avatar 42.",
-    no42Avatar: "Aucun avatar 42 disponible. Veuillez définir un avatar sur votre profil 42 d'abord, puis vous reconnecter pour mettre à jour vos données."
+    no42Avatar: "Aucun avatar 42 disponible. Veuillez définir un avatar sur votre profil 42 d'abord, puis vous reconnecter pour mettre à jour vos données.",
+    
+    twoFactorAlreadyEnabled: "L'authentification à deux facteurs est déjà activée.",
+    twoFactorSetupFailed: "Échec de la configuration de l'authentification à deux facteurs.",
+    twoFactorNoSetup: "Aucune configuration d'authentification à deux facteurs trouvée.",
+    twoFactorInvalidCode: "Code d'authentification invalide.",
+    twoFactorEnabledSuccess: "Authentification à deux facteurs activée avec succès.",
+    twoFactorVerifyFailed: "Échec de la vérification du code.",
+    twoFactorNotEnabled: "L'authentification à deux facteurs n'est pas activée.",
+    twoFactorPasswordRequired: "Le mot de passe est requis pour désactiver l'authentification à deux facteurs.",
+    twoFactorDisabledSuccess: "Authentification à deux facteurs désactivée avec succès.",
+    twoFactorDisableFailed: "Échec de la désactivation de l'authentification à deux facteurs.",
+    twoFactorBackupCodesGenerated: "Nouveaux codes de récupération générés avec succès.",
+    twoFactorBackupCodesFailed: "Échec de la génération des codes de récupération.",
+    twoFactorInvalidRequest: "Requête invalide.",
+    twoFactorInvalidToken: "Token temporaire invalide ou expiré.",
+    twoFactorInvalidStage: "Étape d'authentification invalide.",
+    twoFactorLoginFailed: "Échec de la connexion avec authentification à deux facteurs.",
+    confirmPassword: "Confirmer le mot de passe",
+    enterPasswordToDisable2FA: "Entrez votre mot de passe pour désactiver l'authentification à deux facteurs",
+    currentPassword: "Mot de passe actuel",
+    internalError: "Erreur interne du serveur."
   }
 };

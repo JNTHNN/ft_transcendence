@@ -74,6 +74,12 @@ export default async function View() {
       setTimeout(() => {
         router.navigate('/profile');
       }, 1000);
+    } else if (result.requires2FA && result.tempToken) {
+      sessionStorage.setItem('2fa_temp_token', result.tempToken);
+      statusElement.textContent = t('twoFactorAuthRequired');
+      setTimeout(() => {
+        router.navigate('/2fa-login');
+      }, 1500);
     } else {
       container.innerHTML = `
         <div class="bg-prem rounded-lg shadow-xl p-8 max-w-md w-full mx-4">

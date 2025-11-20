@@ -51,6 +51,27 @@ export const en = {
     oauth42Only: "Only OAuth42 accounts can sync with 42 avatar",
     avatar42SyncSuccess: "42 avatar synced successfully.",
     avatar42SyncFailed: "42 avatar sync failed.",
-    no42Avatar: "No 42 avatar available. Please set an avatar on your 42 profile first, then reconnect to update your data."
+    no42Avatar: "No 42 avatar available. Please set an avatar on your 42 profile first, then reconnect to update your data.",
+    
+    twoFactorAlreadyEnabled: "Two-factor authentication is already enabled.",
+    twoFactorSetupFailed: "Failed to setup two-factor authentication.",
+    twoFactorNoSetup: "No two-factor authentication setup found.",
+    twoFactorInvalidCode: "Invalid authentication code.",
+    twoFactorEnabledSuccess: "Two-factor authentication enabled successfully.",
+    twoFactorVerifyFailed: "Failed to verify code.",
+    twoFactorNotEnabled: "Two-factor authentication is not enabled.",
+    twoFactorPasswordRequired: "Password is required to disable two-factor authentication.",
+    twoFactorDisabledSuccess: "Two-factor authentication disabled successfully.",
+    twoFactorDisableFailed: "Failed to disable two-factor authentication.",
+    twoFactorBackupCodesGenerated: "New backup codes generated successfully.",
+    twoFactorBackupCodesFailed: "Failed to generate backup codes.",
+    twoFactorInvalidRequest: "Invalid request.",
+    twoFactorInvalidToken: "Invalid or expired temporary token.",
+    twoFactorInvalidStage: "Invalid authentication stage.",
+    twoFactorLoginFailed: "Failed to login with two-factor authentication.",
+    confirmPassword: "Confirm Password",
+    enterPasswordToDisable2FA: "Enter your password to disable two-factor authentication",
+    currentPassword: "Current Password",
+    internalError: "Internal server error."
   }
 };

@@ -51,6 +51,27 @@ export const es = {
     oauth42Only: "Solo las cuentas OAuth42 pueden sincronizar con el avatar de 42",
     avatar42SyncSuccess: "Avatar de 42 sincronizado con éxito.",
     avatar42SyncFailed: "Error al sincronizar el avatar de 42.",
-    no42Avatar: "No hay avatar de 42 disponible. Por favor establece un avatar en tu perfil de 42 primero, luego reconéctate para actualizar tus datos."
+    no42Avatar: "No hay avatar de 42 disponible. Por favor establece un avatar en tu perfil de 42 primero, luego reconéctate para actualizar tus datos.",
+    
+    twoFactorAlreadyEnabled: "La autenticación de dos factores ya está habilitada.",
+    twoFactorSetupFailed: "Error al configurar la autenticación de dos factores.",
+    twoFactorNoSetup: "No se encontró configuración de autenticación de dos factores.",
+    twoFactorInvalidCode: "Código de autenticación inválido.",
+    twoFactorEnabledSuccess: "Autenticación de dos factores habilitada con éxito.",
+    twoFactorVerifyFailed: "Error al verificar el código.",
+    twoFactorNotEnabled: "La autenticación de dos factores no está habilitada.",
+    twoFactorPasswordRequired: "Se requiere contraseña para desactivar la autenticación de dos factores.",
+    twoFactorDisabledSuccess: "Autenticación de dos factores desactivada con éxito.",
+    twoFactorDisableFailed: "Error al desactivar la autenticación de dos factores.",
+    twoFactorBackupCodesGenerated: "Nuevos códigos de respaldo generados con éxito.",
+    twoFactorBackupCodesFailed: "Error al generar códigos de respaldo.",
+    twoFactorInvalidRequest: "Solicitud inválida.",
+    twoFactorInvalidToken: "Token temporal inválido o expirado.",
+    twoFactorInvalidStage: "Etapa de autenticación inválida.",
+    twoFactorLoginFailed: "Error en el inicio de sesión con autenticación de dos factores.",
+    confirmPassword: "Confirmar Contraseña",
+    enterPasswordToDisable2FA: "Introduce tu contraseña para desactivar la autenticación de dos factores",
+    currentPassword: "Contraseña Actual",
+    internalError: "Error interno del servidor."
   }
 };

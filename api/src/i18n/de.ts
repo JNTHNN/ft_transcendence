@@ -51,6 +51,27 @@ export const de = {
     oauth42Only: "Nur OAuth42-Konten können mit 42-Avatar synchronisieren",
     avatar42SyncSuccess: "42-Avatar erfolgreich synchronisiert.",
     avatar42SyncFailed: "42-Avatar-Synchronisation fehlgeschlagen.",
-    no42Avatar: "Kein 42-Avatar verfügbar. Bitte setzen Sie zuerst einen Avatar auf Ihrem 42-Profil, dann verbinden Sie sich erneut, um Ihre Daten zu aktualisieren."
+    no42Avatar: "Kein 42-Avatar verfügbar. Bitte setzen Sie zuerst einen Avatar auf Ihrem 42-Profil, dann verbinden Sie sich erneut, um Ihre Daten zu aktualisieren.",
+    
+    twoFactorAlreadyEnabled: "Die Zwei-Faktor-Authentifizierung ist bereits aktiviert.",
+    twoFactorSetupFailed: "Fehler beim Einrichten der Zwei-Faktor-Authentifizierung.",
+    twoFactorNoSetup: "Keine Zwei-Faktor-Authentifizierung-Konfiguration gefunden.",
+    twoFactorInvalidCode: "Ungültiger Authentifizierungscode.",
+    twoFactorEnabledSuccess: "Zwei-Faktor-Authentifizierung erfolgreich aktiviert.",
+    twoFactorVerifyFailed: "Fehler beim Verifizieren des Codes.",
+    twoFactorNotEnabled: "Die Zwei-Faktor-Authentifizierung ist nicht aktiviert.",
+    twoFactorPasswordRequired: "Passwort ist erforderlich, um die Zwei-Faktor-Authentifizierung zu deaktivieren.",
+    twoFactorDisabledSuccess: "Zwei-Faktor-Authentifizierung erfolgreich deaktiviert.",
+    twoFactorDisableFailed: "Fehler beim Deaktivieren der Zwei-Faktor-Authentifizierung.",
+    twoFactorBackupCodesGenerated: "Neue Backup-Codes erfolgreich generiert.",
+    twoFactorBackupCodesFailed: "Fehler beim Generieren der Backup-Codes.",
+    twoFactorInvalidRequest: "Ungültige Anfrage.",
+    twoFactorInvalidToken: "Ungültiger oder abgelaufener temporärer Token.",
+    twoFactorInvalidStage: "Ungültige Authentifizierungsstufe.",
+    twoFactorLoginFailed: "Fehler beim Anmelden mit Zwei-Faktor-Authentifizierung.",
+    confirmPassword: "Passwort Bestätigen",
+    enterPasswordToDisable2FA: "Geben Sie Ihr Passwort ein, um die Zwei-Faktor-Authentifizierung zu deaktivieren",
+    currentPassword: "Aktuelles Passwort",
+    internalError: "Interner Serverfehler."
   }
 };

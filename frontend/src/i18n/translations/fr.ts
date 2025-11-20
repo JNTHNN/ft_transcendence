@@ -87,7 +87,9 @@ export default {
     avatarUploadFailed: "Échec du téléchargement de l'avatar.",
     avatarDeleteFailed: "Échec de la suppression de l'avatar.",
     invalidFileType: "Type de fichier invalide. Seuls JPEG, PNG, GIF et WebP sont autorisés.",
-    fileTooLarge: "Fichier trop volumineux. La taille maximale est de 5MB."
+    fileTooLarge: "Fichier trop volumineux. La taille maximale est de 5MB.",
+    security: "Sécurité",
+    manage2FA: "Gérer"
   },
 
   stats: {
@@ -104,7 +106,7 @@ export default {
   messages: {
     profileUpdated: "Profil mis à jour avec succès !",
     passwordChanged: "Mot de passe changé avec succès !",
-    accountDeleted: "Votre compte a été supprimé avec succès.\\nVous allez être redirigé vers la page d'accueil.",
+    accountDeleted: "Votre compte a été supprimé avec succès.\nVous allez être redirigé vers la page d'accueil.",
     oauth42AccountDeleted: "Compte OAuth2 supprimé avec succès. Note: Cela ne supprime que votre compte de notre plateforme, pas de 42.",
     deletingAccount: "Suppression en cours...",
     confirmDeleteAccount: "Êtes-vous absolument certain de vouloir supprimer votre compte ?",
@@ -123,7 +125,7 @@ export default {
     signupSuccess: "Compte créé avec succès !",
     noData: "Aucune donnée disponible",
     fillAllFields: "Veuillez remplir tous les champs",
-    displayNameTaken: "Ce nom d'utilisateur est déjà pris. Veuillez en choisir un autre.",
+    displayNameTaken: "Ce nom d'utilisateur est déjà pris. Veuillez en choisir un autre."
   },
 
   language: {
@@ -268,5 +270,62 @@ export default {
     noAvatar: "Aucun avatar défini",
     customAvatar: "Avatar personnalisé",
     avatarSyncFrom42: "Avatar synchronisé depuis 42"
-  }
+  },
+
+  twoFactorAuth: "Authentification à deux facteurs",
+  twoFactorAuthDescription: "Renforcez la sécurité de votre compte avec l'authentification à deux facteurs",
+  confirmPassword: "Confirmer le mot de passe",
+  enterPasswordToDisable2FA: "Entrez votre mot de passe pour désactiver l'authentification à deux facteurs",
+  currentPassword: "Mot de passe actuel",
+  twoFactorAuthRequired: "Authentification à deux facteurs requise",
+  twoFactorEnabled: "Authentification à deux facteurs activée",
+  twoFactorDisabled: "Authentification à deux facteurs désactivée",
+  twoFactorNotEnabled: "L'authentification à deux facteurs n'est pas activée",
+  twoFactorActive: "Authentification à deux facteurs active",
+  enabledSince: "Activée depuis le",
+  enableTwoFactor: "Activer l'authentification à deux facteurs",
+  enableTwoFactorDescription: "Configurez l'authentification à deux facteurs pour sécuriser votre compte",
+  disableTwoFactor: "Désactiver l'authentification à deux facteurs",
+  disableTwoFactorWarning: "Cela réduira la sécurité de votre compte",
+  setup: "Configurer",
+  disable: "Désactiver",
+  backupCodes: "Codes de sauvegarde",
+  backupCodesDescription: "Générez et affichez vos codes de sauvegarde pour l'accès d'urgence",
+  showBackupCodes: "Afficher les codes de sauvegarde",
+  setupTwoFactor: "Configurer l'authentification à deux facteurs",
+  scanQRCode: "Scannez ce code QR avec votre application d'authentification",
+  manualEntry: "Saisie manuelle",
+  enterVerificationCode: "Entrez le code de vérification",
+  cancel: "Annuler",
+  verify: "Vérifier",
+  close: "Fermer",
+  print: "Imprimer",
+  pleaseEnterSixDigitCode: "Veuillez entrer un code à 6 chiffres",
+  twoFactorSuccessfullyEnabled: "Authentification à deux facteurs activée avec succès",
+  twoFactorSuccessfullyDisabled: "Authentification à deux facteurs désactivée avec succès",
+  invalidVerificationCode: "Code de vérification invalide",
+  failedToStartSetup: "Échec du démarrage de la configuration",
+  failedToDisableTwoFactor: "Échec de la désactivation de l'authentification à deux facteurs",
+  failedToGenerateBackupCodes: "Échec de la génération des codes de sauvegarde",
+  confirmDisableTwoFactor: "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?",
+  confirmDisableTwoFactorOAuth: "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?",
+  enterCurrentPassword: "Entrez votre mot de passe actuel",
+  failedToLoadTwoFactorStatus: "Échec du chargement du statut de l'authentification à deux facteurs",
+  pleaseRefreshPage: "Veuillez actualiser la page",
+  backupCodesWarning: "Conservez ces codes en sécurité. Chaque code ne peut être utilisé qu'une seule fois.",
+  
+  twoFactorVerification: "Vérification à deux facteurs",
+  enterTwoFactorCode: "Entrez votre code d'authentification à deux facteurs",
+  verificationCode: "Code de vérification",
+  twoFactorInstructions: "Utilisez votre application d'authentification pour obtenir le code",
+  verifying: "Vérification en cours...",
+  useBackupCode: "Utiliser un code de sauvegarde",
+  backToLogin: "Retour à la connexion",
+  verificationSuccessful: "Vérification réussie",
+  verificationCodeExpired: "Code de vérification expiré",
+  invalidTempToken: "Token temporaire invalide",
+  backupCode: "Code de sauvegarde",
+  enterBackupCode: "Entrez un code de sauvegarde",
+  enterBackupCodeInstructions: "Entrez l'un de vos codes de sauvegarde à 8-10 caractères",
+  useAuthenticatorCode: "Utiliser le code d'authentification"
 };

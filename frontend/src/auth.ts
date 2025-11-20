@@ -91,6 +91,16 @@ class AuthManager {
     }
   }
 
+  public setAuth(user: User, token: string) {
+    this.updateState({
+      user,
+      token,
+      isAuthenticated: true,
+      isLoading: false
+    });
+    this.storeAuth(user, token);
+  }
+
   private clearStoredAuth() {
     localStorage.removeItem('ft_transcendence_auth');
     if (this.refreshTimer) {
@@ -129,7 +139,7 @@ class AuthManager {
     }
   }
 
-  async login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+  async login(email: string, password: string): Promise<{ success: boolean; requiresTwoFactor?: boolean; tempToken?: string; error?: string }> {
     try {
       this.updateState({ isLoading: true });
 
@@ -138,7 +148,10 @@ class AuthManager {
         body: JSON.stringify({ email, password })
       });
 
-      if (data.user && data.token) {
+      if (data.requiresTwoFactor && data.tempToken) {
+        this.updateState({ isLoading: false });
+        return { success: false, requiresTwoFactor: true, tempToken: data.tempToken };
+      } else if (data.user && data.token) {
         this.updateState({
           user: data.user,
           token: data.token,
@@ -343,7 +356,7 @@ class AuthManager {
     }
   }
 
-  async loginWithOAuth42(code: string, state?: string): Promise<{ success: boolean; error?: string }> {
+  async loginWithOAuth42(code: string, state?: string): Promise<{ success: boolean; error?: string; requires2FA?: boolean; tempToken?: string }> {
     try {
       const data = await api('/auth/oauth42/callback', {
         method: 'POST',
@@ -353,6 +366,10 @@ class AuthManager {
           redirect_uri: (import.meta as any).env?.VITE_OAUTH42_REDIRECT_URI || `${window.location.origin}/auth/oauth42/callback`
         })
       });
+
+      if (data.requires2FA) {
+        return { success: false, requires2FA: true, tempToken: data.tempToken };
+      }
 
       this.updateState({
         user: data.user,

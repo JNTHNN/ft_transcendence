@@ -91,7 +91,7 @@ export default async function View() {
     <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.avatar')}</h3>
     
     <div class="flex items-center space-x-6 mb-6">
-      <div class="relative">
+      <div class="relative" id="avatar-section-image">
         ${avatarUrl ? 
           `<img src="${displayImageUrl}" alt="Avatar" class="w-16 sm:w-20 aspect-square rounded-full object-cover border-2 border-sec flex-shrink-0">` :
           `<div class="w-16 sm:w-20 aspect-square bg-sec rounded-full flex items-center justify-center border-2 border-sec flex-shrink-0">
@@ -132,6 +132,23 @@ export default async function View() {
     
     <div id="avatarError" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-sm font-sans hidden"></div>
     <div id="avatarSuccess" class="mt-4 p-3 bg-green-900 text-green-200 rounded-lg text-sm font-sans hidden"></div>
+  `;
+
+  const securitySection = document.createElement("div");
+  securitySection.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
+  securitySection.innerHTML = `
+    <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.security')}</h3>
+    <div class="space-y-4">
+      <div class="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+        <div>
+          <h4 class="font-sans font-medium text-text">${t('twoFactorAuth')}</h4>
+          <p class="text-sm text-gray-400">${t('twoFactorAuthDescription')}</p>
+        </div>
+        <a href="/2fa-settings" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-4 rounded-lg transition">
+          ${t('profile.manage2FA')}
+        </a>
+      </div>
+    </div>
   `;
 
   const profileForm = document.createElement("form");
@@ -578,12 +595,12 @@ export default async function View() {
       }
     }
 
-    const avatarSectionImg = avatarSection.querySelector('.w-20.h-20') as HTMLElement;
-    if (avatarSectionImg) {
+    const avatarSectionContainer = document.querySelector('#avatar-section-image') as HTMLElement;
+    if (avatarSectionContainer) {
       if (newAvatarUrl) {
-        avatarSectionImg.outerHTML = `<img src="${displayImageUrl}" alt="Avatar" class="w-16 sm:w-20 aspect-square rounded-full object-cover border-2 border-sec flex-shrink-0">`;
+        avatarSectionContainer.innerHTML = `<img src="${displayImageUrl}" alt="Avatar" class="w-16 sm:w-20 aspect-square rounded-full object-cover border-2 border-sec flex-shrink-0">`;
       } else {
-        avatarSectionImg.outerHTML = `<div class="w-16 sm:w-20 aspect-square bg-sec rounded-full flex items-center justify-center border-2 border-sec flex-shrink-0">
+        avatarSectionContainer.innerHTML = `<div class="w-16 sm:w-20 aspect-square bg-sec rounded-full flex items-center justify-center border-2 border-sec flex-shrink-0">
            <span class="text-xl sm:text-2xl font-bold text-text">${user.displayName.charAt(0).toUpperCase()}</span>
          </div>`;
       }
@@ -767,6 +784,7 @@ export default async function View() {
 
   container.appendChild(header);
   container.appendChild(avatarSection);
+  container.appendChild(securitySection);
   container.appendChild(profileForm);
   container.appendChild(passwordForm);
   container.appendChild(deleteAccountSection);
