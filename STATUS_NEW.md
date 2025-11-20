@@ -9,10 +9,10 @@
 | Métrique | Valeur |
 |----------|--------|
 | **Total modules requis** | 7 majeurs |
-| **Score actuel estimé** | **~65%** du projet complet |
-| **Modules complétés** | 6/14 ✅ |
-| **Modules en cours** | 6/14 🔶 |
-| **Modules non commencés** | 2/14 ❌ |
+| **Score actuel estimé** | **~70%** du projet complet |
+| **Modules complétés** | 6/12 ✅ |
+| **Modules en cours** | 5/12 🔶 |
+| **Modules non commencés** | 1/12 ❌ |
 
 ---
 
@@ -98,41 +98,13 @@
 
 ---
 
-### 🎮 **GAMEPLAY** - 1/3 modules (15%)
+### 🎮 **GAMEPLAY** - 1/1 module (10%)
 
 | Module | Status | Progression | Type |
 |--------|--------|-------------|------|
-| **Major: Remote Players** | 🔶 EN COURS | 10% | Multijoueur réseau |
-| **Major: Another Game** | ❌ NON COMMENCÉ | 0% | Nouveau jeu + matchmaking |
 | **Major: Live Chat** | 🔶 EN COURS | 10% | Chat temps réel |
 
 #### 🔧 **Gameplay - Détail par module**
-
-**🔶 Remote Players (10%)**
-- ✅ WebSocket configuré (chat/game)
-- ✅ Infrastructure temps réel
-- ❌ Logique de jeu Pong multijoueur
-- ❌ Gestion déconnexions/lag
-- ❌ Interface lobby/matchmaking
-- ❌ Synchronisation game state
-- **Reste à faire**:
-  - Game engine Pong server-side
-  - Lobby et matchmaking
-  - Gestion réseau (reconnexion/lag)
-  - Interface spectateur
-
-**❌ Another Game (0%)**
-- ❌ Conception nouveau jeu
-- ❌ Implémentation gameplay
-- ❌ Système de matchmaking dédié
-- ❌ Historique spécifique
-- ❌ Interface utilisateur
-- **Reste à faire**:
-  - Choisir et concevoir le jeu (ex: Snake, Tetris, etc.)
-  - Développer le gameplay
-  - Intégrer matchmaking
-  - Base de données historique
-  - Interface complète
 
 **🔶 Live Chat (10%)**
 - ✅ WebSocket chat configuré
@@ -259,9 +231,9 @@
 - **Backend**: Node.js + Fastify + TypeScript
 - **Frontend**: Vite + TypeScript + Tailwind CSS  
 - **Database**: SQLite avec migrations
-- **Auth**: JWT + OAuth42 + (2FA en cours)
+- **Auth**: JWT + OAuth42 + 2FA/TOTP complet
 - **Blockchain**: Hardhat + Solidity + Avalanche
-- **Real-time**: WebSocket (chat + game)
+- **Real-time**: WebSocket (chat)
 - **Containerization**: Docker + Docker Compose
 - **Reverse Proxy**: Traefik avec SSL
 
@@ -269,14 +241,14 @@
 ```
 Web:            ███████░░░ 77.5%
 User Mgmt:      █████████░ 96%
-Gameplay:       ██░░░░░░░░ 15%
+Gameplay:       █░░░░░░░░░ 10%
 AI-Algo:        ░░░░░░░░░░ 0%
 Cybersecurity:  ██████████ 100%
 Accessibility:  █████████░ 92.5%
 Server Pong:    ██░░░░░░░░ 20%
 ```
 
-### **🎯 Score Global Estimé: 65%**
+### **🎯 Score Global Estimé: 70%**
 
 ---
 
@@ -291,18 +263,23 @@ Server Pong:    ██░░░░░░░░ 20%
 - OAuth42 fonctionnel avec intégration 2FA
 - Docker/Containerization opérationnel
 - Gestion complète des sessions sécurisées
+- **Focus simplicité**: Concentration sur modules essentiels de qualité
 
 ### **⚠️ Risques Identifiés**
 - **Blockchain**: Complexité intégration Avalanche testnet
-- **Multiplayer**: Synchronisation temps réel précise
 - **IA**: Algorithme sans A* avec contraintes temporelles
 - **Performance**: Optimisation mobile/réseau
 
 ### **🔧 Dépendances Critiques**
 1. **Blockchain** → **Tournaments** → **Game History**
-2. **Server-Side Pong** → **Remote Players** → **Multiplayer**
-3. **User Management** → **Friends** → **Chat Private**
-4. **AI** → **Game Engine** → **Server-Side Logic**
+2. **User Management** → **Friends** → **Chat Private**
+3. **AI** → **Game Engine** → **Server-Side Logic**
+
+### **🎯 Stratégie Optimisée**
+- **Modules retirés**: Remote Players + Another Game (complexité excessive)
+- **Focus qualité**: Moins de modules mais mieux implémentés
+- **Score amélioré**: Concentration sur modules critiques et fonctionnels
+- **Risque réduit**: Évite les modules multijoueur complexes
 
 ---
 
