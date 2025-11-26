@@ -10,28 +10,28 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "fastify": "^4.29.1",
+    "@fastify/cookie": "^9.3.0",
     "@fastify/cors": "^8.5.0",
     "@fastify/helmet": "^11.1.1",
-    "@fastify/websocket": "^8.3.0",
-    "@fastify/rate-limit": "^8.0.3",
     "@fastify/jwt": "^7.2.0",
-    "@fastify/cookie": "^9.3.0",
     "@fastify/multipart": "^8.0.0",
+    "@fastify/rate-limit": "^8.0.3",
     "@fastify/static": "^7.0.0",
+    "@fastify/websocket": "^8.3.0",
     "argon2": "^0.40.1",
     "better-sqlite3": "^9.4.0",
+    "fastify": "^4.29.1",
     "pino": "^9.3.2",
-    "zod": "^3.23.8",
+    "qrcode": "^1.5.3",
     "speakeasy": "^2.0.0",
-    "qrcode": "^1.5.3"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "^20.14.11",
     "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.14.11",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
-    "tsx": "^4.15.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.6.3"
   },
   "engines": {

@@ -174,8 +174,8 @@ export default {
     quickGameDesc: "Inicia una partida rápida contra la computadora.",
     multiplayer: "Multijugador",
     multiplayerDesc: "Juega contra otro jugador en línea.",
-    customGame: "Partida Personalizada",
-    customGameDesc: "Crea una partida con tus propias reglas.",
+    localGame: "Juego Local",
+    localGameDesc: "Crear un juego local.",
     instructions: "Usa las flechas ↑ ↓ para jugar"
   },
 

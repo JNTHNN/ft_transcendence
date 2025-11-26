@@ -18,6 +18,7 @@ import { registerUserRoutes } from './users/routes.js';
 import db, { migrate } from './db/db.js';
 import { registerChatWS } from './chat/ws.js';
 import { registerGameWS } from './game/ws.js';
+import { registerGameRoutes } from './game/routes.js';
 
 const app = Fastify({
   logger: {
@@ -69,6 +70,10 @@ app.get('/ready', async (_req: FastifyRequest, res: FastifyReply) => {
 await registerAuthRoutes(app, db);
 await register2FARoutes(app, db);
 await registerUserRoutes(app, db);
+await registerGameRoutes(app);
+await registerGameWS(app);
+
+await registerChatWS(app);
 
 app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: string}}>, res: FastifyReply) => {
   const { filename } = req.params;
@@ -106,10 +111,13 @@ app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: str
   }
 });
 
-await registerChatWS(app);
-await registerGameWS(app);
 
 const port = Number(process.env.PORT || 3000);
 app.listen({ port, host: '0.0.0.0' })
-  .then(() => {})
-  .catch((e: any) => { app.log.error(e); process.exit(1); });
+  .then(() => {
+    console.log(`🎮 Game server ready on port ${port}`);
+  })
+  .catch((e: any) => { 
+    app.log.error(e); 
+    process.exit(1); 
+  });
