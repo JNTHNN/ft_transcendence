@@ -33,11 +33,11 @@ export class GameManager {
   }
 
   /**
-   * Crée une nouvelle partie
+   * CrÃ©e une nouvelle partie
    * 
    * @param mode - Mode de jeu (solo-vs-ai, local-2p, online-2p)
-   * @param customId - ID personnalisé (optionnel)
-   * @returns L'ID de la partie créée
+   * @param customId - ID personnalisÃ© (optionnel)
+   * @returns L'ID de la partie crÃ©Ã©e
    */
   public createGame(mode: GameMode, customId?: string): string {
     const matchId = customId || `match-${randomUUID()}`;
@@ -49,16 +49,16 @@ export class GameManager {
     const game = new PongGame(matchId, mode);
     this.games.set(matchId, game);
     
-    console.log(`✨ Game created: ${matchId} (${mode})`);
+    console.log(`âœ¨ Game created: ${matchId} (${mode})`);
     return matchId;
   }
 
   /**
-   * Ajoute un joueur à une partie
+   * Ajoute un joueur Ã  une partie
    * 
    * @param matchId - ID de la partie
    * @param playerConfig - Configuration du joueur
-   * @returns true si ajouté avec succès
+   * @returns true si ajoutÃ© avec succÃ¨s
    */
   public addPlayerToGame(matchId: string, playerConfig: PlayerConfig): boolean {
     const game = this.games.get(matchId);
@@ -66,7 +66,7 @@ export class GameManager {
       throw new Error(`Game ${matchId} not found`);
     }
     
-    // Vérifier que le joueur n'est pas déjà dans une autre partie
+    // VÃ©rifier que le joueur n'est pas dÃ©jÃ  dans une autre partie
     if (this.playerToGame.has(playerConfig.id)) {
       throw new Error(`Player ${playerConfig.id} is already in a game`);
     }
@@ -75,14 +75,14 @@ export class GameManager {
     
     if (added) {
       this.playerToGame.set(playerConfig.id, matchId);
-      console.log(`👤 Player ${playerConfig.id} joined ${matchId} (${playerConfig.side})`);
+      console.log(`ðŸ‘¤ Player ${playerConfig.id} joined ${matchId} (${playerConfig.side})`);
     }
     
     return added;
   }
 
   /**
-   * Récupère une partie par son ID
+   * RÃ©cupÃ¨re une partie par son ID
    */
   public getGame(matchId: string): PongGame | undefined {
     return this.games.get(matchId);
@@ -109,29 +109,40 @@ export class GameManager {
   }
 
   /**
-   * Supprime une partie terminée
+   * Supprime une partie terminÃ©e
    */
   public removeGame(matchId: string): void {
+	console.log(`ðŸ—‘ï¸ ===== REMOVE GAME START ===== ${matchId}`);
+
     const game = this.games.get(matchId);
-    if (!game) return;
+    if (!game) {
+		console.log(`âŒ Game ${matchId} not found in manager`);
+		return;
+	}
     
-    // Arrêter le jeu si encore actif
+    // ArrÃªter le jeu si encore actif
+	console.log(`â¹ï¸ Stopping game ${matchId}...`);
     game.stop();
     
     // Retirer tous les joueurs de cette partie
+	let removedPlayers = 0;
     for (const [playerId, gameId] of this.playerToGame.entries()) {
       if (gameId === matchId) {
         this.playerToGame.delete(playerId);
+		console.log(`ðŸ‘¤ Removed player ${playerId} from mapping`);
       }
     }
     
     // Supprimer la partie
     this.games.delete(matchId);
-    console.log(`🗑️  Game removed: ${matchId}`);
+    console.log(`âœ… Game ${matchId} deleted from games map`);
+    console.log(`ðŸ“Š Removed ${removedPlayers} player(s) from mapping`);
+    console.log(`ðŸ“Š Remaining games: ${this.games.size}`);
+    console.log(`ðŸ—‘ï¸ ===== REMOVE GAME END =====`);
   }
 
   /**
-   * Nettoie les parties inactives (utile pour éviter les fuites mémoire)
+   * Nettoie les parties inactives (utile pour Ã©viter les fuites mÃ©moire)
    */
   public cleanup(): void {
     const now = Date.now();
@@ -141,7 +152,7 @@ export class GameManager {
       const inactive = !game.isActive() && (now - state.timestamp > 60000); // 1 minute
       
       if (inactive) {
-        console.log(`🧹 Cleaning up inactive game: ${matchId}`);
+        console.log(`ðŸ§¹ Cleaning up inactive game: ${matchId}`);
         this.removeGame(matchId);
       }
     }
@@ -167,13 +178,13 @@ export class GameManager {
   public saveMatchResult(result: MatchResult): void {
     this.matchHistory.push(result);
     
-    // TODO : Sauvegarder en base de données SQLite
+    // TODO : Sauvegarder en base de donnÃ©es SQLite
     // await db.matches.insert(result);
     
-    console.log(`💾 Match result saved: ${result.matchId}`);
+    console.log(`ðŸ’¾ Match result saved: ${result.matchId}`);
   }
 
-  // 🆕 Récupérer l'historique
+  // ðŸ†• RÃ©cupÃ©rer l'historique
   public getMatchHistory(playerId?: string): MatchResult[] {
     if (playerId) {
       return this.matchHistory.filter(m => 
@@ -183,7 +194,7 @@ export class GameManager {
     return this.matchHistory;
   }
 
-  // 🆕 Stats d'un joueur
+  // ðŸ†• Stats d'un joueur
   public getPlayerStats(playerId: string) {
     const matches = this.getMatchHistory(playerId);
     const wins = matches.filter(m => 

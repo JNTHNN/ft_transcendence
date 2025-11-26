@@ -35,20 +35,20 @@ export class PongGame {
   }
 
   /**
-   * Ajoute un joueur/IA à la partie
+   * Ajoute un joueur/IA Ã  la partie
    */
   public addPlayer(config: PlayerConfig): boolean {
     if (this.players.size >= 2) {
-		console.warn(`⚠️ Game ${this.id} already has 2 players`);
+		console.warn(`âš ï¸ Game ${this.id} already has 2 players`);
 		return false;
 	}
     
     this.players.set(config.id, config);
     this.inputs.set(config.id, { up: false, down: false });
     
-    // Démarre si on a 2 joueurs
+    // DÃ©marre si on a 2 joueurs
     if (this.players.size === 2 && !this.isRunning) {
-		console.log(`🚀 Starting game ${this.id} with 2 players`);
+		console.log(`ðŸš€ Starting game ${this.id} with 2 players`);
       this.start();
     }
     
@@ -68,7 +68,7 @@ export class PongGame {
   }
 
   private update(dt: number): void {
-    // 1. Mettre à jour les inputs IA
+    // 1. Mettre Ã  jour les inputs IA
     this.updateAIInputs();
     
     // 2. Update paddles
@@ -98,7 +98,7 @@ export class PongGame {
   }
 
   /**
-   * 🤖 Appelle les IA pour obtenir leurs inputs
+   * ðŸ¤– Appelle les IA pour obtenir leurs inputs
    */
   private updateAIInputs(): void {
     for (const [playerId, player] of this.players) {
@@ -116,7 +116,7 @@ export class PongGame {
         ? this.state.paddles.left 
         : this.state.paddles.right;
       
-	  console.log(`🎯 Update paddle ${player.side} for ${playerId}:`, { input, paddleY: paddle.y });
+	  console.log(`ðŸŽ¯ Update paddle ${player.side} for ${playerId}:`, { input, paddleY: paddle.y });
 	  
       if (input.up) {
         paddle.y = Math.max(0, paddle.y - (paddle.speed * dt) / CFG.COURT_HEIGHT);
@@ -155,16 +155,16 @@ export class PongGame {
   }
 
   /**
-   * Met à jour les inputs d'un joueur humain
-   * (appelé depuis WebSocket ou clavier local)
+   * Met Ã  jour les inputs d'un joueur humain
+   * (appelÃ© depuis WebSocket ou clavier local)
    */
   public setPlayerInput(playerId: string, input: Partial<PlayerInput>): void {
     const current = this.inputs.get(playerId);
     if (current) {
       this.inputs.set(playerId, { ...current, ...input });
-	  console.log(`🎮 Input set for ${playerId}:`, { ...current, ...input }); 
+	  console.log(`ðŸŽ® Input set for ${playerId}:`, { ...current, ...input }); 
 	  } else {
-    	console.warn(`⚠️ Player ${playerId} not found in game ${this.id}`);
+    	console.warn(`âš ï¸ Player ${playerId} not found in game ${this.id}`);
     }
   }
 
@@ -204,7 +204,7 @@ export class PongGame {
         endedAt,
       };
       
-      // 🆕 Sauvegarder
+      // ðŸ†• Sauvegarder
       gameManager.saveMatchResult(result);
     }
 
@@ -221,8 +221,8 @@ export class PongGame {
 
 	setTimeout(() => {
       gameManager.removeGame(this.id);
-      console.log(`🧹 Game ${this.id} auto-cleaned after end`);
-  	}, 5000); // 5 secondes pour laisser le temps d'afficher le résultat
+      console.log(`ðŸ§¹ Game ${this.id} auto-cleaned after end`);
+  	}, 5000); // 5 secondes pour laisser le temps d'afficher le rÃ©sultat
 
   }
 

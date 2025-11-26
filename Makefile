@@ -1,5 +1,5 @@
 # Commande par défaut
-all: up
+all: build up
 
 # Démarrer
 up:

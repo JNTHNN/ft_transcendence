@@ -10,7 +10,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
   
   /**
    * POST /game/create
-   * Crée une nouvelle partie
+   * CrÃ©e une nouvelle partie
    */
   app.post<{
     Body: { mode: GameMode; matchId?: string };
@@ -55,7 +55,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
 
   /**
    * GET /game/:matchId
-   * Récupère l'état d'une partie
+   * RÃ©cupÃ¨re l'Ã©tat d'une partie
    */
   app.get<{
     Params: { matchId: string };
@@ -82,16 +82,16 @@ export async function registerGameRoutes(app: FastifyInstance) {
 	}>('/game/:matchId', async (request, reply) => {
 	const { matchId } = request.params;
 	
-	console.log(`🗑️ DELETE request for game ${matchId}`);
+	console.log(`ðŸ—‘ï¸ DELETE request for game ${matchId}`);
 	
 	const game = gameManager.getGame(matchId);
 	if (game) {
-		game.stop();  // ✅ Arrêter le jeu avant de le supprimer
-		console.log(`⏹️ Game ${matchId} stopped`);
+		game.stop();  // âœ… ArrÃªter le jeu avant de le supprimer
+		console.log(`â¹ï¸ Game ${matchId} stopped`);
 	}
 	
 	gameManager.removeGame(matchId);
-	console.log(`✅ Game ${matchId} removed`);
+	console.log(`âœ… Game ${matchId} removed`);
 	
 	return reply.send({ ok: true });
 	});
@@ -107,7 +107,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
 
   /**
    * POST /game/local/create
-   * Crée une partie locale 2 joueurs
+   * CrÃ©e une partie locale 2 joueurs
    */
   app.post<{
     Body: { player1Id?: string; player2Id?: string };
@@ -115,7 +115,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
     const { player1Id = 'player-1', player2Id = 'player-2' } = request.body;
 
     try {
-      // Créer la partie
+      // CrÃ©er la partie
       const matchId = gameManager.createGame('local-2p');
 
     //   // Ajouter les deux joueurs
@@ -174,7 +174,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
 	return reply.send({ stats, history });
 	});
 
-	// 🆕 Route pour l'historique global
+	// ðŸ†• Route pour l'historique global
 	app.get('/game/history', async (_request, reply) => {
 	const history = gameManager.getMatchHistory();
 	return reply.send({ history });

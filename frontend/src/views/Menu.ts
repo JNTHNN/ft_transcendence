@@ -81,31 +81,32 @@ export class MenuManager {
       ? `${apiBaseUrl}${this.fullUser.avatarUrl}`
       : this.fullUser?.avatarUrl;
 
+    // 🆕 Utilisation de data-navigate au lieu de href
     const menuHTML = `
       <nav class="font-display text-2xl font-black flex flex-col p-4 space-y-2">
-        <a href="/" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+        <button data-navigate="/" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
           ${t('nav.home')}
-        </a>
+        </button>
         ${isAuthenticated ? `
-          <a href="/tournoi" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          <button data-navigate="/tournoi" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.tournaments')}
-          </a>
-          <a href="/partie" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          </button>
+          <button data-navigate="/partie" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.play')}
-          </a>
-          <a href="/chat" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          </button>
+          <button data-navigate="/chat" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.chat')}
-          </a>
-          <a href="/profile" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          </button>
+          <button data-navigate="/profile" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.profile')}
-          </a>
+          </button>
         ` : `
-          <a href="/login" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          <button data-navigate="/login" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.login')}
-          </a>
-          <a href="/signup" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors">
+          </button>
+          <button data-navigate="/signup" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.signup')}
-          </a>
+          </button>
         `}
 
         ${isAuthenticated ? `
@@ -160,16 +161,9 @@ export class MenuManager {
   }
 
   private setupNavigation() {
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.classList.contains('menu-link')) {
-        e.preventDefault();
-        const href = target.getAttribute('href');
-        if (href) {
-          router.navigate(href);
-        }
-      }
-    });
+    // 🆕 Navigation interceptée par le router via data-navigate
+    // Plus besoin d'event listener ici, le router s'en occupe !
+    // Voir router.ts lignes 51-60
   }
 
   private setupEventHandlers() {
@@ -191,13 +185,14 @@ export class MenuManager {
   }
 
   public setActiveLink(path: string) {
-
+    // Retirer les classes actives de tous les liens
     document.querySelectorAll('.menu-link').forEach(link => {
       link.classList.remove('bg-sec', 'text-prem');
       link.classList.add('text-text');
     });
 
-    const activeLink = document.querySelector(`.menu-link[href="${path}"]`) as HTMLElement;
+    // Ajouter les classes actives au lien correspondant
+    const activeLink = document.querySelector(`.menu-link[data-navigate="${path}"]`) as HTMLElement;
     if (activeLink) {
       activeLink.classList.add('bg-sec', 'text-prem');
       activeLink.classList.remove('text-text');

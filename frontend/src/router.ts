@@ -1,3 +1,13 @@
+// 🔧 TYPES GLOBAUX
+declare global {
+  interface Window {
+    currentGameInstance?: {
+      destroy: () => void;
+      allowNavigation?: boolean;
+    };
+  }
+}
+
 const routes: Record<string, () => Promise<HTMLElement>> = {
   "/": async () => (await import("./views/menu-view")).MenuView(),
   "/login": async () => (await import("./views/Login")).default(),
@@ -13,20 +23,55 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/auth/oauth42/callback": async () => (await import("./views/oauth42-callback")).default()
 };
 
+// 🧹 CLEANUP AVANT NAVIGATION
+function cleanupBeforeNavigation() {
+  // Si une instance de jeu existe dans le contexte global
+  if (window.currentGameInstance) {
+    console.log("🧹 Cleanup de l'instance de jeu avant navigation");
+    
+    try {
+      // Appeler la méthode destroy() de l'instance
+      window.currentGameInstance.destroy();
+    } catch (error) {
+      console.error("❌ Erreur lors du cleanup:", error);
+    }
+    
+    // Nettoyer la référence globale
+    window.currentGameInstance = undefined;
+  }
+}
+
+// 🧭 NAVIGATION AVEC CLEANUP AUTOMATIQUE
 function navigate(path: string) {
+  // ✅ ÉTAPE 1 : Cleanup AVANT de changer de route
+  cleanupBeforeNavigation();
+  
+  // ✅ ÉTAPE 2 : Changer l'URL dans l'historique
   history.pushState({}, "", path);
+  
+  // ✅ ÉTAPE 3 : Rendre la nouvelle vue
   render();
 }
 
+// 🎨 RENDU DE LA VUE
 async function render() {
   const root = document.getElementById("app")!;
   const path = location.pathname in routes ? location.pathname : "/";
+  
+  // Cleanup avant de changer de vue (important pour popstate)
+  cleanupBeforeNavigation();
+  
+  // Charger et afficher la nouvelle vue
   root.replaceChildren(await routes[path]());
 }
 
+// 📡 EXPORT DU ROUTER
 export const router = {
   start() {
+    // Bouton précédent/suivant du navigateur
     window.addEventListener("popstate", render);
+    
+    // Interception des clics sur les liens <a href>
     document.body.addEventListener("click", (e) => {
       const a = (e.target as HTMLElement).closest("a[href]");
       if (a && a.getAttribute("href")?.startsWith("/")) {
@@ -39,6 +84,25 @@ export const router = {
       render();
     });
     
+
+    // 🆕 Interception des clics sur [data-navigate] (optionnel)
+    document.body.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest("[data-navigate]");
+      if (btn) {
+        e.preventDefault();
+        const path = btn.getAttribute("data-navigate");
+        if (path) {
+          navigate(path);
+        }
+      }
+    });
+
+    // Changement de langue
+    window.addEventListener("languageChanged", () => {
+      render();
+    });
+    
+    // Rendu initial
     render();
   },
   navigate,

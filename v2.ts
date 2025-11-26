@@ -35,12 +35,10 @@ class PongGame {
   private scoreRightDiv: HTMLDivElement;
   private player1Id: string = "";
   private player2Id: string = "";
-  
-  // 🆕 Références aux callbacks pour pouvoir les nettoyer
+
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyupHandler: ((e: KeyboardEvent) => void) | null = null;
-  private beforeUnloadHandler: (() => void) | null = null;
-  
+  private hashchangeHandler: (() => void) | null = null;
   // Constantes (depuis ton backend constants.ts)
   private readonly COURT_WIDTH = 800;
   private readonly COURT_HEIGHT = 600;
@@ -57,18 +55,35 @@ class PongGame {
     this.canvas.width = this.COURT_WIDTH;
     this.canvas.height = this.COURT_HEIGHT;
 
-    // 🧹 Créer et stocker le handler beforeunload
-    this.beforeUnloadHandler = () => {
-      // Fermer proprement le WebSocket pour déclencher le cleanup backend
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        console.log('🧹 Closing WebSocket on page unload');
-        this.ws.close();
-      }
-    };
-    
-    window.addEventListener('beforeunload', this.beforeUnloadHandler);
-    
+	window.addEventListener('beforeunload', () => {
+		  console.log(`🚨 BEFOREUNLOAD TRIGGERED for match ${this.matchId}`);
+  console.log(`📊 WebSocket state:`, this.ws?.readyState);
+	// Fermer proprement le WebSocket pour déclencher le cleanup backend
+	if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+		    console.log(`✅ Closing WebSocket for match ${this.matchId}`);
+    this.ws.close(1000, 'Page unload');
+	} else {
+    console.log(`❌ WebSocket not open, state: ${this.ws?.readyState}`);
+  }
+	
+	// Ne pas afficher de message de confirmation
+	// (la partie sera nettoyée automatiquement côté serveur)
+	});
     console.log(`🎮 PongGame créé en mode: ${mode}`);
+	window.addEventListener('hashchange', () => {
+  console.log('🚨 hashchange detected - destroying game');
+  this.destroy();
+}, { once: true }); // ✅ Se déclenche UNE SEULE FOIS
+
+// 🔧 INTERCEPTER aussi les clics sur la sidebar
+document.addEventListener('click', (e) => {
+  const target = e.target as HTMLElement;
+  const link = target.closest('a[href^="/"]');
+  if (link) {
+    console.log('🚨 Link click detected - destroying game');
+    this.destroy();
+  }
+}, { once: true });
   }
 
   // 🔌 CONNEXION AU BACKEND
@@ -285,55 +300,157 @@ ctx.stroke();
     this.gameState.ball.position.x,
     this.gameState.ball.position.y,
     this.gameState.ball.radius * 0.7,
-    Math.PI * 0.2,
-    Math.PI * 0.8
+    Math.PI * 0.3,
+    Math.PI * 1.7
   );
   ctx.stroke();
 }
 
-  // ⌨️ GESTION DES INPUTS CLAVIER
-  private setupInput() {
-    // 🧹 Créer et stocker les handlers
-    this.keydownHandler = (e: KeyboardEvent) => {
-      this.keys[e.key] = true;
-    };
-    
-    this.keyupHandler = (e: KeyboardEvent) => {
-      this.keys[e.key] = false;
-    };
-
-    // Ajouter les listeners
-    window.addEventListener("keydown", this.keydownHandler);
-    window.addEventListener("keyup", this.keyupHandler);
-
-    // Envoyer les inputs au serveur à 60 FPS
-    setInterval(() => {
-      this.sendInputs();
-    }, 1000 / 60);
-  }
-
-  private sendInputs() {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-
+  // ⌨️ CAPTURER LES TOUCHES
+private setupInput(): void {
+  // 🆕 Créer et stocker les handlers
+  this.keydownHandler = (e: KeyboardEvent) => {
+    // Mode local : 2 joueurs (W/S et ↑/↓)
     if (this.mode === "local") {
-      // Joueur 1 (gauche) = W/S
-      const player1Input = {
-        up: this.keys["w"] || this.keys["W"] || false,
-        down: this.keys["s"] || this.keys["S"] || false
+      const localInput: any = {
+        player1: { up: false, down: false },
+        player2: { up: false, down: false }
       };
 
-      // Joueur 2 (droite) = Flèches
-      const player2Input = {
-        up: this.keys["ArrowUp"] || false,
-        down: this.keys["ArrowDown"] || false
+      // Joueur 1 (gauche) : W/S
+      if (e.key.toLowerCase() === "w") localInput.player1.up = true;
+      if (e.key.toLowerCase() === "s") localInput.player1.down = true;
+
+      // Joueur 2 (droit) : ↑/↓
+      if (e.key === "ArrowUp") localInput.player2.up = true;
+      if (e.key === "ArrowDown") localInput.player2.down = true;
+
+      // Envoyer les deux inputs
+      if (Object.values(localInput.player1).some(Boolean) || Object.values(localInput.player2).some(Boolean)) {
+        if (this.ws && this.matchId) {
+          // Player 1 (gauche)
+          this.ws.send(JSON.stringify({
+            type: "input",
+            matchId: this.matchId,
+            playerId: this.player1Id,
+            input: localInput.player1
+          }));
+
+          // Player 2 (droit)
+          this.ws.send(JSON.stringify({
+            type: "input",
+            matchId: this.matchId,
+            playerId: this.player2Id,
+            input: localInput.player2
+          }));
+        }
+      }
+    } else {
+      // Mode solo : un seul joueur
+      const soloInput: any = { up: false, down: false };
+
+      if (e.key === "ArrowUp") soloInput.up = true;
+      if (e.key === "ArrowDown") soloInput.down = true;
+
+      if (soloInput.up || soloInput.down) {
+        if (this.ws && this.matchId) {
+          this.ws.send(JSON.stringify({
+            type: "input",
+            matchId: this.matchId,
+            playerId: this.player1Id,
+            input: soloInput
+          }));
+        }
+      }
+    }
+  };
+
+  this.keyupHandler = (e: KeyboardEvent) => {
+    // Mode local : 2 joueurs
+    if (this.mode === "local") {
+      const localInput: any = {
+        player1: { up: false, down: false },
+        player2: { up: false, down: false }
       };
 
-      this.ws.send(JSON.stringify({
-        type: "input",
-        matchId: this.matchId,
-        playerId: this.player1Id,
-        input: player1Input
-      }));
+      // Joueur 1 (gauche) : W/S
+      if (e.key.toLowerCase() === "w") localInput.player1.up = false;
+      if (e.key.toLowerCase() === "s") localInput.player1.down = false;
+
+      // Joueur 2 (droit) : ↑/↓
+      if (e.key === "ArrowUp") localInput.player2.up = false;
+      if (e.key === "ArrowDown") localInput.player2.down = false;
+
+      if (this.ws && this.matchId) {
+        // Player 1 (gauche)
+        this.ws.send(JSON.stringify({
+          type: "input",
+          matchId: this.matchId,
+          playerId: this.player1Id,
+          input: localInput.player1
+        }));
+
+        // Player 2 (droit)
+        this.ws.send(JSON.stringify({
+          type: "input",
+          matchId: this.matchId,
+          playerId: this.player2Id,
+          input: localInput.player2
+        }));
+      }
+    } else {
+      // Mode solo : un seul joueur
+      const soloInput: any = { up: false, down: false };
+
+      if (e.key === "ArrowUp") soloInput.up = false;
+      if (e.key === "ArrowDown") soloInput.down = false;
+
+      if (this.ws && this.matchId) {
+        this.ws.send(JSON.stringify({
+          type: "input",
+          matchId: this.matchId,
+          playerId: this.player1Id,
+          input: soloInput
+        }));
+      }
+    }
+  };
+
+  // 🆕 Attacher les handlers
+  document.addEventListener("keydown", this.keydownHandler);
+  document.addEventListener("keyup", this.keyupHandler);
+}
+
+  // 📤 ENVOYER LES INPUTS AU SERVEUR
+  private sendInput() {
+    if (!this.ws || !this.matchId) {
+		console.warn("⚠️ Pas de WebSocket ou matchId");
+		return;
+	}
+
+	console.log("🔥 sendInput appelé, mode:", this.mode);
+    // Mode local : 2 joueurs sur le même clavier
+
+	if (this.mode === "local") {
+		const player1Input = {
+		up: this.keys["w"] || this.keys["W"] || false,
+		down: this.keys["s"] || this.keys["S"] || false
+		};
+		
+		const player2Input = {
+		up: this.keys["ArrowUp"] || false,
+		down: this.keys["ArrowDown"] || false
+		};
+		
+		console.log("📤 Inputs:", { player1: player1Input, player2: player2Input });
+		
+		// Joueur 1 (gauche) = W/S
+		this.ws.send(JSON.stringify({
+		type: "input",
+		matchId: this.matchId,
+		playerId: this.player1Id,
+		input: player1Input
+		}));
 
     // Joueur 2 (droite) = Flèches
     this.ws.send(JSON.stringify({
@@ -403,51 +520,60 @@ ctx.stroke();
   }
 
 
-  // 🧹 NETTOYER (MÉTHODE AMÉLIORÉE)
-  destroy() {
-    console.log("🧹 Destruction de l'instance PongGame...");
-    
-    // 1️⃣ Stopper l'animation
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
-      console.log("  ✅ Animation stoppée");
-    }
-    
-    // 2️⃣ Fermer le WebSocket
-    if (this.ws) {
-      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
-        this.ws.close();
-        console.log("  ✅ WebSocket fermé");
-      }
-      this.ws = null;
-    }
-    
-    // 3️⃣ Nettoyer les event listeners clavier
-    if (this.keydownHandler) {
-      window.removeEventListener("keydown", this.keydownHandler);
-      this.keydownHandler = null;
-      console.log("  ✅ Listener keydown supprimé");
-    }
-    
-    if (this.keyupHandler) {
-      window.removeEventListener("keyup", this.keyupHandler);
-      this.keyupHandler = null;
-      console.log("  ✅ Listener keyup supprimé");
-    }
-    
-    // 4️⃣ Nettoyer le listener beforeunload
-    if (this.beforeUnloadHandler) {
-      window.removeEventListener("beforeunload", this.beforeUnloadHandler);
-      this.beforeUnloadHandler = null;
-      console.log("  ✅ Listener beforeunload supprimé");
-    }
-    
-    // 5️⃣ Vider les touches pressées
-    this.keys = {};
-    
-    console.log("🎉 Destruction terminée !");
+	// 🧹 NETTOYER
+// 🧹 NETTOYER (VERSION COMPLÈTE)
+public destroy(): void {
+  console.log(`🧹 ===== DESTROY START =====`);
+  console.log(`📊 MatchId: ${this.matchId}`);
+  
+  // 1. Arrêter l'animation
+  if (this.animationId) {
+    console.log(`⏹️ Cancelling animation frame`);
+    cancelAnimationFrame(this.animationId);
+    this.animationId = null;
   }
+  
+  // 2. ✅ NETTOYER les event listeners
+  if (this.keydownHandler) {
+    console.log(`🧹 Removing keydown listener`);
+    document.removeEventListener("keydown", this.keydownHandler);
+    this.keydownHandler = null;
+  }
+  
+  if (this.keyupHandler) {
+    console.log(`🧹 Removing keyup listener`);
+    document.removeEventListener("keyup", this.keyupHandler);
+    this.keyupHandler = null;
+  }
+  
+  if (this.hashchangeHandler) {
+    console.log(`🧹 Removing hashchange listener`);
+    window.removeEventListener("hashchange", this.hashchangeHandler);
+    this.hashchangeHandler = null;
+  }
+  
+  // 3. Fermer le WebSocket
+  if (this.ws) {
+    if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+      console.log(`🔌 Closing WebSocket`);
+      this.ws.close(1000, 'Navigation');
+    }
+    this.ws.onopen = null;
+    this.ws.onmessage = null;
+    this.ws.onerror = null;
+    this.ws.onclose = null;
+    this.ws = null;
+  }
+  
+  // 4. Vider le canvas
+  if (this.ctx && this.canvas) {
+    console.log(`🧹 Clearing canvas`);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+  
+  console.log(`✅ ===== DESTROY COMPLETE =====`);
+  console.log(``);
+}
 
   async abandon() {
 	if (!this.matchId) return;
@@ -469,7 +595,15 @@ ctx.stroke();
 }
 
 // 🎬 FONCTION PRINCIPALE DE LA VUE
+let currentGameInstance: PongGame | null = null;
 export default async function View() {
+	  // 🧹 CLEANUP automatique de l'ancienne instance
+  if (currentGameInstance) {
+    console.log('🧹 Cleaning up previous game instance');
+    currentGameInstance.destroy();
+    currentGameInstance = null;
+  }
+
   const params = new URLSearchParams(window.location.search);
   const mode = params.get("mode") || "solo";
 
@@ -517,8 +651,8 @@ export default async function View() {
 			<!-- Instructions -->
 			<div class="mt-4 text-center text-text/70 text-sm">
 			${mode === "local" 
-				? "👥 W/S Joueur 1 | ↑/↓ Joueur 2" 
-				: "⌨️ W/S ou ↑/↓ pour déplacer votre paddle"}
+				? " W/S Joueur 1 | ↑/↓ Joueur 2" 
+				: "↑/↓ Pour déplacer votre paddle"}
 			</div>
 			
 			<!-- 🔧 Bouton abandon (seulement pendant la partie) -->
@@ -541,13 +675,9 @@ export default async function View() {
   const btnQuit = wrap.querySelector("#btn-quit") as HTMLButtonElement;
 
   // Créer et démarrer le jeu
-  const game = new PongGame(canvas, mode, scoreLeft, scoreRight);
-  await game.connect();
-  game.start();
-  
-  // 🆕 EXPOSER L'INSTANCE DANS LE CONTEXTE GLOBAL
-  window.currentGameInstance = game;
-  console.log("🌍 Instance PongGame exposée dans window.currentGameInstance");
+  currentGameInstance = new PongGame(canvas, mode, scoreLeft, scoreRight);
+  await currentGameInstance.connect();
+  currentGameInstance.start();
 
 	// Bouton Abandon (pendant la partie)
 	btnAbandon.addEventListener("click", () => {
@@ -593,7 +723,7 @@ export default async function View() {
 	// Confirmer
 	modal.querySelector('#modal-confirm')?.addEventListener('click', () => {
 		modal.remove();
-		game.abandon();
+		currentGameInstance?.abandon();
 	});
 	
 	// Fermer si clic en dehors
@@ -607,7 +737,9 @@ export default async function View() {
 	// 🆕 Bouton Rejouer (fin de partie)
 	btnReplay.addEventListener("click", async () => {
 	// ✅ Autoriser la navigation
-	game.allowNavigation = true;
+	if (currentGameInstance) {
+      currentGameInstance.allowNavigation = true;
+    }
 	
 	try {
 		// Créer une nouvelle partie
@@ -632,11 +764,11 @@ export default async function View() {
 
 	// 🆕 Bouton Quitter (fin de partie)
 	btnQuit.addEventListener("click", () => {
-	// ✅ Autoriser la navigation
-	game.allowNavigation = true;
-	
-	game.destroy();
-	window.location.href = '/partie';
+		if (currentGameInstance) {
+		currentGameInstance.allowNavigation = true;
+		currentGameInstance.destroy();
+		}
+		window.location.href = '/partie';
 	});
 
   return wrap;

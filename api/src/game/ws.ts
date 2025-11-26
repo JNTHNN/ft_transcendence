@@ -1,30 +1,3 @@
-// import type { FastifyInstance, FastifyRequest } from "fastify";
-// import "@fastify/websocket";
-
-// const room = new Set<any>();
-
-// export async function registerGameWS(app: FastifyInstance) {
-//   app.get("/ws/game", { websocket: true }, (conn: any, _req: FastifyRequest) => {
-//     room.add(conn);
-//     conn.socket.on("close", () => room.delete(conn));
-//   });
-
-//   setInterval(() => {
-//     const msg = JSON.stringify({
-//       type: "game/state",
-//       v: 1,
-//       data: {
-//         matchId: "m1",
-//         ball: { x: Math.random(), y: Math.random(), vx: 0.1, vy: 0.1 },
-//         paddles: { A: 0.5, B: 0.5 },
-//         score: { A: 0, B: 0 },
-//         t: Date.now()
-//       }
-//     });
-//     for (const c of room) c.socket.send(msg);
-//   }, 1000);
-// }
-
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { SocketStream } from '@fastify/websocket';
 import { gameManager } from './GameManager.js';
@@ -47,11 +20,11 @@ export async function registerGameWS(app: FastifyInstance) {
     { websocket: true },
     (connection: SocketStream, request: FastifyRequest) => {
       const socket = connection.socket;
-      console.log('🔌 WebSocket connecté');
+      console.log('ðŸ”Œ WebSocket connectÃ©');
 
       let currentPlayerId: string | null = null;
 
-      // Message reçu du client
+      // Message reÃ§u du client
       socket.on('message', (rawData: Buffer) => {
         try {
           const message = JSON.parse(rawData.toString()) as GameMessage;
@@ -85,9 +58,9 @@ export async function registerGameWS(app: FastifyInstance) {
 
 	  
 
-      // Déconnexion
+      // DÃ©connexion
       socket.on('close', () => {
-        console.log('🔌 WebSocket déconnecté');
+        console.log('ðŸ”Œ WebSocket dÃ©connectÃ©');
         if (currentPlayerId) {
           handleDisconnect(currentPlayerId);
         }
@@ -108,8 +81,8 @@ export async function registerGameWS(app: FastifyInstance) {
         }
 
         try {
-			console.log(`👤 Player ${playerId} attempting to join ${matchId} as ${side}`);
-			// Ajouter le joueur à la partie
+			console.log(`ðŸ‘¤ Player ${playerId} attempting to join ${matchId} as ${side}`);
+			// Ajouter le joueur Ã  la partie
 			const added = gameManager.addPlayerToGame(matchId, {
 			id: playerId,
 			side,
@@ -118,7 +91,7 @@ export async function registerGameWS(app: FastifyInstance) {
 			});
 
 			if (!added) {
-			console.error(`❌ Failed to add player ${playerId}`);
+			console.error(`âŒ Failed to add player ${playerId}`);
 			socket.send(
 				JSON.stringify({
 				type: 'error',
@@ -129,7 +102,7 @@ export async function registerGameWS(app: FastifyInstance) {
 			}
 
 			currentPlayerId = playerId;
-			console.log(`✅ Player ${playerId} joined ${matchId} as ${side}`);
+			console.log(`âœ… Player ${playerId} joined ${matchId} as ${side}`);
 
 			// Confirmation
 			socket.send(
@@ -141,7 +114,7 @@ export async function registerGameWS(app: FastifyInstance) {
 			})
 			);
 		} catch (error: any) {
-			console.error(`❌ Error joining: ${error.message}`);
+			console.error(`âŒ Error joining: ${error.message}`);
 			socket.send(
 			JSON.stringify({
 				type: 'error',
@@ -153,9 +126,9 @@ export async function registerGameWS(app: FastifyInstance) {
 
       // Gestion des inputs
 		function handleInput(message: GameMessage) {
-		// ✅ Utilise message.playerId au lieu de currentPlayerId !
+		// âœ… Utilise message.playerId au lieu de currentPlayerId !
 		if (!message.playerId || !message.matchId || !message.input) {
-			console.warn(`⚠️ INPUT REJECTED:`, { 
+			console.warn(`âš ï¸ INPUT REJECTED:`, { 
 			playerId: message.playerId, 
 			matchId: message.matchId, 
 			hasInput: !!message.input 
@@ -163,46 +136,53 @@ export async function registerGameWS(app: FastifyInstance) {
 			return;
 		}
 
-		console.log(`🟢 INPUT RECEIVED from ${message.playerId}:`, message.input);  // ✅ message.playerId
+		console.log(`ðŸŸ¢ INPUT RECEIVED from ${message.playerId}:`, message.input);  // âœ… message.playerId
 
 		const game = gameManager.getGame(message.matchId);
 		if (game) {
-			game.setPlayerInput(message.playerId, message.input);  // ✅ message.playerId
+			game.setPlayerInput(message.playerId, message.input);  // âœ… message.playerId
 		} else {
-			console.warn(`⚠️ GAME NOT FOUND: ${message.matchId}`);
+			console.warn(`âš ï¸ GAME NOT FOUND: ${message.matchId}`);
 		}
 		}
 
-      // Gestion de la déconnexion
+      // Gestion de la dÃ©connexion
 		function handleDisconnect(playerId: string) {
+		console.log(`ðŸ”Œ ===== DISCONNECT START ===== Player: ${playerId}`);
+		
 		const game = gameManager.getGameByPlayer(playerId);
 		if (!game) {
-			console.log(`⚠️ No game found for disconnected player ${playerId}`);
+			console.log(`âŒ No game found for disconnected player ${playerId}`);
 			return;
 		}
 
-		console.log(`🔌 Player ${playerId} disconnected from game ${game.id}`);
-		
+		const matchId = game.id;
 		const state = game.getState();
 		
-		// 🧹 Si la partie n'est pas terminée, la supprimer immédiatement
+		console.log(`ðŸ“Š Game ${matchId} state:`, {
+			status: state.status,
+			score: `${state.score.left}-${state.score.right}`,
+			isRunning: game.isActive(),
+		});
+		
+		// ðŸ§¹ Si la partie n'est pas terminÃ©e, la supprimer immÃ©diatement
 		if (state.status !== 'finished') {
-			console.log(`🧹 Game ${game.id} not finished, cleaning up immediately`);
-			
-			// Arrêter le jeu
+			console.log(`ðŸ§¹ Game ${matchId} NOT FINISHED - Cleaning up immediately`);
+			console.log(`â¹ï¸ Stopping game ${matchId}...`);
 			game.stop();
 			
-			// Supprimer la partie tout de suite (pas de délai)
-			gameManager.removeGame(game.id);
-			console.log(`✅ Game ${game.id} removed`);
+			console.log(`ðŸ—‘ï¸ Removing game ${matchId} from manager...`);
+			gameManager.removeGame(matchId);
+			console.log(`âœ… Game ${matchId} REMOVED`);
 		} else {
-			// Si déjà terminée, nettoyer après 5 secondes
-			console.log(`⏱️ Game ${game.id} already finished, delayed cleanup`);
+			console.log(`â° Game ${matchId} ALREADY FINISHED - Delayed cleanup`);
 			setTimeout(() => {
-			gameManager.removeGame(game.id);
-			console.log(`🧹 Game ${game.id} cleaned up after end`);
+			console.log(`ðŸ§¹ Delayed cleanup executing for ${matchId}`);
+			gameManager.removeGame(matchId);
 			}, 5000);
 		}
+		
+		console.log(`ðŸ”Œ ===== DISCONNECT END =====`);
 		}
 	}
   );
