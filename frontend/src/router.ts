@@ -34,7 +34,13 @@ export const router = {
         navigate(a.getAttribute("href")!);
       }
     });
+
+    window.addEventListener("languageChanged", () => {
+      render();
+    });
+    
     render();
   },
-  navigate
+  navigate,
+  forceRender: render
 };

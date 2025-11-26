@@ -1,5 +1,4 @@
 import { i18n, t, type Language } from '../i18n/index.js';
-import { router } from '../router.js';
 
 export class LanguageSelector {
   private container: HTMLElement;
@@ -69,10 +68,6 @@ export class LanguageSelector {
         if (lang) {
           i18n.setLanguage(lang);
           this.closeDropdown();
-
-		  setTimeout(() => {
-            router.navigate(window.location.pathname);
-          }, 100);
         }
         return;
       }
@@ -170,10 +165,6 @@ export function createLanguageModal(): HTMLElement {
       if (lang) {
         i18n.setLanguage(lang);
         modal.remove();
-
-		setTimeout(() => {
-          router.navigate(window.location.pathname);
-        }, 100);
       }
     }
   });
