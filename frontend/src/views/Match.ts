@@ -449,6 +449,40 @@ ctx.stroke();
     console.log("🎉 Destruction terminée !");
   }
 
+  public pause(): void {
+  console.log(`⏸️ Game PAUSED`);
+  if (this.animationId) {
+    cancelAnimationFrame(this.animationId);
+    this.animationId = null;
+  }
+  
+  // Envoyer un message au serveur pour arrêter le game loop
+  if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    this.ws.send(JSON.stringify({
+      type: "pause",
+      matchId: this.matchId
+    }));
+  }
+}
+
+// ▶️ REPRENDRE
+public resume(): void {
+  console.log(`▶️ Game RESUMED`);
+  
+  // Relancer le game loop frontend
+  if (!this.animationId) {
+    this.gameLoop();
+  }
+  
+  // Envoyer un message au serveur pour relancer le game loop
+  if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    this.ws.send(JSON.stringify({
+      type: "resume",
+      matchId: this.matchId
+    }));
+  }
+}
+
   async abandon() {
 	if (!this.matchId) return;
 	
@@ -551,6 +585,7 @@ export default async function View() {
 
 	// Bouton Abandon (pendant la partie)
 	btnAbandon.addEventListener("click", () => {
+		game.pause();
 	// Créer un modal personnalisé
 	const modal = document.createElement('div');
 	modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
@@ -588,6 +623,7 @@ export default async function View() {
 	// Annuler
 	modal.querySelector('#modal-cancel')?.addEventListener('click', () => {
 		modal.remove();
+		game.resume();
 	});
 	
 	// Confirmer
@@ -600,6 +636,7 @@ export default async function View() {
 	modal.addEventListener('click', (e) => {
 		if (e.target === modal) {
 		modal.remove();
+		game.resume();
 		}
 	});
 	});

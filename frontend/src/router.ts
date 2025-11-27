@@ -80,11 +80,6 @@ export const router = {
       }
     });
 
-    window.addEventListener("languageChanged", () => {
-      render();
-    });
-    
-
     // 🆕 Interception des clics sur [data-navigate] (optionnel)
     document.body.addEventListener("click", (e) => {
       const btn = (e.target as HTMLElement).closest("[data-navigate]");

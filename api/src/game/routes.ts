@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { gameManager } from './GameManager.js';
-import { DummyAI } from './IA/DummyAI.js';
+import { PredictiveAI } from './IA/DummyAI.js'; 
 import type { GameMode } from './types.js';
 
 /**
@@ -30,7 +30,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
           id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           side: 'right',
           controllerType: 'ai',
-          aiController: new DummyAI(),
+          aiController: new PredictiveAI(),
         });
       }
 

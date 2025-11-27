@@ -4,7 +4,7 @@ import { gameManager } from './GameManager.js';
 import type { PlayerInput } from './types.js';
 
 interface GameMessage {
-  type: 'join' | 'input' | 'ping';
+  type: 'join' | 'input' | 'ping' | 'pause' | 'resume';
   matchId?: string;
   playerId?: string;
   side?: 'left' | 'right';
@@ -41,6 +41,38 @@ export async function registerGameWS(app: FastifyInstance) {
             case 'ping':
               socket.send(JSON.stringify({ type: 'pong' }));
               break;
+			
+			case 'pause':
+				if (!message.matchId) {
+					socket.send(JSON.stringify({
+					type: 'error',
+					message: 'Missing matchId for pause'
+					}));
+					break;
+				}
+				
+				const gameToPause = gameManager.getGame(message.matchId);
+				if (gameToPause) {
+					gameToPause.stop();
+					console.log(`⏸️ Game ${message.matchId} paused`);
+				}
+				break;
+
+			case 'resume':
+				if (!message.matchId) {
+					socket.send(JSON.stringify({
+					type: 'error',
+					message: 'Missing matchId for resume'
+					}));
+					break;
+				}
+				
+				const gameToResume = gameManager.getGame(message.matchId);
+				if (gameToResume) {
+					gameToResume.start();
+					console.log(`▶️ Game ${message.matchId} resumed`);
+				}
+				break;
 
             default:
               console.warn('Unknown message type:', message);
