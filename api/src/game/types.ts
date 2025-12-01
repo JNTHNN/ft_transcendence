@@ -101,12 +101,16 @@ export interface MatchResult {
   matchId: string;
   mode: GameMode;
   players: {
-    left: { id: string; score: number };
-    right: { id: string; score: number };
+    left: { id: string; score: number; type: 'human' | 'ai' };
+    right: { id: string; score: number; type: 'human' | 'ai' };
   };
   winner: 'left' | 'right';
   duration: number; // en secondes
   startedAt: Date;
   endedAt: Date;
+  finalScore: {
+    left: number;
+    right: number;
+  };
 }
 

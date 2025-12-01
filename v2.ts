@@ -56,22 +56,16 @@ class PongGame {
     this.canvas.height = this.COURT_HEIGHT;
 
 	window.addEventListener('beforeunload', () => {
-		  console.log(`🚨 BEFOREUNLOAD TRIGGERED for match ${this.matchId}`);
-  console.log(`📊 WebSocket state:`, this.ws?.readyState);
 	// Fermer proprement le WebSocket pour déclencher le cleanup backend
 	if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-		    console.log(`✅ Closing WebSocket for match ${this.matchId}`);
     this.ws.close(1000, 'Page unload');
 	} else {
-    console.log(`❌ WebSocket not open, state: ${this.ws?.readyState}`);
   }
 	
 	// Ne pas afficher de message de confirmation
 	// (la partie sera nettoyée automatiquement côté serveur)
 	});
-    console.log(`🎮 PongGame créé en mode: ${mode}`);
 	window.addEventListener('hashchange', () => {
-  console.log('🚨 hashchange detected - destroying game');
   this.destroy();
 }, { once: true }); // ✅ Se déclenche UNE SEULE FOIS
 
@@ -80,7 +74,6 @@ document.addEventListener('click', (e) => {
   const target = e.target as HTMLElement;
   const link = target.closest('a[href^="/"]');
   if (link) {
-    console.log('🚨 Link click detected - destroying game');
     this.destroy();
   }
 }, { once: true });
@@ -115,12 +108,10 @@ async connect() {
       });
     } else {
         // Mode online (à implémenter plus tard)
-        console.log("Mode online pas encore implémenté");
         return;
       }
 
       this.matchId = response.matchId;
-      console.log(`✅ Partie créée : ${this.matchId}`);
 
       // 2️⃣ Connexion WebSocket
       this.ws = connectWS('/ws/game', (msg: any) => {
@@ -128,8 +119,6 @@ async connect() {
       });
 
       this.ws.onopen = () => {
-        console.log("🔌 WebSocket connecté");
-		console.log("📤 Join player1:", this.player1Id);
         // Rejoindre la partie
         this.ws?.send(JSON.stringify({
           type: "join",
@@ -140,7 +129,6 @@ async connect() {
 
 		if (this.mode === "local") {
 			setTimeout(() => {
-			console.log("📤 Join player2:", this.player2Id, "side: right");
 			this.ws?.send(JSON.stringify({
 				type: "join",
 				matchId: this.matchId,
@@ -152,11 +140,9 @@ async connect() {
       };
 
       this.ws.onerror = (error) => {
-        console.error("❌ Erreur WebSocket:", error);
       };
 
     } catch (error) {
-      console.error("❌ Erreur de connexion:", error);
     }
   }
 
@@ -424,11 +410,9 @@ private setupInput(): void {
   // 📤 ENVOYER LES INPUTS AU SERVEUR
   private sendInput() {
     if (!this.ws || !this.matchId) {
-		console.warn("⚠️ Pas de WebSocket ou matchId");
 		return;
 	}
 
-	console.log("🔥 sendInput appelé, mode:", this.mode);
     // Mode local : 2 joueurs sur le même clavier
 
 	if (this.mode === "local") {
@@ -442,7 +426,6 @@ private setupInput(): void {
 		down: this.keys["ArrowDown"] || false
 		};
 		
-		console.log("📤 Inputs:", { player1: player1Input, player2: player2Input });
 		
 		// Joueur 1 (gauche) = W/S
 		this.ws.send(JSON.stringify({
@@ -465,7 +448,6 @@ private setupInput(): void {
       down: this.keys["s"] || this.keys["S"] || this.keys["ArrowDown"] || false  // 🔧 S OU ↓
     };
 
-	console.log("📤 Solo Input:", soloInput);
 
       // Mode solo : un seul joueur
       this.ws.send(JSON.stringify({
@@ -487,12 +469,10 @@ private setupInput(): void {
   start() {
     this.setupInput();
     this.gameLoop();
-    console.log("🚀 Jeu démarré !");
   }
 
   // ⏹️ TERMINER LE JEU
   private endGame(data: any) {
-    console.log("🏁 Fin de partie !", data);
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
@@ -523,31 +503,25 @@ private setupInput(): void {
 	// 🧹 NETTOYER
 // 🧹 NETTOYER (VERSION COMPLÈTE)
 public destroy(): void {
-  console.log(`🧹 ===== DESTROY START =====`);
-  console.log(`📊 MatchId: ${this.matchId}`);
   
   // 1. Arrêter l'animation
   if (this.animationId) {
-    console.log(`⏹️ Cancelling animation frame`);
     cancelAnimationFrame(this.animationId);
     this.animationId = null;
   }
   
   // 2. ✅ NETTOYER les event listeners
   if (this.keydownHandler) {
-    console.log(`🧹 Removing keydown listener`);
     document.removeEventListener("keydown", this.keydownHandler);
     this.keydownHandler = null;
   }
   
   if (this.keyupHandler) {
-    console.log(`🧹 Removing keyup listener`);
     document.removeEventListener("keyup", this.keyupHandler);
     this.keyupHandler = null;
   }
   
   if (this.hashchangeHandler) {
-    console.log(`🧹 Removing hashchange listener`);
     window.removeEventListener("hashchange", this.hashchangeHandler);
     this.hashchangeHandler = null;
   }
@@ -555,7 +529,6 @@ public destroy(): void {
   // 3. Fermer le WebSocket
   if (this.ws) {
     if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
-      console.log(`🔌 Closing WebSocket`);
       this.ws.close(1000, 'Navigation');
     }
     this.ws.onopen = null;
@@ -567,12 +540,9 @@ public destroy(): void {
   
   // 4. Vider le canvas
   if (this.ctx && this.canvas) {
-    console.log(`🧹 Clearing canvas`);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
   
-  console.log(`✅ ===== DESTROY COMPLETE =====`);
-  console.log(``);
 }
 
   async abandon() {
@@ -583,13 +553,11 @@ public destroy(): void {
 	try {
 		// Appelle l'API pour supprimer la partie
 		await api(`/game/${this.matchId}`, { method: 'DELETE' });
-		console.log("✅ Partie abandonnée");
 		
 		// Nettoie et retourne au menu
 		this.destroy();
 		window.location.href = '/partie';
 	} catch (error) {
-		console.error("❌ Erreur abandon:", error);
 	}
   }
 }
@@ -599,7 +567,6 @@ let currentGameInstance: PongGame | null = null;
 export default async function View() {
 	  // 🧹 CLEANUP automatique de l'ancienne instance
   if (currentGameInstance) {
-    console.log('🧹 Cleaning up previous game instance');
     currentGameInstance.destroy();
     currentGameInstance = null;
   }
@@ -749,15 +716,12 @@ export default async function View() {
 		});
 		
 		if (response.matchId) {
-		console.log("✅ Nouvelle partie créée:", response.matchId);
 		// Recharger la page avec le nouveau match
 		window.location.href = `/match?mode=${mode}`;
 		} else {
-		console.error("❌ Erreur création partie");
 		window.location.reload();
 		}
 	} catch (error) {
-		console.error("❌ Erreur rejouer:", error);
 		window.location.reload();
 	}
 	});

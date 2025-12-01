@@ -43,6 +43,14 @@ class AuthManager {
 
   private notifyListeners() {
     this.listeners.forEach(listener => listener({ ...this.state }));
+    
+    window.dispatchEvent(new CustomEvent('authChanged', {
+      detail: {
+        isAuthenticated: this.state.isAuthenticated,
+        user: this.state.user,
+        token: this.state.token
+      }
+    }));
   }
 
   private updateState(updates: Partial<AuthState>) {
@@ -87,7 +95,7 @@ class AuthManager {
         expiresAt
       }));
     } catch (error) {
-      console.error('Failed to store auth:', error);
+
     }
   }
 
@@ -209,7 +217,7 @@ class AuthManager {
         body: JSON.stringify({})
       });
     } catch (error) {
-      console.warn('Server logout failed:', error);
+
     }
 
     this.clearStoredAuth();

@@ -68,10 +68,27 @@ export const de = {
     twoFactorInvalidRequest: "Ungültige Anfrage.",
     twoFactorInvalidToken: "Ungültiger oder abgelaufener temporärer Token.",
     twoFactorInvalidStage: "Ungültige Authentifizierungsstufe.",
-    twoFactorLoginFailed: "Fehler beim Anmelden mit Zwei-Faktor-Authentifizierung.",
+    twoFactorLoginFailed: "Anmeldung mit Zwei-Faktor-Authentifizierung fehlgeschlagen.",
     confirmPassword: "Passwort Bestätigen",
     enterPasswordToDisable2FA: "Geben Sie Ihr Passwort ein, um die Zwei-Faktor-Authentifizierung zu deaktivieren",
     currentPassword: "Aktuelles Passwort",
     internalError: "Interner Serverfehler."
+  },
+  friends: {
+    cannotAddYourself: "Sie können sich nicht selbst als Freund hinzufügen.",
+    alreadyFriends: "Sie sind bereits Freunde.",
+    requestAlreadySent: "Eine Freundschaftsanfrage wurde bereits gesendet.",
+    cannotSendRequest: "Freundschaftsanfrage kann nicht gesendet werden.",
+    requestSent: "Freundschaftsanfrage erfolgreich gesendet.",
+    requestFailed: "Fehler beim Senden der Freundschaftsanfrage.",
+    requestAccepted: "Freundschaftsanfrage angenommen.",
+    acceptFailed: "Fehler beim Annehmen der Freundschaftsanfrage.",
+    requestDeclined: "Freundschaftsanfrage abgelehnt.",
+    declineFailed: "Fehler beim Ablehnen der Freundschaftsanfrage.",
+    friendRemoved: "Freund aus Ihrer Liste entfernt.",
+    removeFailed: "Fehler beim Entfernen des Freundes.",
+    friendshipNotFound: "Freundschaft nicht gefunden.",
+    notAuthorized: "Sie sind nicht berechtigt, diese Aktion durchzuführen.",
+    mutualFriendship: "Ihr seid jetzt Freunde! Eure gegenseitige Anfrage wurde automatisch angenommen."
   }
 };

@@ -18,7 +18,10 @@ import { registerUserRoutes } from './users/routes.js';
 import db, { migrate } from './db/db.js';
 import { registerChatWS } from './chat/ws.js';
 import { registerGameWS } from './game/ws.js';
+import { registerFriendsWS } from './friends/ws.js';
+import { initPresenceService } from './core/presence.js';
 import { registerGameRoutes } from './game/routes.js';
+import { gameManager } from './game/GameManager.js';
 
 const app = Fastify({
   logger: {
@@ -51,6 +54,12 @@ await app.register(authPlugin);
 
 try {
   await migrate();
+  
+  // Initialiser le service de présence
+  initPresenceService(db);
+  
+  // Injecter la base de données dans GameManager
+  gameManager.setDatabase(db);
 
 } catch (e) {
   app.log.error(e, '❌ Migration failed');
@@ -72,6 +81,7 @@ await register2FARoutes(app, db);
 await registerUserRoutes(app, db);
 await registerGameRoutes(app);
 await registerGameWS(app);
+await registerFriendsWS(app, db);
 
 await registerChatWS(app);
 
@@ -115,7 +125,7 @@ app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: str
 const port = Number(process.env.PORT || 3000);
 app.listen({ port, host: '0.0.0.0' })
   .then(() => {
-    console.log(`🎮 Game server ready on port ${port}`);
+
   })
   .catch((e: any) => { 
     app.log.error(e); 

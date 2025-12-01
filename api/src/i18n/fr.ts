@@ -73,5 +73,22 @@ export const fr = {
     enterPasswordToDisable2FA: "Entrez votre mot de passe pour désactiver l'authentification à deux facteurs",
     currentPassword: "Mot de passe actuel",
     internalError: "Erreur interne du serveur."
+  },
+  friends: {
+    cannotAddYourself: "Vous ne pouvez pas vous ajouter comme ami.",
+    alreadyFriends: "Vous êtes déjà amis.",
+    requestAlreadySent: "Une demande d'ami a déjà été envoyée.",
+    cannotSendRequest: "Impossible d'envoyer une demande d'ami.",
+    requestSent: "Demande d'ami envoyée avec succès.",
+    requestFailed: "Échec de l'envoi de la demande d'ami.",
+    requestAccepted: "Demande d'ami acceptée.",
+    acceptFailed: "Échec de l'acceptation de la demande d'ami.",
+    requestDeclined: "Demande d'ami refusée.",
+    declineFailed: "Échec du refus de la demande d'ami.",
+    friendRemoved: "Ami supprimé de votre liste.",
+    removeFailed: "Échec de la suppression de l'ami.",
+    friendshipNotFound: "Relation d'amitié introuvable.",
+    notAuthorized: "Vous n'êtes pas autorisé à effectuer cette action.",
+    mutualFriendship: "Vous êtes maintenant amis ! Votre demande mutuelle a été acceptée automatiquement."
   }
 };

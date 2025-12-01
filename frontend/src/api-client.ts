@@ -30,7 +30,7 @@ export async function api(path: string, init: RequestInit = {}) {
   try {
     res = await doFetch();
   } catch (error) {
-    console.error('Network fetch error:', error);
+
     throw new Error(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
@@ -55,7 +55,7 @@ export async function api(path: string, init: RequestInit = {}) {
             credentials: "include",
           });
         } catch (error) {
-          console.error('Network fetch error on retry:', error);
+
           throw new Error(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
@@ -76,7 +76,7 @@ export async function api(path: string, init: RequestInit = {}) {
       errorMessage = errorData || `Erreur HTTP ${res.status}: ${res.statusText}`;
     }
     
-    console.error(`API Error [${res.status}]:`, errorMessage);
+
     throw new Error(errorMessage);
   }
 

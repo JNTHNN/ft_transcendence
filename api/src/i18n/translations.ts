@@ -11,7 +11,8 @@ export const translations = {
 };
 
 export type Language = 'fr' | 'en' | 'es' | 'de';
-export type TranslationKey = keyof typeof translations.fr.auth;
+export type AuthTranslationKey = keyof typeof translations.fr.auth;
+export type FriendsTranslationKey = keyof typeof translations.fr.friends;
 
 export class I18n {
   private currentLanguage: Language = 'fr';
@@ -24,8 +25,12 @@ export class I18n {
     return this.currentLanguage;
   }
 
-  t(key: TranslationKey): string {
+  t(key: AuthTranslationKey): string {
     return translations[this.currentLanguage]?.auth[key] || translations.fr.auth[key] || key;
+  }
+
+  tFriends(key: FriendsTranslationKey): string {
+    return translations[this.currentLanguage]?.friends[key] || translations.fr.friends[key] || key;
   }
 }
 

@@ -11,4 +11,3 @@ async function main() {
   const c = await factory.deploy();
   const deployed = await c.waitForDeployment();
 }
-main().catch((e)=>{ console.error(e); process.exit(1); });

@@ -1,6 +1,7 @@
 import { PongGame } from './PongGame.js';
 import type { GameMode, PlayerConfig,  MatchResult } from './types.js';
 import { randomUUID } from 'crypto';
+import type Database from 'better-sqlite3';
 
 /**
  * Gestionnaire central de toutes les parties
@@ -16,10 +17,18 @@ export class GameManager {
   // Map<playerId, matchId> pour retrouver rapidement la partie d'un joueur
   private playerToGame: Map<string, string>;
   private matchHistory: MatchResult[] = [];
+  private db: Database.Database | null = null;
 
   private constructor() {
     this.games = new Map();
     this.playerToGame = new Map();
+  }
+
+  /**
+   * Injecter la base de données
+   */
+  public setDatabase(db: Database.Database): void {
+    this.db = db;
   }
 
   /**
@@ -49,7 +58,6 @@ export class GameManager {
     const game = new PongGame(matchId, mode);
     this.games.set(matchId, game);
     
-    console.log(`âœ¨ Game created: ${matchId} (${mode})`);
     return matchId;
   }
 
@@ -75,7 +83,6 @@ export class GameManager {
     
     if (added) {
       this.playerToGame.set(playerConfig.id, matchId);
-      console.log(`ðŸ‘¤ Player ${playerConfig.id} joined ${matchId} (${playerConfig.side})`);
     }
     
     return added;
@@ -112,16 +119,13 @@ export class GameManager {
    * Supprime une partie terminÃ©e
    */
   public removeGame(matchId: string): void {
-	console.log(`ðŸ—‘ï¸ ===== REMOVE GAME START ===== ${matchId}`);
 
     const game = this.games.get(matchId);
     if (!game) {
-		console.log(`âŒ Game ${matchId} not found in manager`);
 		return;
 	}
     
     // ArrÃªter le jeu si encore actif
-	console.log(`â¹ï¸ Stopping game ${matchId}...`);
     game.stop();
     
     // Retirer tous les joueurs de cette partie
@@ -129,16 +133,11 @@ export class GameManager {
     for (const [playerId, gameId] of this.playerToGame.entries()) {
       if (gameId === matchId) {
         this.playerToGame.delete(playerId);
-		console.log(`ðŸ‘¤ Removed player ${playerId} from mapping`);
       }
     }
     
     // Supprimer la partie
     this.games.delete(matchId);
-    console.log(`âœ… Game ${matchId} deleted from games map`);
-    console.log(`ðŸ“Š Removed ${removedPlayers} player(s) from mapping`);
-    console.log(`ðŸ“Š Remaining games: ${this.games.size}`);
-    console.log(`ðŸ—‘ï¸ ===== REMOVE GAME END =====`);
   }
 
   /**
@@ -152,7 +151,6 @@ export class GameManager {
       const inactive = !game.isActive() && (now - state.timestamp > 60000); // 1 minute
       
       if (inactive) {
-        console.log(`ðŸ§¹ Cleaning up inactive game: ${matchId}`);
         this.removeGame(matchId);
       }
     }
@@ -178,10 +176,41 @@ export class GameManager {
   public saveMatchResult(result: MatchResult): void {
     this.matchHistory.push(result);
     
-    // TODO : Sauvegarder en base de donnÃ©es SQLite
-    // await db.matches.insert(result);
-    
-    console.log(`ðŸ’¾ Match result saved: ${result.matchId}`);
+    // Sauvegarder en base de données SQLite
+    if (this.db) {
+      try {
+        const stmt = this.db.prepare(`
+          INSERT INTO match_history 
+          (player1_id, player2_id, player1_score, player2_score, winner_id, match_type, duration)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `);
+        
+        const player1Id = result.players.left.type === 'human' ? parseInt(result.players.left.id.replace('user-', '')) : null;
+        const player2Id = result.players.right.type === 'human' ? parseInt(result.players.right.id.replace('user-', '')) : null;
+        
+        let winnerId = null;
+        if (result.winner === 'left' && player1Id) winnerId = player1Id;
+        if (result.winner === 'right' && player2Id) winnerId = player2Id;
+        
+        const matchType = result.mode === 'solo-vs-ai' ? 'solo' : 
+                         result.mode === 'local-2p' ? 'local' :
+                         result.mode === 'online-2p' ? 'online' : 'solo';
+        
+        if (player1Id || player2Id) { // Au moins un joueur humain
+          stmt.run(
+            player1Id || 0, // 0 pour l'IA
+            player2Id || 0,
+            result.finalScore.left,
+            result.finalScore.right,
+            winnerId,
+            matchType,
+            result.duration
+          );
+        }
+        
+      } catch (error) {
+      }
+    }
   }
 
   // ðŸ†• RÃ©cupÃ©rer l'historique

@@ -20,6 +20,8 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/match": async () => (await import("./views/Match")).default(),
   "/partie": async () => (await import("./views/partie-view")).PartieView(),
   "/tournoi": async () => (await import("./views/tournoi-view")).TournoiView(),
+  "/friends": async () => (await import("./views/friends-view")).FriendsView(),
+  "/amis": async () => (await import("./views/friends-view")).FriendsView(),
   "/auth/oauth42/callback": async () => (await import("./views/oauth42-callback")).default()
 };
 
@@ -27,13 +29,13 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
 function cleanupBeforeNavigation() {
   // Si une instance de jeu existe dans le contexte global
   if (window.currentGameInstance) {
-    console.log("🧹 Cleanup de l'instance de jeu avant navigation");
+
     
     try {
       // Appeler la méthode destroy() de l'instance
       window.currentGameInstance.destroy();
     } catch (error) {
-      console.error("❌ Erreur lors du cleanup:", error);
+
     }
     
     // Nettoyer la référence globale

@@ -80,7 +80,7 @@ export function migrate(): void {
       db.exec("CREATE INDEX IF NOT EXISTS idx_temp_tokens_user_id ON temp_login_tokens(user_id)");
       db.exec("CREATE INDEX IF NOT EXISTS idx_temp_tokens_expires ON temp_login_tokens(expires_at)");
     } catch (e) {
-      console.warn("Temp login tokens table creation warning:", e);
+
     }
 
     try {
@@ -92,11 +92,80 @@ export function migrate(): void {
         db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_display_name_unique ON users(display_name)");
       }
     } catch (indexError) {
-      console.warn("Display name unique index warning:", indexError);
+
+    }
+
+    try {
+      const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as any[];
+      const hasFriendships = tables.some(table => table.name === 'friendships');
+      const hasMatchHistory = tables.some(table => table.name === 'match_history');
+
+      if (!hasFriendships) {
+        db.exec(`
+          CREATE TABLE friendships (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            requester_id INTEGER NOT NULL,
+            receiver_id INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'blocked')),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE(requester_id, receiver_id)
+          );
+        `);
+        
+        db.exec("CREATE INDEX idx_friendships_requester ON friendships(requester_id)");
+        db.exec("CREATE INDEX idx_friendships_receiver ON friendships(receiver_id)");
+        db.exec("CREATE INDEX idx_friendships_status ON friendships(status)");
+      }
+
+      if (!hasMatchHistory) {
+        db.exec(`
+          CREATE TABLE match_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player1_id INTEGER NOT NULL,
+            player2_id INTEGER NOT NULL,
+            player1_score INTEGER NOT NULL DEFAULT 0,
+            player2_score INTEGER NOT NULL DEFAULT 0,
+            winner_id INTEGER,
+            match_type TEXT NOT NULL DEFAULT 'solo' CHECK (match_type IN ('solo', 'local', 'online', 'tournament')),
+            duration INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+          );
+        `);
+        
+        db.exec("CREATE INDEX idx_match_history_player1 ON match_history(player1_id)");
+        db.exec("CREATE INDEX idx_match_history_player2 ON match_history(player2_id)");
+      }
+
+      const hasUserSessions = tables.some(table => table.name === 'user_sessions');
+      if (!hasUserSessions) {
+        db.exec(`
+          CREATE TABLE user_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            session_token TEXT UNIQUE NOT NULL,
+            last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
+            is_online INTEGER DEFAULT 1,
+            user_agent TEXT,
+            ip_address TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+          );
+        `);
+        
+        db.exec("CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id)");
+        db.exec("CREATE INDEX idx_user_sessions_token ON user_sessions(session_token)");
+        db.exec("CREATE INDEX idx_user_sessions_online ON user_sessions(is_online)");
+      }
+    } catch (friendsError) {
     }
     
   } catch (e) {
-    console.warn("Migration warning:", e);
   }
 }
 

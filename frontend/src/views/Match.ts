@@ -61,14 +61,12 @@ class PongGame {
     this.beforeUnloadHandler = () => {
       // Fermer proprement le WebSocket pour déclencher le cleanup backend
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        console.log('🧹 Closing WebSocket on page unload');
         this.ws.close();
       }
     };
     
     window.addEventListener('beforeunload', this.beforeUnloadHandler);
     
-    console.log(`🎮 PongGame créé en mode: ${mode}`);
   }
 
   // 🔌 CONNEXION AU BACKEND
@@ -100,12 +98,10 @@ async connect() {
       });
     } else {
         // Mode online (à implémenter plus tard)
-        console.log("Mode online pas encore implémenté");
         return;
       }
 
       this.matchId = response.matchId;
-      console.log(`✅ Partie créée : ${this.matchId}`);
 
       // 2️⃣ Connexion WebSocket
       this.ws = connectWS('/ws/game', (msg: any) => {
@@ -113,8 +109,6 @@ async connect() {
       });
 
       this.ws.onopen = () => {
-        console.log("🔌 WebSocket connecté");
-		console.log("📤 Join player1:", this.player1Id);
         // Rejoindre la partie
         this.ws?.send(JSON.stringify({
           type: "join",
@@ -125,7 +119,6 @@ async connect() {
 
 		if (this.mode === "local") {
 			setTimeout(() => {
-			console.log("📤 Join player2:", this.player2Id, "side: right");
 			this.ws?.send(JSON.stringify({
 				type: "join",
 				matchId: this.matchId,
@@ -136,12 +129,10 @@ async connect() {
 		}
       };
 
-      this.ws.onerror = (error) => {
-        console.error("❌ Erreur WebSocket:", error);
+      this.ws.onerror = () => {
       };
 
     } catch (error) {
-      console.error("❌ Erreur de connexion:", error);
     }
   }
 
@@ -348,7 +339,6 @@ ctx.stroke();
       down: this.keys["s"] || this.keys["S"] || this.keys["ArrowDown"] || false  // 🔧 S OU ↓
     };
 
-	console.log("📤 Solo Input:", soloInput);
 
       // Mode solo : un seul joueur
       this.ws.send(JSON.stringify({
@@ -370,12 +360,10 @@ ctx.stroke();
   start() {
     this.setupInput();
     this.gameLoop();
-    console.log("🚀 Jeu démarré !");
   }
 
   // ⏹️ TERMINER LE JEU
   private endGame(data: any) {
-    console.log("🏁 Fin de partie !", data);
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
@@ -405,20 +393,17 @@ ctx.stroke();
 
   // 🧹 NETTOYER (MÉTHODE AMÉLIORÉE)
   destroy() {
-    console.log("🧹 Destruction de l'instance PongGame...");
     
     // 1️⃣ Stopper l'animation
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
-      console.log("  ✅ Animation stoppée");
     }
     
     // 2️⃣ Fermer le WebSocket
     if (this.ws) {
       if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
         this.ws.close();
-        console.log("  ✅ WebSocket fermé");
       }
       this.ws = null;
     }
@@ -427,30 +412,25 @@ ctx.stroke();
     if (this.keydownHandler) {
       window.removeEventListener("keydown", this.keydownHandler);
       this.keydownHandler = null;
-      console.log("  ✅ Listener keydown supprimé");
     }
     
     if (this.keyupHandler) {
       window.removeEventListener("keyup", this.keyupHandler);
       this.keyupHandler = null;
-      console.log("  ✅ Listener keyup supprimé");
     }
     
     // 4️⃣ Nettoyer le listener beforeunload
     if (this.beforeUnloadHandler) {
       window.removeEventListener("beforeunload", this.beforeUnloadHandler);
       this.beforeUnloadHandler = null;
-      console.log("  ✅ Listener beforeunload supprimé");
     }
     
     // 5️⃣ Vider les touches pressées
     this.keys = {};
     
-    console.log("🎉 Destruction terminée !");
   }
 
   public pause(): void {
-  console.log(`⏸️ Game PAUSED`);
   if (this.animationId) {
     cancelAnimationFrame(this.animationId);
     this.animationId = null;
@@ -467,7 +447,6 @@ ctx.stroke();
 
 // ▶️ REPRENDRE
 public resume(): void {
-  console.log(`▶️ Game RESUMED`);
   
   // Relancer le game loop frontend
   if (!this.animationId) {
@@ -491,13 +470,11 @@ public resume(): void {
 	try {
 		// Appelle l'API pour supprimer la partie
 		await api(`/game/${this.matchId}`, { method: 'DELETE' });
-		console.log("✅ Partie abandonnée");
 		
 		// Nettoie et retourne au menu
 		this.destroy();
 		window.location.href = '/partie';
 	} catch (error) {
-		console.error("❌ Erreur abandon:", error);
 	}
   }
 }
@@ -581,7 +558,6 @@ export default async function View() {
   
   // 🆕 EXPOSER L'INSTANCE DANS LE CONTEXTE GLOBAL
   window.currentGameInstance = game;
-  console.log("🌍 Instance PongGame exposée dans window.currentGameInstance");
 
 	// Bouton Abandon (pendant la partie)
 	btnAbandon.addEventListener("click", () => {
@@ -654,15 +630,12 @@ export default async function View() {
 		});
 		
 		if (response.matchId) {
-		console.log("✅ Nouvelle partie créée:", response.matchId);
 		// Recharger la page avec le nouveau match
 		window.location.href = `/match?mode=${mode}`;
 		} else {
-		console.error("❌ Erreur création partie");
 		window.location.reload();
 		}
 	} catch (error) {
-		console.error("❌ Erreur rejouer:", error);
 		window.location.reload();
 	}
 	});

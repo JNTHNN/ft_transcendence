@@ -39,7 +39,6 @@ export class PongGame {
    */
   public addPlayer(config: PlayerConfig): boolean {
     if (this.players.size >= 2) {
-		console.warn(`âš ï¸ Game ${this.id} already has 2 players`);
 		return false;
 	}
     
@@ -48,7 +47,6 @@ export class PongGame {
     
     // DÃ©marre si on a 2 joueurs
     if (this.players.size === 2 && !this.isRunning) {
-		console.log(`ðŸš€ Starting game ${this.id} with 2 players`);
       this.start();
     }
     
@@ -116,7 +114,6 @@ export class PongGame {
         ? this.state.paddles.left 
         : this.state.paddles.right;
       
-	  console.log(`ðŸŽ¯ Update paddle ${player.side} for ${playerId}:`, { input, paddleY: paddle.y });
 	  
       if (input.up) {
         paddle.y = Math.max(0, paddle.y - (paddle.speed * dt) / CFG.COURT_HEIGHT);
@@ -162,9 +159,7 @@ export class PongGame {
     const current = this.inputs.get(playerId);
     if (current) {
       this.inputs.set(playerId, { ...current, ...input });
-	  console.log(`ðŸŽ® Input set for ${playerId}:`, { ...current, ...input }); 
 	  } else {
-    	console.warn(`âš ï¸ Player ${playerId} not found in game ${this.id}`);
     }
   }
 
@@ -195,13 +190,25 @@ export class PongGame {
         matchId: this.id,
         mode: this.mode,
         players: {
-          left: { id: leftPlayer.id, score: this.state.score.left },
-          right: { id: rightPlayer.id, score: this.state.score.right },
+          left: { 
+            id: leftPlayer.id, 
+            score: this.state.score.left,
+            type: leftPlayer.controllerType === 'ai' ? 'ai' : 'human'
+          },
+          right: { 
+            id: rightPlayer.id, 
+            score: this.state.score.right,
+            type: rightPlayer.controllerType === 'ai' ? 'ai' : 'human'
+          },
         },
         winner,
         duration,
         startedAt: this.startedAt!,
         endedAt,
+        finalScore: {
+          left: this.state.score.left,
+          right: this.state.score.right,
+        },
       };
       
       // ðŸ†• Sauvegarder
@@ -221,7 +228,6 @@ export class PongGame {
 
 	setTimeout(() => {
       gameManager.removeGame(this.id);
-      console.log(`ðŸ§¹ Game ${this.id} auto-cleaned after end`);
   	}, 5000); // 5 secondes pour laisser le temps d'afficher le rÃ©sultat
 
   }

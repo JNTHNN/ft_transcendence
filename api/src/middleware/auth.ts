@@ -1,5 +1,6 @@
 import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
+import { trackUserActivity } from './presence.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -16,6 +17,7 @@ export default fp(async (app) => {
 
   app.decorate('auth', async (req: any) => {
     await req.jwtVerify();
+    await trackUserActivity(req, null as any);
   });
 });
 

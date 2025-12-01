@@ -82,16 +82,13 @@ export async function registerGameRoutes(app: FastifyInstance) {
 	}>('/game/:matchId', async (request, reply) => {
 	const { matchId } = request.params;
 	
-	console.log(`ðŸ—‘ï¸ DELETE request for game ${matchId}`);
 	
 	const game = gameManager.getGame(matchId);
 	if (game) {
 		game.stop();  // âœ… ArrÃªter le jeu avant de le supprimer
-		console.log(`â¹ï¸ Game ${matchId} stopped`);
 	}
 	
 	gameManager.removeGame(matchId);
-	console.log(`âœ… Game ${matchId} removed`);
 	
 	return reply.send({ ok: true });
 	});

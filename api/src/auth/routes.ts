@@ -5,6 +5,7 @@ import argon2 from 'argon2';
 import crypto from 'crypto';
 import fs from 'fs';
 import { createI18nForRequest } from '../i18n/translations.js';
+import { markUserOnline, markUserOffline } from '../middleware/presence.js';
 
 declare const process: any;
 
@@ -72,6 +73,8 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
         );
         const rt = createRefreshToken(db, Number(info.lastInsertRowid));
         setRefreshCookie(res, rt);
+
+        markUserOnline(Number(info.lastInsertRowid), access, req.headers['user-agent'], req.ip);
 
         return res.send({ token: access, user: { id: info.lastInsertRowid, email: body.email, displayName: body.displayName } });
       } catch (e: any) {
@@ -142,6 +145,8 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       );
       const rt = createRefreshToken(db, row.id);
       setRefreshCookie(res, rt);
+
+      markUserOnline(row.id, access, req.headers['user-agent'], req.ip);
 
       return res.send({
         token: access,
@@ -230,6 +235,9 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       setRefreshCookie(res, newRt);
 
       const access = app.jwt.sign({ uid: row.user_id, email: row.email }, { expiresIn: ACCESS_TTL });
+      
+      markUserOnline(row.user_id, access, req.headers['user-agent'], req.ip);
+      
       return res.send({ token: access });
     } catch (e) {
       app.log.error(e);
@@ -244,6 +252,20 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       if (rt) {
         db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE token = ?').run(rt);
       }
+      
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.slice(7);
+          const decoded: any = app.jwt.verify(token);
+          if (decoded?.uid) {
+            markUserOffline(decoded.uid, token);
+          }
+        } catch (e) {
+          // Ignorer les erreurs de décodage du token
+        }
+      }
+      
       clearRefreshCookie(res);
       return res.send({ ok: true });
     } catch (e) {

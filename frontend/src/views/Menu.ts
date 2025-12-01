@@ -57,7 +57,7 @@ export class MenuManager {
       }
     } catch (error: any) {
       if (error?.message !== 'Authentication expired') {
-        console.error('Failed to load full user data:', error);
+
       }
       this.fullUser = null;
     }
@@ -81,7 +81,6 @@ export class MenuManager {
       ? `${apiBaseUrl}${this.fullUser.avatarUrl}`
       : this.fullUser?.avatarUrl;
 
-    // 🆕 Utilisation de data-navigate au lieu de href
     const menuHTML = `
       <nav class="font-display text-2xl font-black flex flex-col p-4 space-y-2">
         <button data-navigate="/" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
@@ -96,6 +95,9 @@ export class MenuManager {
           </button>
           <button data-navigate="/chat" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.chat')}
+          </button>
+          <button data-navigate="/friends" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+            ${t('friends.title')}
           </button>
           <button data-navigate="/profile" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.profile')}
@@ -185,13 +187,11 @@ export class MenuManager {
   }
 
   public setActiveLink(path: string) {
-    // Retirer les classes actives de tous les liens
     document.querySelectorAll('.menu-link').forEach(link => {
       link.classList.remove('bg-sec', 'text-prem');
       link.classList.add('text-text');
     });
 
-    // Ajouter les classes actives au lien correspondant
     const activeLink = document.querySelector(`.menu-link[data-navigate="${path}"]`) as HTMLElement;
     if (activeLink) {
       activeLink.classList.add('bg-sec', 'text-prem');

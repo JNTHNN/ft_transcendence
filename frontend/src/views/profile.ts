@@ -661,7 +661,7 @@ export default async function View() {
       try {
         await menuManager.forceUpdateAsync();
       } catch (error) {
-        console.warn('Menu update error:', error);
+
 
         menuManager.forceUpdate();
       }
