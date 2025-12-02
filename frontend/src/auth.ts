@@ -128,7 +128,8 @@ class AuthManager {
   private async refreshToken(): Promise<boolean> {
     try {
       const data = await api('/auth/refresh', {
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({})
       });
 
       if (data.token) {
