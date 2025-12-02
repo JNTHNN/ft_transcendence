@@ -22,6 +22,8 @@ import { registerFriendsWS } from './friends/ws.js';
 import { initPresenceService } from './core/presence.js';
 import { registerGameRoutes } from './game/routes.js';
 import { gameManager } from './game/GameManager.js';
+import tournamentRoutes from './tournaments/routes.js';
+import blockchainRoutes from './blockchain/routes.js';
 
 const app = Fastify({
   logger: {
@@ -60,6 +62,9 @@ try {
   
   // Injecter la base de données dans GameManager
   gameManager.setDatabase(db);
+  
+  // Décorer l'app avec la base de données pour les plugins
+  app.decorate('db', db);
 
 } catch (e) {
   app.log.error(e, '❌ Migration failed');
@@ -82,6 +87,8 @@ await registerUserRoutes(app, db);
 await registerGameRoutes(app);
 await registerGameWS(app);
 await registerFriendsWS(app, db);
+await app.register(tournamentRoutes);
+await app.register(blockchainRoutes);
 
 await registerChatWS(app);
 

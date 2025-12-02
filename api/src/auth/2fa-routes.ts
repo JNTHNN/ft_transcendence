@@ -6,7 +6,7 @@ import { generateTOTPSecret, generateQRCode, verifyTOTPCode, generateBackupCodes
 import crypto from 'crypto';
 import argon2 from 'argon2';
 
-const setupSchema = z.object({});
+
 
 const verifySchema = z.object({
   code: z.string().min(6).max(6)

@@ -86,3 +86,70 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_online ON user_sessions(is_online);
+
+-- Tables pour les tournois
+CREATE TABLE IF NOT EXISTS tournaments (
+  id TEXT PRIMARY KEY, -- UUID généré côté app
+  name TEXT NOT NULL,
+  description TEXT,
+  max_players INTEGER NOT NULL DEFAULT 8,
+  current_players INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'active', 'completed', 'cancelled')),
+  tournament_type TEXT NOT NULL DEFAULT 'elimination' CHECK (tournament_type IN ('elimination', 'round_robin')),
+  creator_id INTEGER NOT NULL,
+  winner_id INTEGER,
+  start_time DATETIME,
+  end_time DATETIME,
+  blockchain_tx_hash TEXT, -- Hash de la transaction blockchain
+  blockchain_tournament_id TEXT, -- ID du tournoi sur la blockchain
+  blockchain_stored INTEGER DEFAULT 0, -- 1 si stocké sur blockchain
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Participants d'un tournoi
+CREATE TABLE IF NOT EXISTS tournament_participants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tournament_id TEXT NOT NULL,
+  user_id INTEGER NOT NULL,
+  display_name TEXT NOT NULL, -- Nom affiché dans le tournoi
+  seed INTEGER, -- Position dans le bracket
+  eliminated_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(tournament_id, user_id)
+);
+
+-- Matchs d'un tournoi
+CREATE TABLE IF NOT EXISTS tournament_matches (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tournament_id TEXT NOT NULL,
+  match_id TEXT UNIQUE NOT NULL, -- ID unique du match
+  round_number INTEGER NOT NULL, -- 1 = première ronde, 2 = demi-finales, etc.
+  match_order INTEGER NOT NULL, -- Ordre dans la ronde
+  player1_id INTEGER,
+  player2_id INTEGER,
+  player1_score INTEGER DEFAULT 0,
+  player2_score INTEGER DEFAULT 0,
+  winner_id INTEGER,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'completed', 'cancelled')),
+  start_time DATETIME,
+  end_time DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+  FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Index pour les tournois
+CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments(status);
+CREATE INDEX IF NOT EXISTS idx_tournaments_creator ON tournaments(creator_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_participants_tournament ON tournament_participants(tournament_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_participants_user ON tournament_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_matches_tournament ON tournament_matches(tournament_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_matches_round ON tournament_matches(round_number);
+CREATE INDEX IF NOT EXISTS idx_tournament_matches_status ON tournament_matches(status);

@@ -246,7 +246,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
   });
 
   app.post('/auth/logout', async (req: any, res: any) => {
-    const reqI18n = createI18nForRequest(req.headers);
     try {
       const rt = req.cookies?.[COOKIE_NAME];
       if (rt) {
@@ -275,7 +274,6 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
   });
 
   app.get('/auth/sessions', async (req: any, res: any) => {
-    const reqI18n = createI18nForRequest(req.headers);
     try {
       const auth = req.headers.authorization;
       if (!auth?.startsWith('Bearer ')) {

@@ -35,6 +35,7 @@ class PongGame {
   private scoreRightDiv: HTMLDivElement;
   private player1Id: string = "";
   private player2Id: string = "";
+  private gameEnded: boolean = false;
   
   // 🆕 Références aux callbacks pour pouvoir les nettoyer
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
@@ -96,6 +97,15 @@ async connect() {
           player2Id: player2Id     // 🔧 IDs uniques
         })
       });
+    } else if (this.mode === "tournament") {
+      // Mode tournoi - créer un match local 2 joueurs sur le même PC
+      response = await api("/game/local/create", {
+        method: "POST",
+        body: JSON.stringify({
+          player1Id: player1Id,
+          player2Id: player2Id
+        })
+      });
     } else {
         // Mode online (à implémenter plus tard)
         return;
@@ -117,7 +127,7 @@ async connect() {
           side: "left"
         }));
 
-		if (this.mode === "local") {
+		if (this.mode === "local" || this.mode === "tournament") {
 			setTimeout(() => {
 			this.ws?.send(JSON.stringify({
 				type: "join",
@@ -306,7 +316,7 @@ ctx.stroke();
   private sendInputs() {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
-    if (this.mode === "local") {
+    if (this.mode === "local" || this.mode === "tournament") {
       // Joueur 1 (gauche) = W/S
       const player1Input = {
         up: this.keys["w"] || this.keys["W"] || false,
@@ -363,7 +373,14 @@ ctx.stroke();
   }
 
   // ⏹️ TERMINER LE JEU
-  private endGame(data: any) {
+  private async endGame(data: any) {
+    // Éviter les appels multiples
+    if (this.gameEnded) {
+      console.log('Game already ended, ignoring duplicate call');
+      return;
+    }
+    this.gameEnded = true;
+    
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
@@ -387,7 +404,61 @@ ctx.stroke();
 		
 		// Score final
 		finalScore.textContent = `${data.score.left} - ${data.score.right}`;
+
+		// 🏆 Si c'est un match de tournoi, envoyer les résultats
+		if (this.mode === 'tournament') {
+			await this.submitTournamentResult(data);
+		}
 	}
+  }
+
+  private async submitTournamentResult(data: any) {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tournamentId = params.get("tournamentId");
+      
+      console.log('Current URL:', window.location.href);
+      console.log('Tournament ID from URL:', tournamentId);
+      console.log('Match data:', data);
+      
+      if (!tournamentId) {
+        console.error('Tournament ID not found');
+        return;
+      }
+
+      const response = await api(`/tournaments/${tournamentId}/match-result`, {
+        method: "POST",
+        body: JSON.stringify({
+          winner: data.winner,
+          score: data.score,
+          players: {
+            left: this.player1Id,
+            right: this.player2Id
+          }
+        })
+      });
+
+      if (response.tournamentComplete) {
+        // Afficher un message spécial pour la fin du tournoi
+        const winnerText = document.getElementById('winner-text');
+        if (winnerText) {
+          winnerText.innerHTML = `
+            🏆 ${winnerText.textContent}<br>
+            <span class="text-lg text-green-400">🎉 Tournoi terminé !</span><br>
+            <span class="text-sm text-text/70">⛓️ Résultat sauvegardé sur blockchain</span>
+          `;
+        }
+      }
+
+      console.log('Tournament result submitted successfully', response);
+    } catch (error) {
+      console.error('Error submitting tournament result:', error);
+      // Afficher une notification d'erreur mais ne pas empêcher la fin du jeu
+      const winnerText = document.getElementById('winner-text');
+      if (winnerText) {
+        winnerText.innerHTML = winnerText.innerHTML + '<br><span class="text-sm text-red-400">⚠️ Erreur sauvegarde blockchain</span>';
+      }
+    }
   }
 
 
@@ -487,10 +558,21 @@ export default async function View() {
   const wrap = document.createElement("div");
   wrap.className = "max-w-4xl mx-auto mt-8";
 
+  let titleText = "🎮 ";
+  let subtitleText = "";
+  if (mode === "solo") titleText += "Solo vs IA";
+  else if (mode === "local") titleText += "2 Joueurs Local";
+  else if (mode === "tournament") {
+    titleText += "Match de Tournoi";
+    subtitleText = '<p class="text-center text-text/70 mb-4">🏆 Match local à 2 joueurs sur le même ordinateur</p>';
+  }
+  else titleText += "En ligne";
+
 		wrap.innerHTML = `
 		<h1 class="text-3xl font-bold text-text mb-6">
-			🎮 ${mode === "solo" ? "Solo vs IA" : mode === "local" ? "2 Joueurs Local" : "En ligne"}
+			${titleText}
 		</h1>
+		${subtitleText}
 		<div class="bg-prem rounded-lg shadow-xl p-6">
 			<!-- Score -->
 			<div class="grid grid-cols-2 gap-8 mb-4">
@@ -499,7 +581,7 @@ export default async function View() {
 				<div id="score-left" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			<div class="text-center">
-				<h2 class="text-xl font-bold text-text mb-2">${mode === "local" ? "Joueur 2" : "IA"}</h2>
+				<h2 class="text-xl font-bold text-text mb-2">${mode === "local" || mode === "tournament" ? "Joueur 2" : "IA"}</h2>
 				<div id="score-right" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			</div>
@@ -527,7 +609,7 @@ export default async function View() {
 
 			<!-- Instructions -->
 			<div class="mt-4 text-center text-text/70 text-sm">
-			${mode === "local" 
+			${mode === "local" || mode === "tournament"
 				? "👥 W/S Joueur 1 | ↑/↓ Joueur 2" 
 				: "⌨️ W/S ou ↑/↓ pour déplacer votre paddle"}
 			</div>

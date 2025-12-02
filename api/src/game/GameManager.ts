@@ -129,7 +129,7 @@ export class GameManager {
     game.stop();
     
     // Retirer tous les joueurs de cette partie
-	let removedPlayers = 0;
+	// let removedPlayers = 0;
     for (const [playerId, gameId] of this.playerToGame.entries()) {
       if (gameId === matchId) {
         this.playerToGame.delete(playerId);

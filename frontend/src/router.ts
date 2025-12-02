@@ -20,10 +20,19 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/match": async () => (await import("./views/Match")).default(),
   "/partie": async () => (await import("./views/partie-view")).PartieView(),
   "/tournoi": async () => (await import("./views/tournoi-view")).TournoiView(),
+  "/tournois": async () => (await import("./views/tournoi-view")).TournoiView(),
   "/friends": async () => (await import("./views/friends-view")).FriendsView(),
   "/amis": async () => (await import("./views/friends-view")).FriendsView(),
   "/auth/oauth42/callback": async () => (await import("./views/oauth42-callback")).default()
 };
+
+// Route dynamique pour les détails de tournoi
+function getDynamicRoute(path: string): (() => Promise<HTMLElement>) | null {
+  if (path.startsWith('/tournament/')) {
+    return async () => (await import("./views/tournament-detail-view")).TournamentDetailView();
+  }
+  return null;
+}
 
 // 🧹 CLEANUP AVANT NAVIGATION
 function cleanupBeforeNavigation() {
@@ -58,13 +67,26 @@ function navigate(path: string) {
 // 🎨 RENDU DE LA VUE
 async function render() {
   const root = document.getElementById("app")!;
-  const path = location.pathname in routes ? location.pathname : "/";
+  const path = location.pathname;
   
   // Cleanup avant de changer de vue (important pour popstate)
   cleanupBeforeNavigation();
   
-  // Charger et afficher la nouvelle vue
-  root.replaceChildren(await routes[path]());
+  // Vérifier d'abord les routes statiques
+  let routeHandler: (() => Promise<HTMLElement>) | null = routes[path] || null;
+  
+  // Si pas de route statique, vérifier les routes dynamiques
+  if (!routeHandler) {
+    routeHandler = getDynamicRoute(path);
+  }
+  
+  // Si toujours pas de route, utiliser la route par défaut
+  if (!routeHandler) {
+    routeHandler = routes["/"];
+  }
+  
+  // Charger et afficher la vue
+  root.replaceChildren(await routeHandler());
 }
 
 // 📡 EXPORT DU ROUTER

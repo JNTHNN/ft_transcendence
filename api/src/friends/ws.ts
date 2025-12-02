@@ -1,13 +1,10 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import "@fastify/websocket";
-import { getPresenceService } from '../core/presence.js';
+
 import { markUserOnline, markUserOffline } from '../middleware/presence.js';
 import db from '../db/db.js';
 
-interface FriendsConnection {
-  userId: number;
-  socket: any;
-}
+
 
 // Map pour stocker les connexions actives : userId -> socket
 const activeFriendsConnections = new Map<number, any>();
@@ -89,7 +86,7 @@ export async function registerFriendsWS(app: FastifyInstance, db?: any) {
     });
 
     // Gérer les erreurs
-    connection.socket.on("error", (error: Error) => {
+    connection.socket.on("error", (_error: Error) => {
 
       activeFriendsConnections.delete(userId);
     });
@@ -104,7 +101,7 @@ export async function registerFriendsWS(app: FastifyInstance, db?: any) {
         if (message.type === 'ping') {
           connection.socket.send(JSON.stringify({ type: 'pong' }));
         }
-      } catch (error) {
+      } catch (_error) {
 
       }
     });

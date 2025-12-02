@@ -4,7 +4,7 @@ import { getPresenceService } from '../core/presence.js';
 /**
  * Middleware pour tracker l'activité des utilisateurs authentifiés
  */
-export async function trackUserActivity(request: FastifyRequest, reply: FastifyReply) {
+export async function trackUserActivity(request: FastifyRequest, _reply: FastifyReply) {
   try {
     // Vérifier si l'utilisateur est authentifié
     const user = (request as any).user;
@@ -19,8 +19,8 @@ export async function trackUserActivity(request: FastifyRequest, reply: FastifyR
     }
     
     const sessionToken = authHeader.slice(7);
-    const userAgent = request.headers['user-agent'];
-    const ipAddress = request.ip;
+    // const userAgent = request.headers['user-agent'];
+    // const ipAddress = request.ip;
 
     // Mettre à jour l'activité de l'utilisateur
     const presenceService = getPresenceService();

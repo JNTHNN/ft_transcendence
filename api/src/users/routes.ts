@@ -660,7 +660,7 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
   });
 
   // Route pour obtenir les statistiques de présence
-  app.get('/users/presence-stats', { preHandler: app.auth }, async (req: any, res) => {
+  app.get('/users/presence-stats', { preHandler: app.auth }, async (_req: any, res) => {
     try {
       const presenceService = getPresenceService();
       const stats = presenceService.getPresenceStats();

@@ -7,6 +7,7 @@
     "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "dotenv": "^16.4.5",
     "ethers": "^6.8.0",
     "hardhat": "^2.22.0"

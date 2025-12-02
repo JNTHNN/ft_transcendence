@@ -8,7 +8,7 @@ let notifyFriendsStatusChange: ((userId: number, isOnline: boolean) => Promise<v
  */
 export class PresenceService {
   private db: Database.Database;
-  private cleanupInterval: NodeJS.Timeout;
+  private cleanupInterval: any;
 
   constructor(db: Database.Database) {
     this.db = db;
@@ -39,7 +39,7 @@ export class PresenceService {
       // Notifier les amis si l'utilisateur vient de se connecter
       if (!wasOnline && notifyFriendsStatusChange) {
 
-        notifyFriendsStatusChange(userId, true).catch(error => {
+        notifyFriendsStatusChange(userId, true).catch(_error => {
 
         });
       } else if (!wasOnline) {
@@ -72,7 +72,7 @@ export class PresenceService {
       // Notifier les amis si l'utilisateur vient de se déconnecter
       if (wasOnline && !isStillOnline && notifyFriendsStatusChange) {
 
-        notifyFriendsStatusChange(userId, false).catch(error => {
+        notifyFriendsStatusChange(userId, false).catch(_error => {
 
         });
       } else if (wasOnline && !isStillOnline) {
@@ -206,7 +206,7 @@ export function initPresenceService(db: Database.Database): void {
   import('../friends/ws.js').then(wsModule => {
     notifyFriendsStatusChange = wsModule.notifyFriendsStatusChange;
 
-  }).catch(error => {
+  }).catch(_error => {
 
   });
 }

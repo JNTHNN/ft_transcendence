@@ -106,7 +106,7 @@ export async function FriendsView() {
   const searchResults = wrap.querySelector("#search-results") as HTMLDivElement;
 
   // Variables pour gérer le délai de recherche 
-  let searchTimeout: NodeJS.Timeout;
+  let searchTimeout: ReturnType<typeof setTimeout>;
   let isRefreshing = false;
   let lastSearchQuery = '';
   let globalStatusListener: ((event: Event) => void) | null = null;

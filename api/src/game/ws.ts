@@ -18,7 +18,7 @@ export async function registerGameWS(app: FastifyInstance) {
   app.get(
     '/ws/game',
     { websocket: true },
-    (connection: SocketStream, request: FastifyRequest) => {
+    (connection: SocketStream, _request: FastifyRequest) => {
       const socket = connection.socket;
 
 
