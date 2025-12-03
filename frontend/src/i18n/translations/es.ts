@@ -182,9 +182,30 @@ export default {
     quickGameDesc: "Inicia una partida rápida contra la computadora.",
     multiplayer: "Multijugador",
     multiplayerDesc: "Juega contra otro jugador en línea.",
+    customGame: "Partida Personalizada",
+    customGameDesc: "Crea una partida con tus propias reglas.",
     localGame: "Juego Local",
     localGameDesc: "Crear un juego local.",
-    instructions: "Usa las flechas ↑ ↓ para jugar"
+    instructions: "Usa las flechas ↑ ↓ para jugar",
+    readyToPlay: "¿Listo para jugar?",
+    ready: "LISTO",
+    player1: "Jugador 1",
+    player2: "Jugador 2",
+    bothPlayersReady: "Ambos jugadores deben presionar LISTO",
+    pressToStart: "Presiona para comenzar",
+    start: "COMENZAR",
+    replay: "Volver a jugar",
+    quit: "Salir",
+    abandon: "Abandonar",
+    abandonGame: "¿Abandonar la partida?",
+    abandonMessage: "La partida se contará como una derrota.",
+    continue: "Continuar",
+    wins: "gana!",
+    ai: "IA",
+    controls: {
+      local: "W/S Jugador 1 | ↑/↓ Jugador 2",
+      solo: "W/S o ↑/↓ para mover tu paleta"
+    }
   },
 
   tournament: {

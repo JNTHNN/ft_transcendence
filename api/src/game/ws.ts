@@ -4,7 +4,7 @@ import { gameManager } from './GameManager.js';
 import type { PlayerInput } from './types.js';
 
 interface GameMessage {
-  type: 'join' | 'input' | 'ping' | 'pause' | 'resume';
+  type: 'join' | 'input' | 'ping' | 'pause' | 'resume' | 'start';
   matchId?: string;
   playerId?: string;
   side?: 'left' | 'right';
@@ -41,6 +41,10 @@ export async function registerGameWS(app: FastifyInstance) {
             case 'ping':
               socket.send(JSON.stringify({ type: 'pong' }));
               break;
+			
+			case 'start':
+				handleStart(message);
+				break;
 			
 			case 'pause':
 				if (!message.matchId) {
@@ -93,6 +97,31 @@ export async function registerGameWS(app: FastifyInstance) {
           handleDisconnect(currentPlayerId);
         }
       });
+
+      // Gestion du démarrage
+      function handleStart(message: GameMessage) {
+        const { matchId } = message;
+        
+        if (!matchId) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Missing matchId for start'
+          }));
+          return;
+        }
+        
+        const game = gameManager.getGame(matchId);
+        if (game) {
+          game.start();
+          console.log(`▶️ Game ${matchId} started by player request`);
+        } else {
+          console.warn(`⚠️ Game ${matchId} not found for start`);
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Game not found'
+          }));
+        }
+      }
 
       // Gestion de la connexion
       function handleJoin(message: GameMessage) {

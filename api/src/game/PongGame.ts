@@ -45,10 +45,8 @@ export class PongGame {
     this.players.set(config.id, config);
     this.inputs.set(config.id, { up: false, down: false });
     
-    // DÃ©marre si on a 2 joueurs
-    if (this.players.size === 2 && !this.isRunning) {
-      this.start();
-    }
+    // Ne démarre plus automatiquement, attend le signal "start" du frontend
+    console.log(`✅ Player ${config.id} added to game ${this.id} (${this.players.size}/2)`);
     
     return true;
   }

@@ -176,6 +176,8 @@ export default {
     quickGameDesc: "Commencez une partie rapide contre l'ordinateur.",
     multiplayer: "Multijoueur",
     multiplayerDesc: "Jouez contre un autre joueur en ligne.",
+    customGame: "Partie Personnalisée",
+    customGameDesc: "Créez une partie avec vos propres règles.",
     localGame: "Partie locale",
     localGameDesc: "Créez une partie locale.",
     spectate: "Regarder",
@@ -183,7 +185,26 @@ export default {
     startGame: "Commencer la partie",
     gameInProgress: "Partie en cours",
     findOpponent: "Trouver un adversaire",
-    instructions: "Utilisez les flèches ↑ ↓ pour jouer"
+    instructions: "Utilisez les flèches ↑ ↓ pour jouer",
+    readyToPlay: "Prêt à jouer ?",
+    ready: "PRÊT",
+    player1: "Joueur 1",
+    player2: "Joueur 2",
+    bothPlayersReady: "Les deux joueurs doivent appuyer sur PRÊT",
+    pressToStart: "Appuyez pour commencer",
+    start: "COMMENCER",
+    replay: "Rejouer",
+    quit: "Quitter",
+    abandon: "Abandonner",
+    abandonGame: "Abandonner la partie ?",
+    abandonMessage: "La partie sera comptée comme une défaite.",
+    continue: "Continuer",
+    wins: "gagne !",
+    ai: "IA",
+    controls: {
+      local: "W/S Joueur 1 | ↑/↓ Joueur 2",
+      solo: "W/S ou ↑/↓ pour déplacer votre paddle"
+    }
   },
 
   tournament: {

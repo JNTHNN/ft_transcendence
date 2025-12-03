@@ -1,5 +1,6 @@
 import { connectWS } from "../ws-client";
 import { api } from "../api-client";
+import { t } from "../i18n/index.js";
 
 // 📦 TYPES (depuis ton backend)
 interface GameState {
@@ -46,6 +47,11 @@ class PongGame {
   private readonly COURT_WIDTH = 800;
   private readonly COURT_HEIGHT = 600;
   private readonly PADDLE_WIDTH = 10;
+  
+  // 🆕 État de prêt des joueurs
+  private player1Ready: boolean = false;
+  private player2Ready: boolean = false;
+  private gameStarted: boolean = false;
 
   constructor(canvas: HTMLCanvasElement, mode: string, scoreLeftDiv: HTMLDivElement, scoreRightDiv: HTMLDivElement) {
     this.canvas = canvas;
@@ -68,6 +74,49 @@ class PongGame {
     
     window.addEventListener('beforeunload', this.beforeUnloadHandler);
     
+  }
+
+  // 🆕 Marquer un joueur comme prêt
+  public setPlayerReady(player: 1 | 2): void {
+    if (player === 1) {
+      this.player1Ready = true;
+      console.log("✅ Joueur 1 prêt!");
+    } else {
+      this.player2Ready = true;
+      console.log("✅ Joueur 2 prêt!");
+    }
+    
+    // Démarrer si les conditions sont remplies
+    this.checkStartGame();
+  }
+  
+  // 🆕 Vérifier si on peut démarrer
+  private checkStartGame(): void {
+    if (this.gameStarted) return;
+    
+    const canStart = this.mode === "local" 
+      ? (this.player1Ready && this.player2Ready)
+      : this.player1Ready;
+    
+    if (canStart && this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.gameStarted = true;
+      console.log("🚀 Démarrage du jeu!");
+      
+      // Envoyer le signal de démarrage au serveur
+      this.ws.send(JSON.stringify({
+        type: "start",
+        matchId: this.matchId
+      }));
+      
+      // Masquer l'overlay de démarrage
+      const startOverlay = document.getElementById('start-overlay');
+      if (startOverlay) {
+        startOverlay.classList.add('hidden');
+      }
+      
+      // Démarrer les contrôles
+      this.startGame();
+    }
   }
 
   // 🔌 CONNEXION AU BACKEND
@@ -381,8 +430,16 @@ ctx.stroke();
 
   // ▶️ DÉMARRER LE JEU
   start() {
-    this.setupInput();
+    // Commence le rendu visuel seulement (sans inputs)
     this.gameLoop();
+    console.log("🎨 Rendu visuel démarré!");
+  }
+  
+  // 🚀 DÉMARRER LA PARTIE (appelé quand les joueurs sont prêts)
+  startGame() {
+    if (!this.gameStarted) return;
+    this.setupInput();
+    console.log("🚀 Jeu et contrôles démarrés !");
   }
 
   // ⏹️ TERMINER LE JEU
@@ -411,9 +468,9 @@ ctx.stroke();
 		overlay.classList.remove('hidden');
 		
 		// Texte du gagnant
-		const winner = data.winner === 'left' ? 'Joueur 1' : 
-					this.mode === 'solo' ? 'IA' : 'Joueur 2';
-		winnerText.textContent = `🏆 ${winner} gagne !`;
+		const winner = data.winner === 'left' ? t('game.player1') : 
+					this.mode === 'solo' ? t('game.ai') : t('game.player2');
+		winnerText.textContent = `🏆 ${winner} ${t('game.wins')}`;
 		
 		// Score final
 		finalScore.textContent = `${data.score.left} - ${data.score.right}`;
@@ -588,18 +645,18 @@ export default async function View() {
 
 		wrap.innerHTML = `
 		<h1 class="text-3xl font-bold text-text mb-6">
-			${titleText}
+			🎮 ${mode === "solo" ? `${t('game.quickGame')} vs ${t('game.ai')}` : mode === "local" ? `${t('game.localGame')}` : t('game.multiplayer')}
 		</h1>
 		${subtitleText}
 		<div class="bg-prem rounded-lg shadow-xl p-6">
 			<!-- Score -->
 			<div class="grid grid-cols-2 gap-8 mb-4">
 			<div class="text-center">
-				<h2 class="text-xl font-bold text-text mb-2">Joueur 1</h2>
+				<h2 class="text-xl font-bold text-text mb-2">${t('game.player1')}</h2>
 				<div id="score-left" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			<div class="text-center">
-				<h2 class="text-xl font-bold text-text mb-2">${mode === "local" || mode === "tournament" ? "Joueur 2" : "IA"}</h2>
+				<h2 class="text-xl font-bold text-text mb-2">${mode === "local" ? t('game.player2') : t('game.ai')}</h2>
 				<div id="score-right" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			</div>
@@ -608,17 +665,48 @@ export default async function View() {
 			<div class="flex justify-center relative">
 			<canvas id="gameCanvas" class="border-2 border-sec rounded bg-black"></canvas>
 			
-			<!-- 🆕 Overlay de fin de partie (caché par défaut) -->
+			<!-- Overlay de démarrage (visible au début) -->
+			<div id="start-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 rounded">
+				<div class="text-center">
+				<h2 class="text-4xl font-bold text-sec mb-8">${t('game.readyToPlay')}</h2>
+				${mode === "local" ? `
+					<div class="flex gap-8 mb-6">
+					<div class="text-center">
+						<p class="text-2xl text-text mb-4">${t('game.player1')}</p>
+						<button id="btn-player1-ready" class="bg-sec hover:bg-sec/80 text-white px-12 py-6 rounded-lg font-bold text-2xl transition-all">
+						${t('game.ready')}
+						</button>
+						<p class="text-sm text-text/70 mt-2">W/S</p>
+					</div>
+					<div class="text-center">
+						<p class="text-2xl text-text mb-4">${t('game.player2')}</p>
+						<button id="btn-player2-ready" class="bg-sec hover:bg-sec/80 text-white px-12 py-6 rounded-lg font-bold text-2xl transition-all">
+						${t('game.ready')}
+						</button>
+						<p class="text-sm text-text/70 mt-2">↑/↓</p>
+					</div>
+					</div>
+					<p class="text-text/60 text-sm">${t('game.bothPlayersReady')}</p>
+				` : `
+					<button id="btn-start" class="bg-sec hover:bg-sec/80 text-white px-16 py-8 rounded-lg font-bold text-3xl transition-all">
+					${t('game.start')}
+					</button>
+					<p class="text-sm text-text/70 mt-4">${t('game.instructions')}</p>
+				`}
+				</div>
+			</div>
+			
+			<!-- Overlay de fin de partie (caché par défaut) -->
 			<div id="game-over-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 rounded">
 				<div class="text-center">
 				<h2 id="winner-text" class="text-5xl font-bold text-sec mb-4">🏆</h2>
 				<p id="final-score" class="text-3xl text-text mb-8">5 - 3</p>
-				<div class="flex gap-4">
+				<div class="flex gap-4 justify-center">
 					<button id="btn-replay" class="bg-sec hover:bg-sec/80 text-white px-8 py-3 rounded-lg font-bold text-xl">
-					🔄 Rejouer
+					${t('game.replay')}
 					</button>
 					<button id="btn-quit" class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-bold text-xl">
-					🚪 Quitter
+					${t('game.quit')}
 					</button>
 				</div>
 				</div>
@@ -627,20 +715,20 @@ export default async function View() {
 
 			<!-- Instructions -->
 			<div class="mt-4 text-center text-text/70 text-sm">
-			${mode === "local" || mode === "tournament"
-				? "👥 W/S Joueur 1 | ↑/↓ Joueur 2" 
-				: "⌨️ W/S ou ↑/↓ pour déplacer votre paddle"}
+			${mode === "local" 
+				? `👥 ${t('game.controls.local')}` 
+				: `⌨️ ${t('game.controls.solo')}`}
 			</div>
 			
-			<!-- 🔧 Bouton abandon (seulement pendant la partie) -->
+			<!-- Bouton abandon (seulement pendant la partie) -->
 			<div id="game-controls" class="mt-4 text-center">
 			<button id="btn-abandon" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded font-bold">
-				🏳️ Abandonner
+				${t('game.abandon')}
 			</button>
 			</div>
 		</div>
 		<p class="mt-4 text-center">
-			<a href="/partie" class="text-sec hover:underline">← Retour</a>
+			<a href="/partie" class="text-sec hover:underline">← ${t('common.back')}</a>
 		</p>
 		`;
 
@@ -650,6 +738,11 @@ export default async function View() {
   const btnAbandon = wrap.querySelector("#btn-abandon") as HTMLButtonElement;
   const btnReplay = wrap.querySelector("#btn-replay") as HTMLButtonElement;
   const btnQuit = wrap.querySelector("#btn-quit") as HTMLButtonElement;
+  
+  // 🆕 Boutons de démarrage
+  const btnStart = wrap.querySelector("#btn-start") as HTMLButtonElement | null;
+  const btnPlayer1Ready = wrap.querySelector("#btn-player1-ready") as HTMLButtonElement | null;
+  const btnPlayer2Ready = wrap.querySelector("#btn-player2-ready") as HTMLButtonElement | null;
 
   // Créer et démarrer le jeu
   const game = new PongGame(canvas, mode, scoreLeft, scoreRight);
@@ -658,13 +751,36 @@ export default async function View() {
   
   // 🆕 EXPOSER L'INSTANCE DANS LE CONTEXTE GLOBAL
   window.currentGameInstance = game;
+  console.log("🌍 Instance PongGame exposée dans window.currentGameInstance");
+  
+  // 🆕 Gestion des boutons de démarrage
+  if (mode === "solo" && btnStart) {
+    btnStart.addEventListener("click", () => {
+      game.setPlayerReady(1);
+    });
+  } else if (mode === "local" && btnPlayer1Ready && btnPlayer2Ready) {
+    btnPlayer1Ready.addEventListener("click", () => {
+      game.setPlayerReady(1);
+      btnPlayer1Ready.disabled = true;
+      btnPlayer1Ready.classList.add("opacity-50", "cursor-not-allowed");
+      btnPlayer1Ready.innerHTML = `✅ ${t('game.ready')}`;
+    });
+    
+    btnPlayer2Ready.addEventListener("click", () => {
+      game.setPlayerReady(2);
+      btnPlayer2Ready.disabled = true;
+      btnPlayer2Ready.classList.add("opacity-50", "cursor-not-allowed");
+      btnPlayer2Ready.innerHTML = `✅ ${t('game.ready')}`;
+    });
+  }
 
 	// Bouton Abandon (pendant la partie)
 	btnAbandon.addEventListener("click", () => {
 		game.pause();
-	// Créer un modal personnalisé
+	// Créer un modal personnalisé centré sur le canvas
 	const modal = document.createElement('div');
-	modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+	modal.className = 'absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 rounded';
+	modal.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
 	modal.innerHTML = `
 		<div class="bg-prem rounded-xl shadow-2xl p-8 max-w-md mx-4 border-2 border-red-500">
 		<!-- Icône -->
@@ -677,24 +793,28 @@ export default async function View() {
 		</div>
 		
 		<!-- Titre -->
-		<h2 class="text-3xl font-bold text-text text-center mb-4">Abandonner la partie ?</h2>
+		<h2 class="text-3xl font-bold text-text text-center mb-4">${t('game.abandonGame')}</h2>
 		
 		<!-- Message -->
-		<p class="text-text/70 text-center mb-8">La partie sera comptée comme une défaite.</p>
+		<p class="text-text/70 text-center mb-8">${t('game.abandonMessage')}</p>
 		
 		<!-- Boutons -->
 		<div class="flex gap-4">
 			<button id="modal-cancel" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg">
-			✋ Continuer
+			${t('game.continue')}
 			</button>
 			<button id="modal-confirm" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg">
-			🚪 Abandonner
+			${t('game.abandon')}
 			</button>
 		</div>
 		</div>
 	`;
 	
-	document.body.appendChild(modal);
+	// Insérer le modal dans le conteneur du canvas au lieu du body
+	const canvasContainer = canvas.parentElement;
+	if (canvasContainer) {
+		canvasContainer.appendChild(modal);
+	}
 	
 	// Annuler
 	modal.querySelector('#modal-cancel')?.addEventListener('click', () => {
