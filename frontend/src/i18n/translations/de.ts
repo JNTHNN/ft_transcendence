@@ -182,9 +182,30 @@ export default {
     quickGameDesc: "Starten Sie ein schnelles Spiel gegen den Computer.",
     multiplayer: "Mehrspieler",
     multiplayerDesc: "Spielen Sie gegen einen anderen Spieler online.",
+    customGame: "Benutzerdefiniertes Spiel",
+    customGameDesc: "Erstellen Sie ein Spiel mit Ihren eigenen Regeln.",
     localGame: "Lokales Spiel",
     localGameDesc: "Erstelle ein lokales Spiel.",
-    instructions: "Verwenden Sie die Pfeiltasten ↑ ↓ zum Spielen"
+    instructions: "Verwenden Sie die Pfeiltasten ↑ ↓ zum Spielen",
+    readyToPlay: "Bereit zu spielen?",
+    ready: "BEREIT",
+    player1: "Spieler 1",
+    player2: "Spieler 2",
+    bothPlayersReady: "Beide Spieler müssen BEREIT drücken",
+    pressToStart: "Drücken Sie zum Starten",
+    start: "START",
+    replay: "Wiederholen",
+    quit: "Beenden",
+    abandon: "Aufgeben",
+    abandonGame: "Spiel aufgeben?",
+    abandonMessage: "Das Spiel wird als Niederlage gezählt.",
+    continue: "Fortsetzen",
+    wins: "gewinnt!",
+    ai: "KI",
+    controls: {
+      local: "W/S Spieler 1 | ↑/↓ Spieler 2",
+      solo: "W/S oder ↑/↓ um Ihren Schläger zu bewegen"
+    }
   },
 
   tournament: {

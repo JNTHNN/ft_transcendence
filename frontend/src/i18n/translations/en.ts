@@ -176,6 +176,8 @@ export default {
     quickGameDesc: "Start a quick game against the computer.",
     multiplayer: "Multiplayer",
     multiplayerDesc: "Play against another player online.",
+    customGame: "Custom Game",
+    customGameDesc: "Create a game with your own rules.",
     localGame: "Local Game",
     localGameDesc: "Create a local game.",
     spectate: "Spectate",
@@ -183,7 +185,26 @@ export default {
     startGame: "Start Game",
     gameInProgress: "Game in Progress",
     findOpponent: "Find Opponent",
-    instructions: "Use ↑ ↓ arrows to play"
+    instructions: "Use ↑ ↓ arrows to play",
+    readyToPlay: "Ready to play?",
+    ready: "READY",
+    player1: "Player 1",
+    player2: "Player 2",
+    bothPlayersReady: "Both players must press READY",
+    pressToStart: "Press to start",
+    start: "START",
+    replay: "Replay",
+    quit: "Quit",
+    abandon: "Abandon",
+    abandonGame: "Abandon the game?",
+    abandonMessage: "The game will be counted as a loss.",
+    continue: "Continue",
+    wins: "wins!",
+    ai: "AI",
+    controls: {
+      local: "W/S Player 1 | ↑/↓ Player 2",
+      solo: "W/S or ↑/↓ to move your paddle"
+    }
   },
 
   tournament: {
