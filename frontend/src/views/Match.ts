@@ -419,8 +419,6 @@ ctx.stroke();
   start() {
     // Commence le rendu visuel seulement (sans inputs)
     this.gameLoop();
-<<<<<<< HEAD
-=======
     console.log("🎨 Rendu visuel démarré!");
   }
   
@@ -429,7 +427,6 @@ ctx.stroke();
     if (!this.gameStarted) return;
     this.setupInput();
     console.log("🚀 Jeu et contrôles démarrés !");
->>>>>>> 12ee62f (ready)
   }
 
   // ⏹️ TERMINER LE JEU
@@ -630,11 +627,7 @@ export default async function View() {
 
 		wrap.innerHTML = `
 		<h1 class="text-3xl font-bold text-text mb-6">
-<<<<<<< HEAD
-			${titleText}
-=======
 			🎮 ${mode === "solo" ? `${t('game.quickGame')} vs ${t('game.ai')}` : mode === "local" ? `${t('game.localGame')}` : t('game.multiplayer')}
->>>>>>> 12ee62f (ready)
 		</h1>
 		${subtitleText}
 		<div class="bg-prem rounded-lg shadow-xl p-6">
@@ -645,11 +638,7 @@ export default async function View() {
 				<div id="score-left" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			<div class="text-center">
-<<<<<<< HEAD
-				<h2 class="text-xl font-bold text-text mb-2">${mode === "local" || mode === "tournament" ? "Joueur 2" : "IA"}</h2>
-=======
 				<h2 class="text-xl font-bold text-text mb-2">${mode === "local" ? t('game.player2') : t('game.ai')}</h2>
->>>>>>> 12ee62f (ready)
 				<div id="score-right" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			</div>
@@ -682,7 +671,7 @@ export default async function View() {
 					<p class="text-text/60 text-sm">${t('game.bothPlayersReady')}</p>
 				` : `
 					<button id="btn-start" class="bg-sec hover:bg-sec/80 text-white px-16 py-8 rounded-lg font-bold text-3xl transition-all">
-					▶${t('game.start')}
+					${t('game.start')}
 					</button>
 					<p class="text-sm text-text/70 mt-4">${t('game.instructions')}</p>
 				`}
@@ -694,7 +683,7 @@ export default async function View() {
 				<div class="text-center">
 				<h2 id="winner-text" class="text-5xl font-bold text-sec mb-4">🏆</h2>
 				<p id="final-score" class="text-3xl text-text mb-8">5 - 3</p>
-				<div class="flex gap-4">
+				<div class="flex gap-4 justify-center">
 					<button id="btn-replay" class="bg-sec hover:bg-sec/80 text-white px-8 py-3 rounded-lg font-bold text-xl">
 					${t('game.replay')}
 					</button>
@@ -708,15 +697,9 @@ export default async function View() {
 
 			<!-- Instructions -->
 			<div class="mt-4 text-center text-text/70 text-sm">
-<<<<<<< HEAD
-			${mode === "local" || mode === "tournament"
-				? "👥 W/S Joueur 1 | ↑/↓ Joueur 2" 
-				: "⌨️ W/S ou ↑/↓ pour déplacer votre paddle"}
-=======
 			${mode === "local" 
 				? `👥 ${t('game.controls.local')}` 
 				: `⌨️ ${t('game.controls.solo')}`}
->>>>>>> 12ee62f (ready)
 			</div>
 			
 			<!-- Bouton abandon (seulement pendant la partie) -->
@@ -750,8 +733,6 @@ export default async function View() {
   
   // 🆕 EXPOSER L'INSTANCE DANS LE CONTEXTE GLOBAL
   window.currentGameInstance = game;
-<<<<<<< HEAD
-=======
   console.log("🌍 Instance PongGame exposée dans window.currentGameInstance");
   
   // 🆕 Gestion des boutons de démarrage
@@ -774,7 +755,6 @@ export default async function View() {
       btnPlayer2Ready.innerHTML = `✅ ${t('game.ready')}`;
     });
   }
->>>>>>> 12ee62f (ready)
 
 	// Bouton Abandon (pendant la partie)
 	btnAbandon.addEventListener("click", () => {
