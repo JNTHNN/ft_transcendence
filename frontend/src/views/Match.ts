@@ -73,10 +73,23 @@ class PongGame {
   // 🔌 CONNEXION AU BACKEND
 async connect() {
   try {
-    // 🆕 Génère des IDs uniques
-    const uniqueId = () => `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const player1Id = uniqueId();
-    const player2Id = uniqueId();
+    let player1Id, player2Id;
+    
+    if (this.mode === "tournament") {
+      // Mode tournoi : récupérer les IDs depuis l'URL
+      const params = new URLSearchParams(window.location.search);
+      player1Id = params.get("player1");
+      player2Id = params.get("player2");
+      
+      if (!player1Id || !player2Id) {
+        throw new Error("IDs des joueurs manquants pour le match de tournoi");
+      }
+    } else {
+      // Modes local/solo : génèrer des IDs uniques
+      const uniqueId = () => `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      player1Id = uniqueId();
+      player2Id = uniqueId();
+    }
     
     // Stocke les IDs pour les utiliser plus tard
     this.player1Id = player1Id;
@@ -426,6 +439,10 @@ ctx.stroke();
         return;
       }
 
+      // Récupérer le matchId depuis l'URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const matchId = urlParams.get("matchId");
+
       const response = await api(`/tournaments/${tournamentId}/match-result`, {
         method: "POST",
         body: JSON.stringify({
@@ -434,7 +451,8 @@ ctx.stroke();
           players: {
             left: this.player1Id,
             right: this.player2Id
-          }
+          },
+          matchId: matchId
         })
       });
 

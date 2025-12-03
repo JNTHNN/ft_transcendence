@@ -26,3 +26,13 @@ declare module 'fastify' {
     auth: (req: any) => Promise<void>;
   }
 }
+
+// Middleware pour l'authentification
+export async function authMiddleware(req: any, reply: any) {
+  try {
+    await req.jwtVerify();
+    await trackUserActivity(req, reply);
+  } catch (error) {
+    reply.status(401).send({ error: 'Unauthorized' });
+  }
+}

@@ -24,6 +24,7 @@ import { registerGameRoutes } from './game/routes.js';
 import { gameManager } from './game/GameManager.js';
 import tournamentRoutes from './tournaments/routes.js';
 import blockchainRoutes from './blockchain/routes.js';
+import { TournamentService } from './core/tournament.js';
 
 const app = Fastify({
   logger: {
@@ -129,10 +130,13 @@ app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: str
 });
 
 
+// Cleanup stale matches on startup
+TournamentService.cleanupStaleMatches();
+
 const port = Number(process.env.PORT || 3000);
 app.listen({ port, host: '0.0.0.0' })
   .then(() => {
-
+    console.log(`🚀 Server ready at port ${port}`);
   })
   .catch((e: any) => { 
     app.log.error(e); 

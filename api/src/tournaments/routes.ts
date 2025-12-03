@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Database } from 'better-sqlite3';
 import { blockchainService } from '../core/blockchain.js';
+import { TournamentService } from '../core/tournament.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 // Extend Fastify types
 declare module 'fastify' {
@@ -433,13 +435,41 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'Tournament needs at least 2 players to start' });
       }
 
-      // Update tournament status to active
-      db.prepare('UPDATE tournaments SET status = ?, start_time = datetime(\'now\') WHERE id = ?').run('active', tournamentId);
+      // Check if tournament type requires even number of players
+      if ((tournament as any).tournament_type === 'elimination' && playerCount.count % 2 !== 0) {
+        return reply.status(400).send({ 
+          error: `Tournament elimination requires an even number of players. Current: ${playerCount.count} players. Add or remove 1 player to continue.` 
+        });
+      }
 
-      // Generate initial bracket/matches here if needed
-      // For now, we just change the status
+      // Get participants before starting
+      const participants = db.prepare(`
+        SELECT tp.*, u.display_name as user_display_name 
+        FROM tournament_participants tp 
+        JOIN users u ON tp.user_id = u.id 
+        WHERE tp.tournament_id = ? 
+        ORDER BY tp.created_at ASC
+      `).all(tournamentId);
       
-      return { success: true, message: 'Tournament started successfully' };
+      fastify.log.info(`🚀 Starting tournament ${tournamentId} with ${playerCount.count} players. Participants: ${JSON.stringify(participants)}`);
+      
+      try {
+        const startedTournament = TournamentService.startTournament(tournamentId, userId);
+        
+        // Verify matches were created
+        const createdMatches = db.prepare('SELECT COUNT(*) as count FROM tournament_matches WHERE tournament_id = ?').get(tournamentId) as { count: number };
+        fastify.log.info(`✅ Tournament ${tournamentId} started successfully with ${createdMatches.count} matches created`);
+        
+        return { 
+          success: true, 
+          message: 'Tournament started successfully',
+          tournament: startedTournament,
+          matchesCreated: createdMatches.count
+        };
+      } catch (error) {
+        fastify.log.error(`❌ Error starting tournament ${tournamentId}: ${error instanceof Error ? error.message : String(error)}`);
+        throw error;
+      }
     } catch (error) {
       fastify.log.error(error, 'Error starting tournament');
       return reply.status(500).send({ error: 'Internal server error' });
@@ -646,7 +676,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
     preHandler: fastify.auth
   }, async (request: FastifyRequest<{ 
     Params: TournamentParams, 
-    Body: { winner: 'left' | 'right', score: { left: number, right: number }, players: { left: string, right: string } }
+    Body: { winner: 'left' | 'right', score: { left: number, right: number }, players: { left: string, right: string }, matchId?: string }
   }>, reply: FastifyReply) => {
     const startTime = Date.now();
     fastify.log.info(`🚀 Starting tournament match result submission for tournament ${request.params.id}`);
@@ -654,7 +684,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
     try {
       const userId = (request as any).user?.uid;
       const tournamentId = request.params.id;
-      const { winner, score, players: _players } = request.body;
+      const { winner, score, players: _players, matchId } = request.body;
 
       if (!userId) {
         fastify.log.warn('❌ Unauthorized request - no user ID');
@@ -676,7 +706,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       const participant = db.prepare('SELECT * FROM tournament_participants WHERE tournament_id = ? AND user_id = ?').get(tournamentId, userId);
       const isCreator = (tournament as any).creator_id === userId;
       
-      fastify.log.info(`Tournament ${tournamentId}, User ${userId}, Participant found: ${!!participant}, Is creator: ${isCreator}`);
+      fastify.log.info(`Tournament ${tournamentId}, User ${userId}, Participant found: ${!!participant}, Is creator: ${isCreator}, MatchId: ${matchId}`);
       
       if (!participant && !isCreator) {
         // Log pour debug - voir tous les participants
@@ -685,48 +715,68 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         return reply.status(403).send({ error: 'User not participating in this tournament' });
       }
 
-      // Récupérer les informations des participants
-      const participants = db.prepare(`
-        SELECT tp.user_id, tp.display_name, u.display_name as user_display_name
-        FROM tournament_participants tp 
-        JOIN users u ON tp.user_id = u.id 
-        WHERE tp.tournament_id = ?
-        ORDER BY tp.created_at
-      `).all(tournamentId) as any[];
+      // Trouver le match soit par matchId s'il est fourni, soit par userId
+      let activeMatch;
+      if (matchId) {
+        activeMatch = db.prepare(`
+          SELECT tm.*, 
+                 u1.display_name as player1_name, 
+                 u2.display_name as player2_name
+          FROM tournament_matches tm
+          LEFT JOIN users u1 ON tm.player1_id = u1.id
+          LEFT JOIN users u2 ON tm.player2_id = u2.id
+          WHERE tm.tournament_id = ? 
+          AND tm.match_id = ?
+          AND tm.status IN ('pending', 'active')
+          AND (tm.player1_id = ? OR tm.player2_id = ?)
+        `).get(tournamentId, matchId, userId, userId) as any;
+      } else {
+        activeMatch = db.prepare(`
+          SELECT tm.*, 
+                 u1.display_name as player1_name, 
+                 u2.display_name as player2_name
+          FROM tournament_matches tm
+          LEFT JOIN users u1 ON tm.player1_id = u1.id
+          LEFT JOIN users u2 ON tm.player2_id = u2.id
+          WHERE tm.tournament_id = ? 
+          AND tm.status IN ('pending', 'active')
+          AND (tm.player1_id = ? OR tm.player2_id = ?)
+          ORDER BY tm.round_number, tm.match_order
+          LIMIT 1
+        `).get(tournamentId, userId, userId) as any;
+      }
+
+      if (!activeMatch) {
+        return reply.status(400).send({ error: 'No active match found for this user' });
+      }
+
+      // Déterminer le gagnant basé sur les positions
+      const isPlayer1 = activeMatch.player1_id === userId;
+      const winnerId = (winner === 'left' && isPlayer1) || (winner === 'right' && !isPlayer1) 
+        ? activeMatch.player1_id 
+        : activeMatch.player2_id;
       
-      if (participants.length !== 2) {
-        return reply.status(400).send({ error: 'Tournament must have exactly 2 players for this match format' });
+      // Récupérer les informations des joueurs pour la blockchain
+      const player1 = db.prepare('SELECT display_name as user_display_name FROM users WHERE id = ?').get(activeMatch.player1_id) as any;
+      const player2 = db.prepare('SELECT display_name as user_display_name FROM users WHERE id = ?').get(activeMatch.player2_id) as any;
+
+      // Utiliser la méthode TournamentManager pour compléter le match (avec validation automatique)
+      try {
+        TournamentService.completeMatch(activeMatch.match_id, winnerId, score.left, score.right);
+      } catch (error) {
+        fastify.log.error(`Error completing tournament match: ${error}`);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to complete tournament match';
+        return reply.status(400).send({ error: errorMessage });
       }
       
-      const player1 = participants[0];
-      const player2 = participants[1];
-      const winnerId = winner === 'left' ? player1.user_id : player2.user_id;
+      // Le TournamentService.completeMatch() gère automatiquement la progression du tournoi
+      // et ne le marque comme 'completed' que quand tous les matches sont terminés
       
-      // Enregistrer le match dans tournament_matches
-      const matchId = `match_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      db.prepare(`
-        INSERT INTO tournament_matches (
-          tournament_id, match_id, round_number, match_order,
-          player1_id, player2_id, player1_score, player2_score,
-          winner_id, status, start_time, end_time, created_at
-        ) VALUES (?, ?, 1, 1, ?, ?, ?, ?, ?, 'completed', datetime('now'), datetime('now'), datetime('now'))
-      `).run(
-        tournamentId, matchId,
-        player1.user_id, player2.user_id,
-        score.left, score.right,
-        winnerId
-      );
-      
-      // Terminer le tournoi pour un match à 2 joueurs
-      db.prepare('UPDATE tournaments SET status = ?, winner_id = ?, end_time = datetime(\'now\') WHERE id = ?')
-        .run('completed', winnerId, tournamentId);
-      
-        // Essayer de sauvegarder sur la blockchain en arrière-plan
-        let blockchainSuccess = false;
+        // Vérifier si le tournoi est maintenant terminé après ce match
+        const updatedTournament = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(tournamentId) as any;
         
-        // Démarrer la sauvegarde blockchain en arrière-plan (ne pas attendre)
-        if (blockchainService.isAvailable()) {
+        // Sauvegarder sur la blockchain seulement si le tournoi est maintenant terminé
+        if (updatedTournament && updatedTournament.status === 'completed' && blockchainService.isAvailable()) {
           // Check if tournament was created on blockchain during creation
           const tournamentBlockchainInfo = db.prepare('SELECT blockchain_tx_hash, blockchain_tournament_id FROM tournaments WHERE id = ?').get(tournamentId) as any;
           
@@ -736,17 +786,17 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
               let result;
               if (tournamentBlockchainInfo?.blockchain_tx_hash) {
                 // Tournament exists on blockchain, finalize it
-                fastify.log.info(`🔗 Finalizing existing blockchain tournament: ${tournamentId}`);
+                fastify.log.info(`🔗 Finalizing completed blockchain tournament: ${tournamentId}`);
                 result = await blockchainService.finalizeTournament(
                   tournamentId,
                   [score.left, score.right]
                 );
               } else {
                 // Tournament not on blockchain, create and store results
-                fastify.log.info(`🆕 Creating and storing new blockchain tournament: ${tournamentId}`);
+                fastify.log.info(`🆕 Creating and storing completed blockchain tournament: ${tournamentId}`);
                 result = await blockchainService.storeTournamentResults(
                   tournamentId, 
-                  [player1.user_display_name, player2.user_display_name],
+                  [player1?.user_display_name || 'Player 1', player2?.user_display_name || 'Player 2'],
                   [score.left, score.right]
                 );
               }
@@ -765,12 +815,16 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         const duration = Date.now() - startTime;
         fastify.log.info(`✅ Tournament match result submitted successfully in ${duration}ms`);
         
+        // Vérifier si le tournoi est maintenant terminé
+        const finalTournament = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(tournamentId) as any;
+        const tournamentComplete = finalTournament?.status === 'completed';
+        
         return { 
           success: true, 
           message: 'Match result submitted successfully',
-          tournamentComplete: true,
-          winner: participants.find((p: any) => p.user_id === winnerId)?.user_display_name || 'Unknown',
-          blockchainStored: blockchainSuccess
+          tournamentComplete: tournamentComplete,
+          winner: tournamentComplete ? (winnerId === activeMatch.player1_id) ? (player1?.user_display_name || 'Player 1') : (player2?.user_display_name || 'Player 2') : null,
+          matchWinner: (winnerId === activeMatch.player1_id) ? (player1?.user_display_name || 'Player 1') : (player2?.user_display_name || 'Player 2')
         };
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -778,4 +832,196 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: 'Internal server error' });
     }
   });
+
+  // Route pour démarrer un match de tournoi
+  fastify.post<{
+    Params: { id: string }
+    Body: { matchId: string }
+  }>('/tournaments/:id/start-match', {
+    preHandler: [authMiddleware]
+  }, async (request, reply) => {
+    const { matchId } = request.body;
+    const userId = (request as any).user?.uid;
+
+    if (!userId) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+
+    try {
+      TournamentService.startMatch(matchId, userId);
+      return reply.send({ success: true, message: 'Match started successfully' });
+    } catch (error) {
+      fastify.log.error(error, 'Error starting match');
+      return reply.status(400).send({ error: (error as Error).message });
+    }
+  });
+
+  // Route pour réinitialiser un match bloqué
+  fastify.post<{
+    Params: { id: string }
+    Body: { matchId?: string }
+  }>('/tournaments/:id/reset-match', {
+    preHandler: [authMiddleware]
+  }, async (request, reply) => {
+    const tournamentId = request.params.id;
+    const { matchId } = request.body || {};
+    const userId = (request as any).user?.uid;
+
+    if (!userId) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+
+    try {
+      let match;
+      
+      if (matchId) {
+        // Recherche par matchId spécifique
+        match = db.prepare(`
+          SELECT * FROM tournament_matches 
+          WHERE tournament_id = ? 
+          AND match_id = ?
+          AND (player1_id = ? OR player2_id = ?)
+          AND status IN ('active', 'completed')
+        `).get(tournamentId, matchId, userId, userId) as any;
+      } else {
+        // Recherche du dernier match de l'utilisateur (actif ou récemment terminé)
+        match = db.prepare(`
+          SELECT * FROM tournament_matches 
+          WHERE tournament_id = ? 
+          AND (player1_id = ? OR player2_id = ?)
+          AND status IN ('active', 'completed')
+          ORDER BY CASE WHEN status = 'active' THEN 0 ELSE 1 END, created_at DESC
+          LIMIT 1
+        `).get(tournamentId, userId, userId) as any;
+      }
+
+      if (!match) {
+        return reply.status(404).send({ error: 'No resettable match found for this user' });
+      }
+
+      // Réinitialiser le match
+      db.prepare(`
+        UPDATE tournament_matches 
+        SET status = 'pending', start_time = NULL, end_time = NULL, 
+            winner_id = NULL, player1_score = 0, player2_score = 0
+        WHERE match_id = ?
+      `).run(match.match_id);
+
+      fastify.log.info(`🔄 User ${userId} reset match ${match.match_id} (was ${match.status}) in tournament ${tournamentId}`);
+
+      return reply.send({ 
+        success: true, 
+        message: 'Match reset successfully', 
+        matchId: match.match_id,
+        previousStatus: match.status 
+      });
+    } catch (error) {
+      fastify.log.error(error, 'Error resetting match');
+      return reply.status(500).send({ error: 'Failed to reset match' });
+    }
+  });
+
+  // Route pour obtenir le prochain match à jouer
+  fastify.get<{
+    Params: { id: string }
+  }>('/tournaments/:id/next-match', {
+    preHandler: [authMiddleware]
+  }, async (request, reply) => {
+    const tournamentId = request.params.id;
+    const userId = (request as any).user?.uid;
+
+    if (!userId) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+
+    try {
+      // Debug: vérifier l'état du tournoi
+      const tournamentInfo = db.prepare('SELECT status FROM tournaments WHERE id = ?').get(tournamentId) as any;
+      const totalMatches = db.prepare('SELECT COUNT(*) as count FROM tournament_matches WHERE tournament_id = ?').get(tournamentId) as { count: number };
+      const pendingMatches = db.prepare('SELECT COUNT(*) as count FROM tournament_matches WHERE tournament_id = ? AND status = ?').get(tournamentId, 'pending') as { count: number };
+      
+      fastify.log.info(`🎲 Tournament ${tournamentId}: status=${tournamentInfo?.status}, total_matches=${totalMatches.count}, pending_matches=${pendingMatches.count}, userId=${userId}`);
+
+      // Nettoyer les anciens matchs actifs (plus de 30 minutes)
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const cleanupResult = db.prepare(`
+        UPDATE tournament_matches 
+        SET status = 'pending', start_time = NULL
+        WHERE tournament_id = ? 
+        AND status = 'active' 
+        AND start_time < ?
+      `).run(tournamentId, thirtyMinutesAgo);
+
+      if (cleanupResult.changes > 0) {
+        fastify.log.info(`🧹 Cleaned up ${cleanupResult.changes} stale active matches older than 30 minutes`);
+      }
+
+      // Vérifier si l'utilisateur a déjà un match actif (après cleanup)
+      const activeMatch = db.prepare(`
+        SELECT id, start_time FROM tournament_matches 
+        WHERE tournament_id = ? 
+        AND status = 'active'
+        AND (player1_id = ? OR player2_id = ?)
+      `).get(tournamentId, userId, userId) as any;
+
+      if (activeMatch) {
+        // Si le match actif a plus de 10 minutes, permettre de le reprendre
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+        if (activeMatch.start_time && activeMatch.start_time < tenMinutesAgo) {
+          fastify.log.info(`🔄 Allowing user to restart stale match: ${activeMatch.id}`);
+          // Réinitialiser le match pour permettre de le relancer
+          db.prepare(`
+            UPDATE tournament_matches 
+            SET status = 'pending', start_time = NULL
+            WHERE id = ?
+          `).run(activeMatch.id);
+        } else {
+          return reply.send({ 
+            hasMatch: false, 
+            message: 'Vous avez déjà un match en cours dans ce tournoi',
+            canRestart: activeMatch.start_time && activeMatch.start_time < tenMinutesAgo,
+            activeMatchId: activeMatch.id
+          });
+        }
+      }
+
+      // Trouver le prochain match pour cet utilisateur
+      const nextMatch = db.prepare(`
+        SELECT tm.*, 
+               u1.display_name as player1_name, 
+               u2.display_name as player2_name
+        FROM tournament_matches tm
+        LEFT JOIN users u1 ON tm.player1_id = u1.id
+        LEFT JOIN users u2 ON tm.player2_id = u2.id
+        WHERE tm.tournament_id = ? 
+        AND tm.status = 'pending'
+        AND (tm.player1_id = ? OR tm.player2_id = ?)
+        AND tm.player1_id IS NOT NULL
+        AND tm.player2_id IS NOT NULL
+        ORDER BY tm.round_number, tm.match_order
+        LIMIT 1
+      `).get(tournamentId, userId, userId) as any;
+
+      fastify.log.info(`🔍 Match search result: ${nextMatch ? 'found match' : 'no match'}`);
+
+      if (!nextMatch) {
+        return reply.send({ 
+          hasMatch: false, 
+          message: 'Aucun match prêt à jouer - attendez que les autres matchs se terminent' 
+        });
+      }
+
+      return reply.send({
+        hasMatch: true,
+        match: nextMatch,
+        isReady: true
+      });
+
+    } catch (error) {
+      fastify.log.error(error, 'Error fetching next match');
+      return reply.status(500).send({ error: 'Failed to fetch next match' });
+    }
+  });
+
+
 }

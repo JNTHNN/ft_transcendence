@@ -163,9 +163,17 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
   if (userMe) {
     if (tournament.status === 'waiting') {
       if (tournament.creator_id === userMe.id) {
+        const canStart = participants.length >= 2 && (tournament.tournament_type !== 'elimination' || participants.length % 2 === 0);
+        const startButtonClass = canStart ? "bg-green-500 hover:bg-green-600" : "bg-gray-500 cursor-not-allowed";
+        const startButtonText = canStart ? "🚀 Démarrer le tournoi" : 
+          (participants.length < 2 ? "⏳ Besoin de plus de joueurs" :
+           (participants.length % 2 !== 0 ? "⚠️ Nombre impair de joueurs" : "🚀 Démarrer le tournoi"));
+
         actionsHtml += `
-          <button onclick="startTournament('${tournament.id}')" class="bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-lg">
-            🚀 Démarrer le tournoi
+          <button onclick="${canStart ? `startTournament('${tournament.id}')` : 'showTournamentStartError()'}" 
+                  class="${startButtonClass} text-white font-bold px-6 py-2 rounded-lg" 
+                  ${!canStart ? 'disabled' : ''}>
+            ${startButtonText}
           </button>
           <button onclick="deleteTournament('${tournament.id}')" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2 rounded-lg">
             🗑️ Supprimer le tournoi
@@ -178,10 +186,12 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
     if (tournament.status === 'active') {
       const userParticipant = participants.find(p => p.id === userMe.id);
       if (userParticipant) {
-
         actionsHtml += `
           <button onclick="playTournamentMatch('${tournament.id}')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2 rounded-lg">
             🎮 Jouer le match
+          </button>
+          <button onclick="resetStaleMatch('${tournament.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded-lg" title="Réinitialiser un match bloqué">
+            🔄 Reset match
           </button>
         `;
       }
@@ -260,7 +270,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
       <h2 class="text-2xl font-bold text-text mb-4">👥 Participants</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         ${participants.map((participant, _index) => `
-          <div class="bg-gray-800 rounded-lg p-3 border border-gray-700">
+          <div class="bg-gray-800 rounded-lg p-3 border border-gray-700" data-participant-id="${participant.id}">
             <div class="text-center">
               <div class="w-12 h-12 rounded-full mx-auto mb-2 overflow-hidden flex items-center justify-center ${participant.avatar_url ? '' : 'bg-sec'}">
                 ${participant.avatar_url 
@@ -291,7 +301,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
 
   // Bracket/Matchs
   if (matches.length > 0) {
-    contentHtml += generateBracket(matches);
+    contentHtml += generateBracket(tournament, participants, matches);
     contentHtml += generateMatchHistory(matches);
   }
 
@@ -323,7 +333,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
   content.innerHTML = contentHtml;
 }
 
-function generateBracket(matches: TournamentMatch[]): string {
+function generateBracket(tournament: Tournament, participants: any[], matches: TournamentMatch[]): string {
   // Grouper les matchs par round
   const matchesByRound = matches.reduce((acc, match) => {
     if (!acc[match.round_number]) {
@@ -335,6 +345,13 @@ function generateBracket(matches: TournamentMatch[]): string {
 
   const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => a - b);
 
+  // Calculate total expected rounds based on actual number of participants
+  // For 4 players: 2 rounds (demi-finales -> finale)
+  // For 8 players: 3 rounds (quart -> demi -> finale)
+  // For 16 players: 4 rounds (8ème -> quart -> demi -> finale)
+  const actualParticipants = participants.length || tournament.max_players;
+  const totalExpectedRounds = Math.log2(actualParticipants);
+
   let bracketHtml = `
     <div class="bg-prem rounded-lg shadow-xl p-6">
       <h2 class="text-2xl font-bold text-text mb-6">🏆 Bracket</h2>
@@ -344,9 +361,16 @@ function generateBracket(matches: TournamentMatch[]): string {
 
   rounds.forEach((roundNumber, _roundIndex) => {
     const roundMatches = matchesByRound[roundNumber];
-    const roundName = roundNumber === rounds.length ? 'Finale' : 
-                     roundNumber === rounds.length - 1 ? 'Demi-finales' : 
-                     `Round ${roundNumber}`;
+    
+    // Determine round name based on position from the end
+    let roundName = `Round ${roundNumber}`;
+    if (roundNumber === totalExpectedRounds) {
+      roundName = 'Finale';
+    } else if (roundNumber === totalExpectedRounds - 1) {
+      roundName = 'Demi-finales';
+    } else if (roundNumber === totalExpectedRounds - 2) {
+      roundName = 'Quart de finale';
+    }
 
     bracketHtml += `
       <div class="flex flex-col justify-center min-w-[200px]">
@@ -380,8 +404,8 @@ function generateBracket(matches: TournamentMatch[]): string {
 }
 
 function generateMatchCard(match: TournamentMatch): string {
-  const player1 = match.player1_username || `Joueur #${match.player1_id}` || 'TBD';
-  const player2 = match.player2_username || `Joueur #${match.player2_id}` || 'TBD';
+  const player1 = match.player1_username || (match.player1_id ? `Joueur #${match.player1_id}` : '...');
+  const player2 = match.player2_username || (match.player2_id ? `Joueur #${match.player2_id}` : '...');
   
   let statusHtml = '';
   
@@ -405,13 +429,17 @@ function generateMatchCard(match: TournamentMatch): string {
     `;
   }
 
+  // Ne pas afficher l'overlay vert si le match n'a qu'un seul joueur ou n'est pas terminé
+  const isIncompleteMatch = !match.player2_id;
+  const isMatchCompleted = match.status === 'completed';
+  
   return `
     <div class="space-y-2">
-      <div class="flex justify-between items-center p-2 ${match.winner_id === match.player1_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
+      <div class="flex justify-between items-center p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player1_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
         <span class="text-text">${player1}</span>
         <span class="text-text font-mono">${match.player1_score}</span>
       </div>
-      <div class="flex justify-between items-center p-2 ${match.winner_id === match.player2_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
+      <div class="flex justify-between items-center p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player2_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
         <span class="text-text">${player2}</span>
         <span class="text-text font-mono">${match.player2_score}</span>
       </div>
@@ -440,8 +468,8 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
     historyHtml += `<div class="space-y-4">`;
     
     sortedMatches.forEach((match, _index) => {
-      const player1 = match.player1_username || `Joueur #${match.player1_id}` || 'TBD';
-      const player2 = match.player2_username || `Joueur #${match.player2_id}` || 'TBD';
+      const player1 = match.player1_username || (match.player1_id ? `Joueur #${match.player1_id}` : '...');
+      const player2 = match.player2_username || (match.player2_id ? `Joueur #${match.player2_id}` : '...');
       
       // Calculer la durée du match si disponible
       let duration = '';
@@ -462,14 +490,19 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
         scoreDisplay = `${match.player1_score} - ${match.player2_score}`;
       }
 
-      // Formater les dates
-      const matchDate = new Date(match.end_time || match.start_time || match.created_at).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      // Formater les dates seulement pour les matchs commencés/terminés
+      let matchDateHtml = '';
+      if (match.status !== 'pending' && (match.end_time || match.start_time)) {
+        const dateValue = match.end_time || match.start_time || match.created_at;
+        const matchDate = new Date(dateValue).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        matchDateHtml = `<p class="text-text/60 text-sm">${matchDate}</p>`;
+      }
 
       // CSS classes pour le statut
       let statusClass = '';
@@ -505,7 +538,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               <h3 class="text-text font-semibold mb-1">
                 Round ${match.round_number} - Match ${match.match_order}
               </h3>
-              <p class="text-text/60 text-sm">${matchDate}</p>
+              ${matchDateHtml}
             </div>
             <div class="text-right">
               <span class="${statusClass} px-3 py-1 rounded-full text-sm font-medium border">
@@ -520,10 +553,10 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               <div class="text-center">
                 <div class="flex flex-col items-center">
                   <span class="text-text font-medium mb-2">${player1}</span>
-                  <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.winner_id === match.player1_id ? 'ring-2 ring-green-500' : ''}">
+                  <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player1_id ? 'ring-2 ring-green-500' : ''}">
                     <span class="text-text font-bold text-lg">${player1.charAt(0).toUpperCase()}</span>
                   </div>
-                  ${match.winner_id === match.player1_id ? '<div class="text-green-400 text-xs mt-1">🏆 Gagnant</div>' : ''}
+                  ${match.status === 'completed' && match.winner_id === match.player1_id && match.player2_id ? '<div class="text-green-400 text-xs mt-1">🏆 Gagnant</div>' : ''}
                 </div>
               </div>
 
@@ -539,10 +572,10 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               <div class="text-center">
                 <div class="flex flex-col items-center">
                   <span class="text-text font-medium mb-2">${player2}</span>
-                  <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.winner_id === match.player2_id ? 'ring-2 ring-green-500' : ''}">
+                  <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player2_id ? 'ring-2 ring-green-500' : ''}">
                     <span class="text-text font-bold text-lg">${player2.charAt(0).toUpperCase()}</span>
                   </div>
-                  ${match.winner_id === match.player2_id ? '<div class="text-green-400 text-xs mt-1">🏆 Gagnant</div>' : ''}
+                  ${match.status === 'completed' && match.winner_id === match.player2_id && match.player2_id ? '<div class="text-green-400 text-xs mt-1">🏆 Gagnant</div>' : ''}
                 </div>
               </div>
             </div>
@@ -618,20 +651,98 @@ function getStatusIcon(status: string): string {
 
 (window as any).playTournamentMatch = async (tournamentId: string) => {
   try {
-
-    
     if (!tournamentId) {
       alert("Erreur: ID du tournoi manquant");
       return;
     }
     
-    // Pour l'instant, rediriger vers un match en mode tournoi
-    // Plus tard, on récupérera le prochain match assigné depuis l'API
-    const url = `/match?mode=tournament&tournamentId=${tournamentId}`;
+    // Récupérer le prochain match de l'utilisateur dans ce tournoi
+    const nextMatch = await api(`/tournaments/${tournamentId}/next-match`);
+    
+    if (!nextMatch || !nextMatch.match) {
+      // Vérifier s'il y a un match actif bloqué
+      if (nextMatch.activeMatchId && nextMatch.canRestart) {
+        if (confirm("Vous avez un match en cours qui semble bloqué. Voulez-vous le réinitialiser et recommencer ?")) {
+          try {
+            await api(`/tournaments/${tournamentId}/reset-match`, {
+              method: "POST",
+              body: JSON.stringify({ matchId: nextMatch.activeMatchId })
+            });
+            // Réessayer après reset
+            return (window as any).playTournamentMatch(tournamentId);
+          } catch (resetError: any) {
+            alert("Erreur lors de la réinitialisation: " + resetError.message);
+            return;
+          }
+        }
+      }
+      alert(nextMatch.message || "Aucun match en attente pour vous dans ce tournoi");
+      return;
+    }
+
+    const match = nextMatch.match;
+    
+    // Démarrer le match côté serveur pour validation
+    try {
+      await api(`/tournaments/${tournamentId}/start-match`, {
+        method: "POST",
+        body: JSON.stringify({ matchId: match.match_id })
+      });
+    } catch (startError: any) {
+      alert("Impossible de démarrer le match: " + startError.message);
+      return;
+    }
+    
+    // Rediriger vers le match avec les IDs des joueurs
+    const url = `/match?mode=tournament&tournamentId=${tournamentId}&matchId=${match.match_id}&player1=${match.player1_id}&player2=${match.player2_id}`;
+    
+    console.log('🎮 Lancement du match:', {
+      tournamentId,
+      matchId: match.match_id,
+      player1: match.player1_id,
+      player2: match.player2_id,
+      url
+    });
 
     window.location.href = url;
   } catch (error) {
+    console.error('Erreur playTournamentMatch:', error);
     alert("Erreur lors du lancement du match: " + (error as Error).message);
+  }
+};
+
+(window as any).resetStaleMatch = async (tournamentId: string) => {
+  try {
+    if (!confirm("Réinitialiser votre dernier match ? Ceci annulera la partie en cours ou récente.")) {
+      return;
+    }
+
+    // Appeler reset-match sans matchId pour qu'il trouve automatiquement le bon match
+    const result = await api(`/tournaments/${tournamentId}/reset-match`, {
+      method: "POST",
+      body: JSON.stringify({})
+    });
+    
+    if (result.success) {
+      alert(`Match réinitialisé avec succès ! (était en statut: ${result.previousStatus})\nVous pouvez maintenant relancer une partie.`);
+      window.location.reload();
+    } else {
+      alert("Erreur lors de la réinitialisation du match.");
+    }
+  } catch (error: any) {
+    console.error('Erreur resetStaleMatch:', error);
+    
+    // Messages d'erreur plus utiles
+    let errorMessage = "Erreur lors de la réinitialisation";
+    if (error.message.includes("No resettable match found")) {
+      errorMessage = "Aucun match à réinitialiser trouvé. Le match est peut-être déjà terminé ou vous n'y participez pas.";
+    } else if (error.message.includes("not a participant")) {
+      errorMessage = "Vous ne participez pas à ce match.";
+    } else {
+      errorMessage += ": " + error.message;
+    }
+    
+    alert(errorMessage);
   }
 };
 
@@ -878,3 +989,13 @@ function getStatusIcon(status: string): string {
     alert("Erreur lors de la récupération des données brutes");
   }
 };
+
+(window as any).showTournamentStartError = () => {
+  const currentParticipants = document.querySelectorAll('[data-participant-id]').length;
+  
+  if (currentParticipants < 2) {
+    alert(`Le tournoi a besoin d'au moins 2 joueurs pour commencer.\n\nActuellement: ${currentParticipants} joueur(s)\nManquant: ${2 - currentParticipants} joueur(s)`);
+  } else if (currentParticipants % 2 !== 0) {
+    alert(`Les tournois d'élimination ont besoin d'un nombre pair de joueurs.\n\nActuellement: ${currentParticipants} joueurs (nombre impair)\n\nAjoutez 1 joueur ou supprimez-en 1 pour continuer.`);
+  }
+};;
