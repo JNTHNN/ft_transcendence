@@ -162,6 +162,24 @@ export function migrate(): void {
         db.exec("CREATE INDEX idx_user_sessions_token ON user_sessions(session_token)");
         db.exec("CREATE INDEX idx_user_sessions_online ON user_sessions(is_online)");
       }
+      
+      // Migration pour les colonnes blockchain dans tournament_matches
+      try {
+        const tournamentMatchesColumns = db.pragma("table_info(tournament_matches)") as any[];
+        const hasBlockchainTxHash = tournamentMatchesColumns.some(col => col.name === 'blockchain_tx_hash');
+        const hasBlockchainMatchId = tournamentMatchesColumns.some(col => col.name === 'blockchain_match_id');
+        
+        if (!hasBlockchainTxHash) {
+          db.exec("ALTER TABLE tournament_matches ADD COLUMN blockchain_tx_hash TEXT");
+        }
+        
+        if (!hasBlockchainMatchId) {
+          db.exec("ALTER TABLE tournament_matches ADD COLUMN blockchain_match_id TEXT");
+        }
+      } catch (blockchainError) {
+        console.warn("Blockchain columns migration failed:", blockchainError);
+      }
+      
     } catch (friendsError) {
     }
     

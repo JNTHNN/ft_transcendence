@@ -582,7 +582,7 @@ ctx.stroke();
           winnerText.innerHTML = `
             🏆 ${winnerText.textContent}<br>
             <span class="text-lg text-green-400">🎉 Tournoi terminé !</span><br>
-            <span class="text-sm text-text/70">⛓️ Résultat sauvegardé sur blockchain</span>
+            <span class="text-sm text-text/70">ℹ️ Chaque match stocké individuellement sur blockchain</span>
           `;
         }
       }

@@ -194,7 +194,8 @@ export class GameManager {
         
         const matchType = result.mode === 'solo-vs-ai' ? 'solo' : 
                          result.mode === 'local-2p' ? 'local' :
-                         result.mode === 'online-2p' ? 'online' : 'solo';
+                         result.mode === 'online-2p' ? 'online' :
+                         result.mode === 'tournament' ? 'tournament' : 'solo';
         
         if (player1Id || player2Id) { // Au moins un joueur humain
           stmt.run(

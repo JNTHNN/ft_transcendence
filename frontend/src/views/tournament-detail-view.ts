@@ -10,9 +10,6 @@ interface Tournament {
   tournament_type: 'elimination' | 'round_robin';
   creator_id: number;
   winner_id?: number;
-  blockchain_stored: boolean;
-  blockchain_tx_hash?: string;
-  blockchain_tournament_id?: string;
   created_at: string;
 }
 
@@ -33,6 +30,8 @@ interface TournamentMatch {
   start_time?: string;
   end_time?: string;
   created_at: string;
+  blockchain_tx_hash?: string;
+  blockchain_match_id?: string;
 }
 
 export async function TournamentDetailView() {
@@ -122,16 +121,10 @@ async function loadTournamentDetails(wrap: HTMLDivElement, tournamentId: string)
     const tournament = tournamentData;
     const participants = tournamentData.players || [];
     const matches = tournamentData.matches || [];
-    const blockchainInfo = {
-      stored: tournamentData.blockchain_stored,
-      tx_hash: tournamentData.blockchain_tx_hash,
-      tournament_id: tournamentData.blockchain_tournament_id
-    };
-
-
     
+    // Blockchain verification now handled at individual match level
     updateHeader(wrap, tournament, userMe, participants);
-    updateContent(wrap, tournament, participants, matches, blockchainInfo, userMe);
+    updateContent(wrap, tournament, participants, matches, userMe);
     
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -152,7 +145,7 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
         ${getStatusIcon(tournament.status)} ${tournament.status.toUpperCase()}
       </span>
       <span class="text-text/70">👥 ${tournament.current_players}/${tournament.max_players} joueurs</span>
-      ${tournament.blockchain_stored ? '<span class="text-green-400" title="Résultats vérifiés sur blockchain">⛓️ Blockchain</span>' : ''}
+
     </div>
   `;
 
@@ -220,21 +213,14 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
     
 
     
-    if (tournament.blockchain_stored) {
-
-      actionsHtml += `
-        <button onclick="viewBlockchainProof('${tournament.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded-lg">
-          ⛓️ Preuve blockchain
-        </button>
-      `;
-    }
+    // Le bouton "Preuve blockchain" est maintenant affiché au niveau de chaque match dans l'historique
 
   }
 
   actions.innerHTML = actionsHtml;
 }
 
-function updateContent(wrap: HTMLDivElement, tournament: Tournament, participants: any[], matches: TournamentMatch[], blockchainInfo: any, _userMe: any) {
+function updateContent(wrap: HTMLDivElement, tournament: Tournament, participants: any[], matches: TournamentMatch[], _userMe: any) {
   const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
   
   let contentHtml = '';
@@ -305,30 +291,8 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
     contentHtml += generateMatchHistory(matches);
   }
 
-  // Blockchain info
-  if (tournament.blockchain_stored && blockchainInfo) {
-    contentHtml += `
-      <div class="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/30 rounded-lg p-6">
-        <h2 class="text-2xl font-bold text-text mb-4">⛓️ Vérification Blockchain</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p class="text-text/70 mb-1">Statut:</p>
-            <p class="text-green-400 font-bold">✅ Vérifié sur Avalanche</p>
-          </div>
-          <div>
-            <p class="text-text/70 mb-1">Hash de la transaction:</p>
-            <p class="text-text font-mono text-sm break-all">${(tournament as any).blockchain_tx_hash || 'N/A'}</p>
-          </div>
-        </div>
-        <div class="mt-4 bg-black/30 rounded p-3">
-          <p class="text-text/70 text-sm">
-            ⛓️ Ce tournoi est stocké de manière permanente sur la blockchain Avalanche, 
-            garantissant l'intégrité et la transparence des résultats.
-          </p>
-        </div>
-      </div>
-    `;
-  }
+  // Note: Blockchain verification is now handled at individual match level
+  // Each completed match has its own blockchain proof button in the match history
 
   content.innerHTML = contentHtml;
 }
@@ -540,10 +504,17 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               </h3>
               ${matchDateHtml}
             </div>
-            <div class="text-right">
+            <div class="text-right flex items-center gap-2">
               <span class="${statusClass} px-3 py-1 rounded-full text-sm font-medium border">
                 ${statusIcon} ${statusText}
               </span>
+              ${match.status === 'completed' && match.blockchain_tx_hash ? `
+                <button onclick="viewMatchBlockchainProof('${match.match_id}')" 
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded-lg transition-colors"
+                        title="Voir la preuve blockchain de ce match">
+                  ⛓️ Preuve
+                </button>
+              ` : ''}
             </div>
           </div>
 
@@ -987,6 +958,339 @@ function getStatusIcon(status: string): string {
     document.body.appendChild(modal);
   } catch (error) {
     alert("Erreur lors de la récupération des données brutes");
+  }
+};
+
+(window as any).viewMatchBlockchainProof = async (matchId: string) => {
+  try {
+    const response = await api(`/tournaments/match/${matchId}/blockchain`);
+    
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+    
+    const localData = response.local_data;
+    const blockchainData = response.blockchain_data;
+    const dataMatches = response.data_matches;
+    const isVerified = response.verification_status === 'VERIFIED';
+    
+    let explorerLink = '';
+    if (response.network_info?.explorer_url) {
+      explorerLink = `
+        <div class="mt-3">
+          <a href="${response.network_info.explorer_url}" target="_blank" 
+             class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            🔗 Voir sur Snowtrace
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+          </a>
+        </div>
+      `;
+    }
+    
+    modal.innerHTML = `
+      <div class="bg-prem rounded-xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-text">⛓️ Preuve Blockchain - ${response.match_name}</h2>
+          <div class="flex items-center gap-2">
+            ${isVerified ? `
+              <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">
+                ✅ VÉRIFIÉ
+              </span>
+            ` : response.blockchain_data ? `
+              <span class="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm font-medium">
+                ❌ INCOHÉRENCE
+              </span>
+            ` : `
+              <span class="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-medium">
+                ⏳ NON STOCKÉ
+              </span>
+            `}
+          </div>
+        </div>
+        
+
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- Informations Blockchain -->
+          <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+            <h3 class="text-blue-400 font-bold mb-3 flex items-center gap-2">
+              <span class="text-xl">⛓️</span> Informations Blockchain
+            </h3>
+            <div class="space-y-3 text-sm">
+              <div>
+                <span class="text-text/70 block mb-1">Transaction Hash:</span>
+                <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
+                  ${response.tx_hash || 'Non disponible'}
+                </code>
+              </div>
+              <div>
+                <span class="text-text/70 block mb-1">Match ID Blockchain:</span>
+                <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
+                  ${response.blockchain_match_id || 'Non disponible'}
+                </code>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <span class="text-text/70 block mb-1">Réseau:</span>
+                  <div class="text-text">${response.network_info?.network || 'Avalanche Fuji'}</div>
+                </div>
+                <div>
+                  <span class="text-text/70 block mb-1">Statut:</span>
+                  <div class="text-text">${response.is_stored ? '✅ Stocké' : '❌ Non stocké'}</div>
+                </div>
+              </div>
+              <div>
+                <span class="text-text/70 block mb-1">Contrat Smart Contract:</span>
+                <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
+                  ${response.network_info?.contractAddress || 'Non disponible'}
+                </code>
+              </div>
+              ${explorerLink}
+            </div>
+          </div>
+          
+          <!-- État du Match -->
+          <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <h3 class="text-green-400 font-bold mb-3 flex items-center gap-2">
+              <span class="text-xl">🏆</span> État du Match
+            </h3>
+            <div class="space-y-3 text-sm">
+              <div>
+                <span class="text-text/70 block mb-1">Participants:</span>
+                <div class="text-text">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    ${localData?.players?.[0] || 'Joueur 1'}
+                  </div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 bg-red-400 rounded-full"></span>
+                    ${localData?.players?.[1] || 'Joueur 2'}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="text-text/70 block mb-1">Score Final:</span>
+                <div class="text-text text-lg font-bold">
+                  ${localData?.scores?.[0] || 0} - ${localData?.scores?.[1] || 0}
+                </div>
+              </div>
+              <div>
+                <span class="text-text/70 block mb-1">Gagnant:</span>
+                <div class="text-text font-semibold text-yellow-400">
+                  🏆 ${localData?.winner || 'Non déterminé'}
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <span class="text-text/70 block mb-1">Round:</span>
+                  <div class="text-text">${localData?.round || 'N/A'}</div>
+                </div>
+                <div>
+                  <span class="text-text/70 block mb-1">Stocké le:</span>
+                  <div class="text-text text-xs">${response.stored_at ? new Date(response.stored_at).toLocaleString('fr-FR') : 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Comparaison Détaillée des Données -->
+        ${blockchainData ? `
+          <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+            <h3 class="text-yellow-400 font-bold mb-3 flex items-center gap-2">
+              <span class="text-xl">🔍</span> Vérification d'Intégrité des Données
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <!-- Données Locales -->
+              <div class="bg-gray-800/50 rounded-lg p-4">
+                <h4 class="text-text font-semibold mb-3 flex items-center gap-2">
+                  <span class="w-3 h-3 bg-blue-400 rounded-full"></span>
+                  Base de Données Locale
+                </h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Joueur 1:</span>
+                    <span class="text-text font-mono">${localData.players[0]}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Joueur 2:</span>
+                    <span class="text-text font-mono">${localData.players[1]}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Score J1:</span>
+                    <span class="text-text font-mono">${localData.scores[0]}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Score J2:</span>
+                    <span class="text-text font-mono">${localData.scores[1]}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Gagnant:</span>
+                    <span class="text-text font-mono">${localData.winner}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Round:</span>
+                    <span class="text-text font-mono">${localData.round}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Données Blockchain -->
+              <div class="bg-gray-800/50 rounded-lg p-4">
+                <h4 class="text-text font-semibold mb-3 flex items-center gap-2">
+                  <span class="w-3 h-3 bg-purple-400 rounded-full"></span>
+                  Données Blockchain
+                </h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Joueur 1:</span>
+                    <span class="text-text font-mono">${blockchainData.player1Name} (${blockchainData.player1Score} pts)</span>
+                    ${dataMatches?.scores_match && blockchainData.player1Name === localData?.players?.[0] ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Joueur 2:</span>
+                    <span class="text-text font-mono">${blockchainData.player2Name} (${blockchainData.player2Score} pts)</span>
+                    ${dataMatches?.scores_match && blockchainData.player2Name === localData?.players?.[1] ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Score J1:</span>
+                    <span class="text-text font-mono">${blockchainData.player1Score}</span>
+                    ${dataMatches?.scores_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Score J2:</span>
+                    <span class="text-text font-mono">${blockchainData.player2Score}</span>
+                    ${dataMatches?.scores_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Gagnant:</span>
+                    <span class="text-text font-mono">${blockchainData.winner}</span>
+                    ${dataMatches?.winner_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text/70">Round:</span>
+                    <span class="text-text font-mono">${blockchainData.round}</span>
+                    ${dataMatches?.round_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Résultat de la Vérification -->
+            <div class="bg-gray-900 rounded-lg p-4">
+              <h4 class="text-text font-semibold mb-2">Résultat de la Vérification</h4>
+              ${dataMatches?.all_verified ? `
+                <div class="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded">
+                  <span class="text-green-400 text-2xl">✅</span>
+                  <div>
+                    <div class="text-green-400 font-semibold">INTÉGRITÉ VÉRIFIÉE</div>
+                    <div class="text-text/70 text-sm">Toutes les statistiques correspondent parfaitement entre la base locale et la blockchain</div>
+                  </div>
+                </div>
+              ` : `
+                <div class="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/30 rounded">
+                  <span class="text-red-400 text-2xl">❌</span>
+                  <div>
+                    <div class="text-red-400 font-semibold">INCOHÉRENCE DÉTECTÉE</div>
+                    <div class="text-text/70 text-sm">Une ou plusieurs statistiques ne correspondent pas entre la base locale et la blockchain</div>
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>
+        ` : `
+          <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+            <h3 class="text-red-400 font-bold mb-2">❌ Données Blockchain Indisponibles</h3>
+            <p class="text-text/70 text-sm">Les données blockchain pour ce match ne sont pas disponibles ou n'ont pas pu être récupérées.</p>
+          </div>
+        `}
+        
+        <!-- Informations Techniques -->
+        ${blockchainData && (blockchainData.verification_info || blockchainData.dataHash) ? `
+          <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 mb-6">
+            <h3 class="text-purple-400 font-bold mb-3 flex items-center gap-2">
+              <span class="text-xl">🔐</span> Preuve Cryptographique
+            </h3>
+            <div class="space-y-3 text-sm">
+              <div>
+                <span class="text-text/70 block mb-1">Hash de Données:</span>
+                <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
+                  ${blockchainData.dataHash || response.blockchain_match_id || 'Non disponible'}
+                </code>
+              </div>
+              ${blockchainData.verification_info ? `
+                <div class="bg-gray-900 rounded p-3">
+                  <div class="text-green-400 text-xs mb-2">
+                    <strong>🔒 ${blockchainData.verification_info.data_integrity}</strong>
+                  </div>
+                  <div class="text-text/70 text-xs">
+                    ${blockchainData.verification_info.explanation}
+                  </div>
+                  <div class="text-purple-400 text-xs mt-2">
+                    <strong>Contenu du hash:</strong> ${blockchainData.verification_info.match_represents}
+                  </div>
+                </div>
+              ` : `
+                <div class="bg-gray-900 rounded p-3">
+                  <div class="text-green-400 text-xs mb-2">
+                    <strong>🔒 Hash cryptographique vérifié</strong>
+                  </div>
+                  <div class="text-text/70 text-xs">
+                    Ce hash Keccak256 contient les statistiques du match stockées de manière immuable sur la blockchain Avalanche Fuji.
+                  </div>
+                  <div class="text-purple-400 text-xs mt-2">
+                    <strong>Données incluses:</strong> Scores des joueurs, index du gagnant, round, timestamp du match
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>
+        ` : ''}
+        
+        <!-- Actions -->
+        <div class="flex gap-3 pt-4 border-t border-gray-700">
+          <button onclick="viewRawMatchBlockchainData('${matchId}')" 
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            📋 Données Brutes JSON
+          </button>
+          <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                  class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+            Fermer
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  } catch (error) {
+    console.error('Erreur blockchain match:', error);
+    alert("Erreur lors de la récupération des informations blockchain du match");
+  }
+};
+
+(window as any).viewRawMatchBlockchainData = async (matchId: string) => {
+  try {
+    const response = await api(`/tournaments/match/${matchId}/blockchain`);
+    
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-prem rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold text-text mb-4">📋 Données Blockchain Brutes - Match</h2>
+        <div class="bg-gray-900 rounded p-4">
+          <pre class="text-text text-xs overflow-auto whitespace-pre-wrap">${JSON.stringify(response, null, 2)}</pre>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+          Fermer
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  } catch (error) {
+    alert("Erreur lors de la récupération des données brutes du match");
   }
 };
 

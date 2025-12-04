@@ -171,10 +171,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         ...tournamentData,
         players,
         matches,
-        // Ensure blockchain properties are properly converted
-        blockchain_stored: !!tournamentData.blockchain_stored,
-        blockchain_tx_hash: tournamentData.blockchain_tx_hash || null,
-        blockchain_tournament_id: tournamentData.blockchain_tournament_id || null
+        // Note: blockchain storage is now handled at individual match level
       };
     } catch (error) {
       fastify.log.error(error, 'Error fetching tournament');
@@ -216,30 +213,8 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         VALUES (?, ?, ?, ?, ?, ?, 'waiting', datetime('now'))
       `).run(tournamentId, name, description || null, max_players, userId, start_date || null);
 
-      // Try to create tournament on blockchain with placeholder players
-      let blockchainTxHash = null;
-      try {
-        if (blockchainService.isAvailable()) {
-          // Create with placeholder players, real players will be added when they join
-          const placeholderPlayers = ['Player1', 'Player2']; // Will be updated when real players join
-          const result = await blockchainService.createTournament(tournamentId, name, placeholderPlayers);
-          blockchainTxHash = result?.txHash;
-          
-          // Update tournament with blockchain transaction hash
-          if (blockchainTxHash) {
-            db.prepare(`
-              UPDATE tournaments 
-              SET blockchain_tx_hash = ?, blockchain_tournament_id = ?
-              WHERE id = ?
-            `).run(blockchainTxHash, result?.tournamentId || '', tournamentId);
-            
-            fastify.log.info(`✅ Tournament created on blockchain: ${tournamentId} -> TX: ${blockchainTxHash}`);
-          }
-        }
-      } catch (blockchainError) {
-        fastify.log.warn(blockchainError, 'Failed to create tournament on blockchain');
-        // Continue without blockchain - tournament still works
-      }
+      // Note: Blockchain storage is now handled at individual match level, not tournament level
+      console.log('ℹ️ Tournament created. Blockchain storage will occur for individual matches.');
 
       // Automatically add the creator as the first participant
       const creatorInfo = db.prepare('SELECT display_name FROM users WHERE id = ?').get(userId) as any;
@@ -257,8 +232,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       `).get(tournamentId);
 
       return {
-        ...(tournament as any),
-        blockchain_tx_hash: blockchainTxHash
+        ...(tournament as any)
       };
     } catch (error) {
       fastify.log.error(error, 'Error creating tournament');
@@ -476,202 +450,8 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Get blockchain info for tournament
-  fastify.get('/tournaments/:id/blockchain', {
-    preHandler: fastify.auth
-  }, async (request: FastifyRequest<{ Params: TournamentParams }>, reply: FastifyReply) => {
-    try {
-      const tournamentId = request.params.id;
-      
-      // Get tournament with blockchain info
-      const tournament = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(tournamentId);
-      
-      if (!tournament) {
-        return reply.status(404).send({ error: 'Tournament not found' });
-      }
-
-      const tournamentData = tournament as any;
-      
-      // Check if tournament has blockchain data
-      if (!tournamentData.blockchain_tx_hash || !tournamentData.blockchain_stored) {
-        return reply.status(404).send({ 
-          error: 'Tournament not stored on blockchain',
-          message: 'Ce tournoi n\'a pas encore été stocké sur la blockchain'
-        });
-      }
-
-      // Get blockchain service network info
-      const networkInfo = blockchainService.getNetworkInfo();
-      
-      // Try to verify tournament on blockchain
-      let isValid = false;
-      try {
-        if (blockchainService.isAvailable()) {
-          isValid = await blockchainService.verifyTournament(tournamentId);
-        }
-      } catch (verifyError) {
-        fastify.log.warn(verifyError, 'Failed to verify tournament on blockchain');
-      }
-      
-      // Generate Snowtrace URL
-      const explorerUrl = `https://testnet.snowtrace.io/tx/${tournamentData.blockchain_tx_hash}`;
-      
-      return {
-        tournament_id: tournamentId,
-        tx_hash: tournamentData.blockchain_tx_hash,
-        tournament_blockchain_id: tournamentData.blockchain_tournament_id,
-        is_stored: !!tournamentData.blockchain_stored,
-        is_valid: isValid,
-        network_info: {
-          network: networkInfo.network,
-          contractAddress: networkInfo.contractAddress,
-          isAvailable: networkInfo.isAvailable
-        },
-        explorer_url: explorerUrl,
-        stored_at: tournamentData.end_time || tournamentData.updated_at,
-        tournament_name: tournamentData.name,
-        tournament_status: tournamentData.status
-      };
-    } catch (error) {
-      fastify.log.error(error, 'Error fetching blockchain info');
-      return reply.status(500).send({ error: 'Internal server error' });
-    }
-  });
-
-  // Decode blockchain data for tournament
-  fastify.get('/tournaments/:id/blockchain/decode', {
-    preHandler: fastify.auth
-  }, async (request: FastifyRequest<{ Params: TournamentParams }>, reply: FastifyReply) => {
-    try {
-      const tournamentId = request.params.id;
-      
-      // Get tournament with blockchain info
-      const tournament = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(tournamentId);
-      
-      if (!tournament) {
-        return reply.status(404).send({ error: 'Tournament not found' });
-      }
-
-      const tournamentData = tournament as any;
-      
-      // Check if tournament has blockchain data
-      if (!tournamentData.blockchain_tx_hash || !tournamentData.blockchain_stored) {
-        return reply.status(404).send({ 
-          error: 'Tournament not stored on blockchain'
-        });
-      }
-
-      // Get participants and matches from local DB for comparison
-      const participants = db.prepare(`
-        SELECT tp.user_id, tp.display_name, u.display_name as username
-        FROM tournament_participants tp
-        JOIN users u ON tp.user_id = u.id
-        WHERE tp.tournament_id = ?
-        ORDER BY tp.created_at
-      `).all(tournamentId);
-
-      const matches = db.prepare(`
-        SELECT tm.*, 
-               p1.display_name as player1_username,
-               p2.display_name as player2_username
-        FROM tournament_matches tm
-        LEFT JOIN users p1 ON tm.player1_id = p1.id
-        LEFT JOIN users p2 ON tm.player2_id = p2.id
-        WHERE tm.tournament_id = ? AND tm.status = 'completed'
-        ORDER BY tm.created_at DESC
-        LIMIT 1
-      `).all(tournamentId);
-
-      // Try to decode blockchain data
-      let blockchainData = null;
-      let blockchainEvents = null;
-      try {
-        if (blockchainService.isAvailable()) {
-          // Get both tournament data and events
-          [blockchainData, blockchainEvents] = await Promise.all([
-            blockchainService.getTournamentData(tournamentId),
-            blockchainService.getTournamentEvents(tournamentId)
-          ]);
-          
-          // If we have events but no direct data, construct from events
-          if (!blockchainData && blockchainEvents && blockchainEvents.length > 0) {
-            const creationEvent = blockchainEvents.find(e => e.type === 'TournamentCreated');
-            const finalizeEvent = blockchainEvents.find(e => e.type === 'TournamentFinalized');
-            
-            if (creationEvent || finalizeEvent) {
-              blockchainData = {
-                id: tournamentId,
-                name: creationEvent?.name || tournamentData.name,
-                players: creationEvent?.players || [],
-                scores: finalizeEvent?.scores || [],
-                timestamp: creationEvent?.timestamp || Date.now() / 1000,
-                organizer: 'Contract',
-                isFinalized: !!finalizeEvent,
-                dataHash: finalizeEvent?.dataHash || '',
-                events: blockchainEvents
-              };
-            }
-          }
-        }
-        
-        // FORCE fallback for any tournament with blockchain transaction  
-        if (tournamentData.blockchain_tx_hash) {
-          fastify.log.info(`🔧 FORCING blockchain data creation for tournament: ${tournamentId}`);
-          
-          blockchainData = {
-            id: tournamentId,
-            name: tournamentData.name,
-            players: participants.map((p: any) => p.username || p.display_name),
-            scores: matches[0] ? [(matches[0] as any).player1_score, (matches[0] as any).player2_score] : [],
-            timestamp: Math.floor(Date.now() / 1000),
-            organizer: 'Avalanche Contract',
-            isFinalized: true,
-            dataHash: '0x000000000000000000000000322cbd2e61619b9b50a49307509b1d0c569eb7d9',
-            verification_info: {
-              blockchain_verified: true,
-              data_integrity: 'Vérifié par transaction blockchain',
-              explanation: `Hash cryptographique confirmé contenant: ${participants.map((p: any) => p.username || p.display_name).join(' vs ')}, scores ${matches[0] ? (matches[0] as any).player1_score + '-' + (matches[0] as any).player2_score : 'N/A'}`,
-              tx_hash: tournamentData.blockchain_tx_hash
-            },
-            fallback: true
-          };
-          
-          fastify.log.info(`✅ Blockchain data created with ${blockchainData.players.length} players and scores: ${blockchainData.scores.join('-')}`);
-        }
-      } catch (decodeError) {
-        fastify.log.warn(decodeError, 'Failed to decode blockchain data');
-      }
-
-      return {
-        tournament_id: tournamentId,
-        tournament_name: tournamentData.name,
-        tx_hash: tournamentData.blockchain_tx_hash,
-        local_data: {
-          participants: participants.map((p: any) => p.username || p.display_name),
-          final_match: matches[0] ? {
-            players: [(matches[0] as any).player1_username, (matches[0] as any).player2_username],
-            scores: [(matches[0] as any).player1_score, (matches[0] as any).player2_score],
-            winner: (matches[0] as any).winner_id === (matches[0] as any).player1_id ? (matches[0] as any).player1_username : (matches[0] as any).player2_username,
-            date: (matches[0] as any).end_time || (matches[0] as any).created_at
-          } : null
-        },
-        blockchain_data: blockchainData,
-        data_matches: blockchainData ? {
-          participants_match: JSON.stringify(participants.map((p: any) => p.username || p.display_name)) === JSON.stringify(blockchainData.players),
-          scores_match: matches[0] ? 
-            blockchainData.scores && 
-            blockchainData.scores[0] === (matches[0] as any).player1_score && 
-            blockchainData.scores[1] === (matches[0] as any).player2_score
-            : null
-        } : null
-      };
-    } catch (error) {
-      fastify.log.error(error, 'Error decoding blockchain data');
-      return reply.status(500).send({ error: 'Internal server error' });
-    }
-  });
-
-  // Submit match result for tournament
+  // Note: Only individual matches are stored on blockchain, not tournaments
+  // Use /tournaments/match/:matchId/blockchain for match blockchain verification  // Submit match result for tournament
   fastify.post('/tournaments/:id/match-result', {
     preHandler: fastify.auth
   }, async (request: FastifyRequest<{ 
@@ -803,45 +583,42 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       // Le TournamentService.completeMatch() gère automatiquement la progression du tournoi
       // et ne le marque comme 'completed' que quand tous les matches sont terminés
       
-        // Vérifier si le tournoi est maintenant terminé après ce match
-        const updatedTournament = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(tournamentId) as any;
+      // 🔗 Sauvegarder chaque match individuel sur la blockchain
+      if (blockchainService.isAvailable()) {
+        console.log(`🔗 Storing individual match result on blockchain for match ${activeMatch.match_id}`);
         
-        // Sauvegarder sur la blockchain seulement si le tournoi est maintenant terminé
-        if (updatedTournament && updatedTournament.status === 'completed' && blockchainService.isAvailable()) {
-          // Check if tournament was created on blockchain during creation
-          const tournamentBlockchainInfo = db.prepare('SELECT blockchain_tx_hash, blockchain_tournament_id FROM tournaments WHERE id = ?').get(tournamentId) as any;
-          
-          // Traitement blockchain en arrière-plan
-          (async () => {
-            try {
-              let result;
-              if (tournamentBlockchainInfo?.blockchain_tx_hash) {
-                // Tournament exists on blockchain, finalize it
-                fastify.log.info(`🔗 Finalizing completed blockchain tournament: ${tournamentId}`);
-                result = await blockchainService.finalizeTournament(
-                  tournamentId,
-                  [score.left, score.right]
-                );
-              } else {
-                // Tournament not on blockchain, create and store results
-                fastify.log.info(`🆕 Creating and storing completed blockchain tournament: ${tournamentId}`);
-                result = await blockchainService.storeTournamentResults(
-                  tournamentId, 
-                  [player1?.user_display_name || 'Player 1', player2?.user_display_name || 'Player 2'],
-                  [score.left, score.right]
-                );
-              }
+        // Traitement blockchain en arrière-plan pour ce match spécifique
+        (async () => {
+          try {
+            const matchResult = await blockchainService.storeMatchResult({
+              matchId: activeMatch.match_id,
+              tournamentId: tournamentId,
+              player1Name: player1?.user_display_name || 'Joueur 1',
+              player2Name: player2?.user_display_name || 'Joueur 2',
+              player1Score: score.left,
+              player2Score: score.right,
+              winnerId: winnerId === activeMatch.player1_id ? 1 : 2,
+              round: activeMatch.round_number
+            });
+            
+            if (matchResult?.transactionHash) {
+              // Mettre à jour le match avec les infos blockchain
+              db.prepare(`
+                UPDATE tournament_matches 
+                SET blockchain_tx_hash = ?, blockchain_match_id = ?
+                WHERE match_id = ?
+              `).run(matchResult.transactionHash, matchResult.dataHash || null, activeMatch.match_id);
               
-              if (result && result.txHash) {
-                db.prepare('UPDATE tournaments SET blockchain_stored = 1, blockchain_tx_hash = ?, blockchain_tournament_id = ? WHERE id = ?')
-                  .run(result.txHash, result.dataHash || '', tournamentId);
-                fastify.log.info(`✅ Tournament ${tournamentId} finalized on blockchain with TX: ${result.txHash}`);
-              }
-            } catch (blockchainError) {
-              fastify.log.warn(blockchainError, 'Failed to store tournament result on blockchain (background)');
+              console.log(`✅ Match ${activeMatch.match_id} stored on blockchain: ${matchResult.transactionHash}`);
             }
-          })();
-        }
+          } catch (error) {
+            console.error(`❌ Failed to store match ${activeMatch.match_id} on blockchain:`, error);
+          }
+        })();
+      }
+      
+      // Plus besoin de sauvegarde blockchain au niveau tournoi - chaque match est déjà sauvegardé individuellement
+      console.log(`ℹ️ Tournament match completed. Individual match blockchain storage already handled above.`);
         
         const duration = Date.now() - startTime;
         fastify.log.info(`✅ Tournament match result submitted successfully in ${duration}ms`);
@@ -1051,6 +828,148 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
     } catch (error) {
       fastify.log.error(error, 'Error fetching next match');
       return reply.status(500).send({ error: 'Failed to fetch next match' });
+    }
+  });
+
+  // Get blockchain information for a specific match with decoded data
+  fastify.get('/tournaments/match/:matchId/blockchain', {
+    preHandler: fastify.auth
+  }, async (request: FastifyRequest<{ 
+    Params: { matchId: string } 
+  }>, reply: FastifyReply) => {
+    try {
+      const { matchId } = request.params;
+      
+      // Récupérer les informations du match avec les noms des joueurs
+      const match = db.prepare(`
+        SELECT tm.*, 
+               u1.display_name as player1_name,
+               u2.display_name as player2_name,
+               winner.display_name as winner_name
+        FROM tournament_matches tm
+        LEFT JOIN users u1 ON tm.player1_id = u1.id
+        LEFT JOIN users u2 ON tm.player2_id = u2.id
+        LEFT JOIN users winner ON tm.winner_id = winner.id
+        WHERE tm.match_id = ?
+      `).get(matchId) as any;
+      
+      if (!match) {
+        return reply.status(404).send({ error: 'Match not found' });
+      }
+      
+      if (!match.blockchain_tx_hash) {
+        return reply.status(404).send({ error: 'No blockchain data available for this match' });
+      }
+      
+      // Construire les données locales (base de données)
+      const localData = {
+        matchId: match.match_id,
+        players: [
+          match.player1_name || 'Joueur inconnu',
+          match.player2_name || 'Joueur inconnu'
+        ],
+        scores: [match.player1_score, match.player2_score],
+        winner: match.winner_name || 'Aucun gagnant',
+        round: match.round_number,
+        matchOrder: match.match_order,
+        endTime: match.end_time,
+        status: match.status
+      };
+      
+      // Récupérer les vraies données blockchain depuis le smart contract
+      let blockchainData = null;
+      let dataMatches: any = false;
+      
+      if (blockchainService.isAvailable() && match.blockchain_tx_hash && match.blockchain_match_id) {
+        try {
+          console.log(`🔍 Récupération des données blockchain pour le match ${matchId}`);
+          console.log(`🔍 TX Hash: ${match.blockchain_tx_hash}`);
+          console.log(`🔍 Data Hash: ${match.blockchain_match_id}`);
+          
+          // Essayer de récupérer les données depuis le smart contract
+          try {
+            blockchainData = await blockchainService.getMatch(match.match_id);
+          } catch (getMatchError) {
+            console.warn(`⚠️  Erreur getMatch: ${(getMatchError as Error).message}`);
+          }
+          
+          if (blockchainData) {
+            console.log(`✅ Données blockchain récupérées depuis le smart contract:`, blockchainData);
+            
+            // Vérifier la correspondance des données simplifiées
+            const scoresMatch = blockchainData.player1Score === localData.scores[0] && blockchainData.player2Score === localData.scores[1];
+            const roundMatch = blockchainData.round === localData.round;
+            
+            // Vérifier la correspondance du gagnant basé sur winnerIndex
+            const localWinnerIndex = localData.scores[0] > localData.scores[1] ? 1 : 2;
+            const winnerMatch = blockchainData.winnerIndex === localWinnerIndex;
+            
+            dataMatches = {
+              scores_match: scoresMatch,
+              winner_match: winnerMatch,
+              round_match: roundMatch,
+              all_verified: scoresMatch && roundMatch && winnerMatch
+            };
+            
+            // Créer l'affichage blockchain simplifié en incluant les noms des joueurs
+            const originalBlockchainData = blockchainData;
+            blockchainData = {
+              player1Name: originalBlockchainData.player1Name,
+              player2Name: originalBlockchainData.player2Name,
+              player1Score: originalBlockchainData.player1Score,
+              player2Score: originalBlockchainData.player2Score,
+              round: originalBlockchainData.round,
+              winnerIndex: originalBlockchainData.winnerIndex,
+              winner: originalBlockchainData.winnerIndex === 1 ? localData.players[0] : localData.players[1],
+              timestamp: originalBlockchainData.timestamp,
+              dataHash: originalBlockchainData.dataHash
+            };
+              
+            console.log(`🔍 Correspondance des données: ${dataMatches}`);
+          } else {
+            // Match non récupérable depuis le smart contract
+            console.log(`⚠️ Match non récupérable depuis le smart contract`);
+            blockchainData = null;
+            dataMatches = null;
+          }
+            
+        } catch (error) {
+          console.error('Erreur lors de la récupération des données blockchain:', error);
+          blockchainData = null;
+          dataMatches = null;
+        }
+      } else {
+        console.log(`🚫 Pas de données blockchain pour ce match (service indisponible ou pas de hash)`);
+      }
+      
+      // Construire l'URL de l'explorateur
+      const explorerUrl = match.blockchain_tx_hash ? 
+        `${blockchainService.getNetworkInfo().explorerUrl}/tx/${match.blockchain_tx_hash}` : null;
+      
+      return reply.send({
+        match_id: matchId,
+        match_name: `Match Round ${localData.round} - ${localData.players[0]} vs ${localData.players[1]}`,
+        tx_hash: match.blockchain_tx_hash,
+        blockchain_match_id: match.blockchain_match_id,
+        is_stored: !!match.blockchain_tx_hash,
+        is_verified: dataMatches?.all_verified || false,
+        local_data: {
+          ...localData,
+          tournament_id: match.tournament_id
+        },
+        blockchain_data: blockchainData,
+        data_matches: dataMatches,
+        network_info: {
+          ...blockchainService.getNetworkInfo(),
+          explorer_url: explorerUrl
+        },
+        stored_at: match.end_time,
+        verification_status: dataMatches?.all_verified ? 'VERIFIED' : (blockchainData ? 'MISMATCH' : 'NOT_STORED')
+      });
+      
+    } catch (error) {
+      fastify.log.error(error, 'Error fetching match blockchain info');
+      return reply.status(500).send({ error: 'Failed to fetch match blockchain information' });
     }
   });
 

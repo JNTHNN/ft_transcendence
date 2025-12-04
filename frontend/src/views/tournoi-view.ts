@@ -11,7 +11,6 @@ interface Tournament {
   tournament_type: 'elimination' | 'round_robin';
   creator_id: number;
   winner_id?: number;
-  blockchain_stored: boolean;
   created_at: string;
 }
 
@@ -149,7 +148,7 @@ async function loadTournaments(content: HTMLDivElement) {
                 <div class="flex justify-between items-start mb-2">
                   <h3 class="font-bold text-text">${tournament.name}</h3>
                   <div class="flex items-center gap-2">
-                    ${tournament.blockchain_stored ? '<span title="Stocké sur blockchain">⛓️</span>' : ''}
+
                     <span class="px-2 py-1 ${getStatusColor(tournament.status)} text-white text-xs rounded">${tournament.status}</span>
                   </div>
                 </div>
@@ -191,10 +190,6 @@ async function loadTournaments(content: HTMLDivElement) {
               <div class="flex justify-between items-start mb-2">
                 <h3 class="font-bold text-text">${tournament.name}</h3>
                 <div class="flex items-center gap-2">
-                  ${tournament.blockchain_stored ? 
-                    '<span class="px-2 py-1 bg-green-500 text-white text-xs rounded font-bold" title="Résultats vérifiés sur blockchain">⛓️ VÉRIFIÉ</span>' : 
-                    '<span class="px-2 py-1 bg-gray-500 text-white text-xs rounded">En attente</span>'
-                  }
                   <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">TERMINÉ</span>
                 </div>
               </div>

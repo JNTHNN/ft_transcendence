@@ -1,5 +1,5 @@
 import db from '../db/db.js';
-import { blockchainService } from './blockchain.js';
+
 import { randomUUID } from 'crypto';
 
 export interface Tournament {
@@ -14,9 +14,6 @@ export interface Tournament {
   winner_id?: number;
   start_time?: string;
   end_time?: string;
-  blockchain_tx_hash?: string;
-  blockchain_tournament_id?: string;
-  blockchain_stored: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -92,9 +89,6 @@ export class TournamentService {
       winner_id: undefined,
       start_time: null,
       end_time: null,
-      blockchain_tx_hash: null,
-      blockchain_tournament_id: null,
-      blockchain_stored: 0,
       created_at: now,
       updated_at: now
     };
@@ -122,10 +116,7 @@ export class TournamentService {
     return {
       ...tournament,
       start_time: tournament.start_time || undefined,
-      end_time: tournament.end_time || undefined,
-      blockchain_tx_hash: tournament.blockchain_tx_hash || undefined,
-      blockchain_tournament_id: tournament.blockchain_tournament_id || undefined,
-      blockchain_stored: false
+      end_time: tournament.end_time || undefined
     } as Tournament;
   }
 
@@ -180,8 +171,7 @@ export class TournamentService {
     if (!result) return null;
 
     return {
-      ...result,
-      blockchain_stored: Boolean(result.blockchain_stored)
+      ...result
     };
   }
 
@@ -228,8 +218,7 @@ export class TournamentService {
     const results = stmt.all(...params) as any[];
 
     return results.map(result => ({
-      ...result,
-      blockchain_stored: Boolean(result.blockchain_stored)
+      ...result
     }));
   }
 
@@ -289,7 +278,7 @@ export class TournamentService {
       .run('active', now, now, tournamentId);
 
     // Try to create on blockchain
-    this.createTournamentOnBlockchain(tournamentId);
+    // Tournament-level blockchain storage removed - only individual matches are stored
 
     return this.getTournament(tournamentId)!;
   }
@@ -546,96 +535,15 @@ export class TournamentService {
 
         console.log(`✅ Tournament ${tournamentId} marked as completed with winner ${finalMatch.winner_id}`);
 
-        // Store on blockchain
-        this.storeTournamentOnBlockchain(tournamentId);
+        // Note: Blockchain storage is now handled at individual match level, not tournament level
+        console.log(`ℹ️ Tournament completed. Individual matches already stored on blockchain.`);
       }
     }
   }
 
-  /**
-   * Create tournament on blockchain
-   */
-  private static async createTournamentOnBlockchain(tournamentId: string): Promise<void> {
-    if (!blockchainService.isAvailable()) {
-      console.warn('⚠️  Blockchain service not available, skipping tournament creation');
-      return;
-    }
 
-    try {
-      const tournament = this.getTournament(tournamentId);
-      const participants = this.getTournamentParticipants(tournamentId);
-      
-      if (!tournament || participants.length === 0) return;
 
-      // Use placeholder addresses for participants (in real app, these would be user wallet addresses)
-      const playerAddresses = participants.map(p => `0x${p.user_id.toString().padStart(40, '0')}`);
-      
-      const result = await blockchainService.createTournament(
-        tournamentId,
-        tournament.name,
-        playerAddresses
-      );
 
-      if (result) {
-        db.prepare(`
-          UPDATE tournaments 
-          SET blockchain_tournament_id = ?, updated_at = ? 
-          WHERE id = ?
-        `).run(result.tournamentId, new Date().toISOString(), tournamentId);
-
-        console.log(`✅ Tournament ${tournamentId} created on blockchain: ${result.txHash}`);
-      }
-    } catch (error) {
-      console.error(`❌ Failed to create tournament ${tournamentId} on blockchain:`, (error as Error).message);
-    }
-  }
-
-  /**
-   * Store tournament results on blockchain
-   */
-  private static async storeTournamentOnBlockchain(tournamentId: string): Promise<void> {
-    if (!blockchainService.isAvailable()) {
-      console.warn('⚠️  Blockchain service not available, skipping tournament storage');
-      return;
-    }
-
-    try {
-      const tournament = this.getTournament(tournamentId);
-      const participants = this.getTournamentParticipants(tournamentId);
-      
-      if (!tournament || participants.length === 0) return;
-
-      // Calculate final scores (wins in tournament)
-      const scores = participants.map(p => {
-        const wins = db.prepare(`
-          SELECT COUNT(*) as wins FROM tournament_matches 
-          WHERE tournament_id = ? AND winner_id = ? AND status = 'completed'
-        `).get(tournamentId, p.user_id) as { wins: number };
-        
-        return wins.wins;
-      });
-
-      const playerAddresses = participants.map(p => `0x${p.user_id.toString().padStart(40, '0')}`);
-      
-      const result = await blockchainService.storeTournamentResults(
-        tournamentId,
-        playerAddresses,
-        scores
-      );
-
-      if (result) {
-        db.prepare(`
-          UPDATE tournaments 
-          SET blockchain_tx_hash = ?, blockchain_stored = 1, updated_at = ? 
-          WHERE id = ?
-        `).run(result.txHash, new Date().toISOString(), tournamentId);
-
-        console.log(`✅ Tournament ${tournamentId} results stored on blockchain: ${result.txHash}`);
-      }
-    } catch (error) {
-      console.error(`❌ Failed to store tournament ${tournamentId} on blockchain:`, (error as Error).message);
-    }
-  }
 
   /**
    * Get tournament matches

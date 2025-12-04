@@ -19,7 +19,54 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     return res.send(rows);
   });
 
+  // Routes spécifiques AVANT la route générique pour éviter les conflits
+  
+  // Récupérer l'historique des matchs d'un utilisateur spécifique
+  app.get('/users/:userId/match-history', { preHandler: app.auth }, async (req: any, res) => {
+    const reqI18n = createI18nForRequest(req.headers);
+    try {
+      const uid = req.user?.uid;
+      const targetUserId = parseInt(req.params.userId);
+      
+      if (!uid) return res.status(401).send({ error: reqI18n.t('unauthorized') });
+      if (!targetUserId) return res.status(400).send({ error: 'Invalid user ID' });
+
+      const matches = db.prepare(`
+        SELECT 
+          m.id,
+          m.player1_score,
+          m.player2_score,
+          m.winner_id,
+          m.match_type,
+          m.duration,
+          m.created_at,
+          p1.display_name as player1Name,
+          p1.avatar_url as player1Avatar,
+          p2.display_name as player2Name,
+          p2.avatar_url as player2Avatar,
+          CASE 
+            WHEN m.winner_id = ? THEN 'win' 
+            WHEN m.winner_id IS NULL THEN 'draw'
+            WHEN (m.player1_id = ? OR m.player2_id = ?) AND m.winner_id != ? THEN 'loss'
+            ELSE 'unknown'
+          END as result
+        FROM match_history m
+        JOIN users p1 ON p1.id = m.player1_id
+        JOIN users p2 ON p2.id = m.player2_id
+        WHERE m.player1_id = ? OR m.player2_id = ?
+        ORDER BY m.created_at DESC
+        LIMIT 50
+      `).all(targetUserId, targetUserId, targetUserId, targetUserId, targetUserId, targetUserId);
+
+      return res.send({ matches });
+    } catch (e) {
+      app.log.error(e);
+      return res.status(500).send({ error: 'Match history load failed' });
+    }
+  });
+
   // Route pour récupérer un utilisateur par ID (pour les noms dans les tournois)
+  // PLACÉE APRÈS les routes spécifiques pour éviter les conflits de routage
   app.get('/users/:id', async (req: any, res) => {
     try {
       const userId = parseInt(req.params.id);
@@ -695,7 +742,7 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
   // ROUTES POUR L'HISTORIQUE DES MATCHS
   // ===============================
 
-  // Récupérer l'historique des matchs
+  // Récupérer l'historique des matchs de l'utilisateur connecté
   app.get('/users/match-history', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -715,14 +762,19 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
           p1.avatar_url as player1Avatar,
           p2.display_name as player2Name,
           p2.avatar_url as player2Avatar,
-          CASE WHEN m.winner_id = ? THEN 'win' ELSE 'loss' END as result
+          CASE 
+            WHEN m.winner_id = ? THEN 'win' 
+            WHEN m.winner_id IS NULL THEN 'draw'
+            WHEN (m.player1_id = ? OR m.player2_id = ?) AND m.winner_id != ? THEN 'loss'
+            ELSE 'unknown'
+          END as result
         FROM match_history m
         JOIN users p1 ON p1.id = m.player1_id
         JOIN users p2 ON p2.id = m.player2_id
         WHERE m.player1_id = ? OR m.player2_id = ?
         ORDER BY m.created_at DESC
         LIMIT 50
-      `).all(uid, uid, uid);
+      `).all(uid, uid, uid, uid, uid, uid);
 
       return res.send({ matches });
     } catch (e) {
@@ -731,7 +783,7 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Récupérer les statistiques d'un utilisateur
+  // Récupérer les statistiques d'un utilisateur - DÉPLACÉ PLUS HAUT
   app.get('/users/:userId/stats', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -744,11 +796,11 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         SELECT 
           COUNT(*) as totalGames,
           SUM(CASE WHEN winner_id = ? THEN 1 ELSE 0 END) as wins,
-          SUM(CASE WHEN winner_id != ? THEN 1 ELSE 0 END) as losses,
+          SUM(CASE WHEN winner_id IS NOT NULL AND winner_id != ? THEN 1 ELSE 0 END) as losses,
           AVG(CASE WHEN player1_id = ? THEN player1_score ELSE player2_score END) as avgScore,
           MAX(CASE WHEN player1_id = ? THEN player1_score ELSE player2_score END) as bestScore
         FROM match_history 
-        WHERE (player1_id = ? OR player2_id = ?) AND winner_id IS NOT NULL
+        WHERE player1_id = ? OR player2_id = ?
       `).get(targetUserId, targetUserId, targetUserId, targetUserId, targetUserId, targetUserId) as any;
 
       return res.send({ 

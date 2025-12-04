@@ -15,7 +15,6 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/2fa-login": async () => (await import("./views/TwoFactorLogin")).default(),
   "/2fa-settings": async () => (await import("./views/TwoFactorAuth")).default(),
   "/profile": async () => (await import("./views/profile")).default(),
-  "/profil": async () => (await import("./views/profil-view")).ProfilView(),
   "/chat": async () => (await import("./views/Chat")).default(),
   "/match": async () => (await import("./views/Match")).default(),
   "/partie": async () => (await import("./views/partie-view")).PartieView(),

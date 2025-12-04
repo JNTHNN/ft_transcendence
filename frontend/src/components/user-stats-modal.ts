@@ -14,10 +14,10 @@ interface MatchHistoryItem {
   id: number;
   player1Name: string;
   player2Name: string;
-  player1Score: number;
-  player2Score: number;
+  player1_score: number;
+  player2_score: number;
   result: 'win' | 'loss';
-  matchType: string;
+  match_type: string;
   duration: number | null;
   created_at: string;
 }
@@ -118,7 +118,9 @@ export async function createUserStatsModal(userId: number, userName: string): Pr
 
   async function loadMatchHistory() {
     try {
-      const response = await api('/users/match-history');
+      // Utiliser la route spécifique pour l'historique de cet utilisateur
+      const endpoint = userId ? `/users/${userId}/match-history` : '/users/match-history';
+      const response = await api(endpoint);
       const matches: MatchHistoryItem[] = response.matches;
 
       if (matches.length === 0) {
@@ -141,13 +143,12 @@ export async function createUserStatsModal(userId: number, userName: string): Pr
                     ${match.player1Name} vs ${match.player2Name}
                   </p>
                   <p class="text-sm text-gray-400">
-                    ${match.matchType} • ${new Date(match.created_at).toLocaleDateString()}
-                    ${match.duration ? ` • ${Math.floor(match.duration / 60)}:${String(match.duration % 60).padStart(2, '0')}` : ''}
+                    ${match.match_type === 'solo' ? 'Tournament' : match.match_type} • ${new Date(match.created_at).toLocaleDateString()} • ${new Date(match.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
               </div>
               <div class="text-right">
-                <p class="font-bold text-text">${match.player1Score} - ${match.player2Score}</p>
+                <p class="font-bold text-text">${match.player1_score} - ${match.player2_score}</p>
                 <p class="text-sm ${match.result === 'win' ? 'text-green-400' : 'text-red-400'}">
                   ${match.result === 'win' ? t('stats.victory') : t('stats.defeat')}
                 </p>

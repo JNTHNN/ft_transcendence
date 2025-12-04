@@ -100,9 +100,6 @@ CREATE TABLE IF NOT EXISTS tournaments (
   winner_id INTEGER,
   start_time DATETIME,
   end_time DATETIME,
-  blockchain_tx_hash TEXT, -- Hash de la transaction blockchain
-  blockchain_tournament_id TEXT, -- ID du tournoi sur la blockchain
-  blockchain_stored INTEGER DEFAULT 0, -- 1 si stocké sur blockchain
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -139,6 +136,8 @@ CREATE TABLE IF NOT EXISTS tournament_matches (
   start_time DATETIME,
   end_time DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  blockchain_tx_hash TEXT, -- Hash de transaction blockchain pour ce match
+  blockchain_match_id TEXT, -- ID du match sur la blockchain
   FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
   FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE SET NULL,
   FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE SET NULL,

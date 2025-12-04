@@ -3,6 +3,7 @@ import { router } from "../router";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 import { menuManager } from "./Menu.js";
+import "../components/user-stats-modal.js";
 
 interface User {
   id: number;
@@ -233,19 +234,10 @@ export default async function View() {
   stats.className = "bg-prem rounded-lg shadow-xl p-8 mt-6";
   stats.innerHTML = `
     <h3 class="font-display text-2xl font-bold text-text mb-6">${t('stats.title')}</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-gray-700 p-4 rounded-lg text-center">
-        <div class="font-display text-3xl font-bold text-sec">0</div>
-        <div class="font-sans text-gray-400">${t('stats.gamesPlayed')}</div>
-      </div>
-      <div class="bg-gray-700 p-4 rounded-lg text-center">
-        <div class="font-display text-3xl font-bold text-green-400">0</div>
-        <div class="font-sans text-gray-400">${t('stats.victories')}</div>
-      </div>
-      <div class="bg-gray-700 p-4 rounded-lg text-center">
-        <div class="font-display text-3xl font-bold text-red-400">0</div>
-        <div class="font-sans text-gray-400">${t('stats.defeats')}</div>
-      </div>
+    <div class="text-center">
+      <button id="view-my-stats" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-3 px-6 rounded-lg transition-colors">
+        ${t('stats.title')} et historique des matchs
+      </button>
     </div>
   `;
 
@@ -377,6 +369,13 @@ export default async function View() {
   logoutBtn.onclick = async () => {
     await authManager.logout();
     router.navigate("/login");
+  };
+
+  const viewStatsBtn = stats.querySelector("#view-my-stats") as HTMLButtonElement;
+  viewStatsBtn.onclick = () => {
+    if ((window as any).viewUserStats) {
+      (window as any).viewUserStats(user.id, user.displayName || user.email.split('@')[0]);
+    }
   };
 
   cancelProfileBtn.onclick = () => {

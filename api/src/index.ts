@@ -23,7 +23,7 @@ import { initPresenceService } from './core/presence.js';
 import { registerGameRoutes } from './game/routes.js';
 import { gameManager } from './game/GameManager.js';
 import tournamentRoutes from './tournaments/routes.js';
-import blockchainRoutes from './blockchain/routes.js';
+
 import { TournamentService } from './core/tournament.js';
 
 const app = Fastify({
@@ -89,7 +89,7 @@ await registerGameRoutes(app);
 await registerGameWS(app);
 await registerFriendsWS(app, db);
 await app.register(tournamentRoutes);
-await app.register(blockchainRoutes);
+
 
 await registerChatWS(app);
 
