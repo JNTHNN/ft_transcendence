@@ -71,7 +71,7 @@ export interface PlayerConfig {
 /**
  * Mode de jeu
  */
-export type GameMode = 'solo-vs-ai' | 'local-2p' | 'online-2p';
+export type GameMode = 'solo-vs-ai' | 'local-2p' | 'online-2p' | 'tournament';
 
 export interface GameState {
   matchId: string;
@@ -85,6 +85,10 @@ export interface GameState {
   score: {
     left: number;
     right: number;
+  };
+  players?: {
+    left?: { id: string; name: string; type: 'human' | 'ai' };
+    right?: { id: string; name: string; type: 'human' | 'ai' };
   };
   timestamp: number;
 }

@@ -4,7 +4,7 @@ import { gameManager } from './GameManager.js';
 import type { PlayerInput } from './types.js';
 
 interface GameMessage {
-  type: 'join' | 'input' | 'ping' | 'pause' | 'resume' | 'start';
+  type: 'join' | 'input' | 'ping' | 'pause' | 'resume' | 'start' | 'getState';
   matchId?: string;
   playerId?: string;
   side?: 'left' | 'right';
@@ -44,6 +44,10 @@ export async function registerGameWS(app: FastifyInstance) {
 			
 			case 'start':
 				handleStart(message);
+				break;
+			
+			case 'getState':
+				handleGetState(message);
 				break;
 			
 			case 'pause':
@@ -123,6 +127,33 @@ export async function registerGameWS(app: FastifyInstance) {
         }
       }
 
+      // Gestion de la demande d'état
+      function handleGetState(message: GameMessage) {
+        const { matchId } = message;
+        
+        if (!matchId) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Missing matchId for getState'
+          }));
+          return;
+        }
+        
+        const game = gameManager.getGame(matchId);
+        if (game) {
+          const state = game.getState();
+          socket.send(JSON.stringify({
+            type: 'game/state',
+            data: state
+          }));
+        } else {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Game not found'
+          }));
+        }
+      }
+
       // Gestion de la connexion
       function handleJoin(message: GameMessage) {
         const { matchId, playerId, side } = message;
@@ -138,11 +169,31 @@ export async function registerGameWS(app: FastifyInstance) {
         }
 
         try {
+			// Récupérer le jeu pour déterminer le mode
+			const game = gameManager.getGame(matchId);
+			if (!game) {
+				socket.send(JSON.stringify({
+					type: 'error',
+					message: 'Game not found',
+				}));
+				return;
+			}
+
+			// Déterminer le type de contrôleur selon le mode du jeu
+			let controllerType: 'human-ws' | 'human-arrows' | 'local-player2';
+			if (game.mode === 'local-2p' || game.mode === 'tournament') {
+				// Mode local et tournoi : utiliser les contrôles clavier appropriés
+				controllerType = side === 'left' ? 'human-arrows' : 'local-player2';
+			} else {
+				// Mode online ou solo : utiliser WebSocket
+				controllerType = 'human-ws';
+			}
+
 			// Ajouter le joueur Ã  la partie
 			const added = gameManager.addPlayerToGame(matchId, {
 			id: playerId,
 			side,
-			controllerType: 'human-ws',
+			controllerType,
 			socket,
 			});
 

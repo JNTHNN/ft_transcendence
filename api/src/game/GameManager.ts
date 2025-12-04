@@ -55,7 +55,7 @@ export class GameManager {
       throw new Error(`Game ${matchId} already exists`);
     }
     
-    const game = new PongGame(matchId, mode);
+    const game = new PongGame(matchId, mode, this.db || undefined);
     this.games.set(matchId, game);
     
     return matchId;

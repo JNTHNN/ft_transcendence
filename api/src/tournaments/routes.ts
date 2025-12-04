@@ -750,11 +750,42 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'No active match found for this user' });
       }
 
-      // Déterminer le gagnant basé sur les positions
-      const isPlayer1 = activeMatch.player1_id === userId;
-      const winnerId = (winner === 'left' && isPlayer1) || (winner === 'right' && !isPlayer1) 
-        ? activeMatch.player1_id 
-        : activeMatch.player2_id;
+      // Déterminer le gagnant basé sur les positions réelles du jeu
+      // Le frontend envoie les players mappés : { left: playerId, right: playerId }
+      const leftPlayerId = _players?.left ? parseInt(_players.left) : null;
+      const rightPlayerId = _players?.right ? parseInt(_players.right) : null;
+      
+      let winnerId;
+      if (leftPlayerId && rightPlayerId) {
+        // Utiliser le mapping explicite du frontend
+        winnerId = winner === 'left' ? leftPlayerId : rightPlayerId;
+        
+        // Validation : s'assurer que les deux joueurs sont bien dans le match
+        const leftPlayerMatch = leftPlayerId === activeMatch.player1_id || leftPlayerId === activeMatch.player2_id;
+        const rightPlayerMatch = rightPlayerId === activeMatch.player1_id || rightPlayerId === activeMatch.player2_id;
+        
+        if (!leftPlayerMatch || !rightPlayerMatch) {
+          console.error(`🔥 Player mapping error:
+            - Left player: ${leftPlayerId}, in match: ${leftPlayerMatch}
+            - Right player: ${rightPlayerId}, in match: ${rightPlayerMatch}
+            - Match player1_id: ${activeMatch.player1_id}
+            - Match player2_id: ${activeMatch.player2_id}`);
+          return reply.status(400).send({ error: 'Player mapping does not match tournament match' });
+        }
+        
+        console.log(`🎯 Winner determination:
+          - Game winner side: ${winner}
+          - Left player (${leftPlayerId}): ${winner === 'left' ? 'WINNER' : 'loser'}
+          - Right player (${rightPlayerId}): ${winner === 'right' ? 'WINNER' : 'loser'}
+          - Final winnerId: ${winnerId}`);
+      } else {
+        // Fallback vers l'ancienne méthode si pas de mapping explicite
+        console.warn('⚠️ No explicit player mapping, using fallback method');
+        const isPlayer1 = activeMatch.player1_id === userId;
+        winnerId = (winner === 'left' && isPlayer1) || (winner === 'right' && !isPlayer1) 
+          ? activeMatch.player1_id 
+          : activeMatch.player2_id;
+      }
       
       // Récupérer les informations des joueurs pour la blockchain
       const player1 = db.prepare('SELECT display_name as user_display_name FROM users WHERE id = ?').get(activeMatch.player1_id) as any;

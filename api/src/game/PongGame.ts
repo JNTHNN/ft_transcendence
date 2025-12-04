@@ -2,6 +2,7 @@ import type { GameState, PlayerConfig, PlayerInput, Paddle, GameMode,  MatchResu
 import { GAME_CONFIG as CFG, DT } from './constants.js';
 import * as Physics from './physics.js';
 import { gameManager } from './GameManager.js';
+import type Database from 'better-sqlite3';
 
 export class PongGame {
   public readonly id: string;
@@ -13,10 +14,12 @@ export class PongGame {
   private gameLoop: NodeJS.Timeout | null = null;
   private isRunning = false;
   private startedAt: Date | null = null;
+  private db: Database.Database | null = null;
 
-  constructor(matchId: string, mode: GameMode) {
+  constructor(matchId: string, mode: GameMode, db?: Database.Database) {
     this.id = matchId;
     this.mode = mode;
+    this.db = db || null;
     this.players = new Map();
     this.inputs = new Map();
     
@@ -175,6 +178,8 @@ export class PongGame {
 	this.state.status = 'finished';
 	
     const winner = this.state.score.left > this.state.score.right ? 'left' : 'right';
+    console.log(`🏆 Game end - Score: ${this.state.score.left}-${this.state.score.right}, Winner: ${winner}`);
+    
 	const endedAt = new Date();
     const duration = this.startedAt 
       ? (endedAt.getTime() - this.startedAt.getTime()) / 1000 
@@ -231,7 +236,49 @@ export class PongGame {
   }
 
   public getState(): GameState {
-    return this.state;
+    // Enrichir l'état avec les informations sur les joueurs
+    const playerArray = Array.from(this.players.values());
+    const leftPlayer = playerArray.find(p => p.side === 'left');
+    const rightPlayer = playerArray.find(p => p.side === 'right');
+    
+    return {
+      ...this.state,
+      players: {
+        left: leftPlayer ? {
+          id: leftPlayer.id,
+          name: leftPlayer.controllerType === 'ai' ? 'IA' : this.getPlayerName(leftPlayer.id),
+          type: leftPlayer.controllerType === 'ai' ? 'ai' : 'human'
+        } : undefined,
+        right: rightPlayer ? {
+          id: rightPlayer.id,
+          name: rightPlayer.controllerType === 'ai' ? 'IA' : this.getPlayerName(rightPlayer.id),
+          type: rightPlayer.controllerType === 'ai' ? 'ai' : 'human'
+        } : undefined,
+      }
+    };
+  }
+
+  private getPlayerName(playerId: string): string {
+    // Récupérer le vrai nom depuis la base de données
+    if (this.db && playerId.startsWith('user-')) {
+      try {
+        const userId = parseInt(playerId.replace('user-', ''));
+        const stmt = this.db.prepare('SELECT display_name FROM users WHERE id = ?');
+        const result = stmt.get(userId) as { display_name: string } | undefined;
+        
+        if (result?.display_name) {
+          return result.display_name;
+        }
+      } catch (error) {
+        console.warn(`Failed to get player name for ${playerId}:`, error);
+      }
+    }
+    
+    // Fallback vers noms génériques
+    if (playerId.startsWith('user-')) {
+      return `Joueur ${playerId.replace('user-', '')}`;
+    }
+    return playerId === 'player-1' ? 'Joueur 1' : 'Joueur 2';
   }
 
   public isActive(): boolean {

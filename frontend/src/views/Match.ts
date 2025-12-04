@@ -18,6 +18,10 @@ interface GameState {
     left: number;
     right: number;
   };
+  players?: {
+    left?: { id: string; name: string; type: 'human' | 'ai' };
+    right?: { id: string; name: string; type: 'human' | 'ai' };
+  };
   timestamp: number;
 }
 
@@ -37,6 +41,7 @@ class PongGame {
   private player1Id: string = "";
   private player2Id: string = "";
   private gameEnded: boolean = false;
+  private playerNameElements: NodeListOf<HTMLElement> | null = null;
   
   // 🆕 Références aux callbacks pour pouvoir les nettoyer
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
@@ -76,6 +81,27 @@ class PongGame {
     
   }
 
+  // 🆕 Définir les références aux éléments des noms des joueurs
+  public setPlayerNameElements(player1Element: HTMLElement, player2Element: HTMLElement): void {
+    this.playerNameElements = [player1Element, player2Element] as any;
+  }
+
+  // 🆕 Mettre à jour les noms des joueurs (seulement en mode tournoi)
+  private updatePlayerNames(): void {
+    if (!this.playerNameElements || !this.gameState?.players) return;
+    
+    // Ne mettre à jour les noms que en mode tournoi
+    if (this.mode !== "tournament") return;
+    
+    if (this.gameState.players.left && this.playerNameElements[0]) {
+      this.playerNameElements[0].textContent = this.gameState.players.left.name;
+    }
+    
+    if (this.gameState.players.right && this.playerNameElements[1]) {
+      this.playerNameElements[1].textContent = this.gameState.players.right.name;
+    }
+  }
+
   // 🆕 Marquer un joueur comme prêt
   public setPlayerReady(player: 1 | 2): void {
     if (player === 1) {
@@ -94,7 +120,7 @@ class PongGame {
   private checkStartGame(): void {
     if (this.gameStarted) return;
     
-    const canStart = this.mode === "local" 
+    const canStart = (this.mode === "local" || this.mode === "tournament") 
       ? (this.player1Ready && this.player2Ready)
       : this.player1Ready;
     
@@ -125,14 +151,18 @@ async connect() {
     let player1Id, player2Id;
     
     if (this.mode === "tournament") {
-      // Mode tournoi : récupérer les IDs depuis l'URL
+      // Mode tournoi : récupérer les IDs depuis l'URL (format user-X)
       const params = new URLSearchParams(window.location.search);
-      player1Id = params.get("player1");
-      player2Id = params.get("player2");
+      const rawPlayer1Id = params.get("player1");
+      const rawPlayer2Id = params.get("player2");
       
-      if (!player1Id || !player2Id) {
+      if (!rawPlayer1Id || !rawPlayer2Id) {
         throw new Error("IDs des joueurs manquants pour le match de tournoi");
       }
+      
+      // S'assurer que les IDs sont au format user-X pour la base de données
+      player1Id = rawPlayer1Id.startsWith('user-') ? rawPlayer1Id : `user-${rawPlayer1Id}`;
+      player2Id = rawPlayer2Id.startsWith('user-') ? rawPlayer2Id : `user-${rawPlayer2Id}`;
     } else {
       // Modes local/solo : génèrer des IDs uniques
       const uniqueId = () => `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -165,7 +195,8 @@ async connect() {
         method: "POST",
         body: JSON.stringify({
           player1Id: player1Id,
-          player2Id: player2Id
+          player2Id: player2Id,
+          mode: "tournament"
         })
       });
     } else {
@@ -197,6 +228,14 @@ async connect() {
 				playerId: this.player2Id,
 				side: "right"
 			}));
+			
+			// Demander l'état initial après que les deux joueurs soient connectés
+			setTimeout(() => {
+				this.ws?.send(JSON.stringify({
+					type: "getState",
+					matchId: this.matchId
+				}));
+			}, 200);
 			}, 100);
 		}
       };
@@ -212,10 +251,11 @@ async connect() {
   private handleServerMessage(msg: any) {
     if (msg.type === "game/state") {
       this.gameState = msg.data;
-      // Mettre à jour le score
+      // Mettre à jour le score et les noms
       if (this.gameState) {
         this.scoreLeftDiv.textContent = this.gameState.score.left.toString();
         this.scoreRightDiv.textContent = this.gameState.score.right.toString();
+        this.updatePlayerNames();
       }
     } else if (msg.type === "game/end") {
       this.endGame(msg.data);
@@ -468,8 +508,18 @@ ctx.stroke();
 		overlay.classList.remove('hidden');
 		
 		// Texte du gagnant
-		const winner = data.winner === 'left' ? t('game.player1') : 
-					this.mode === 'solo' ? t('game.ai') : t('game.player2');
+		let winner: string;
+		if (this.mode === 'tournament' && this.playerNameElements) {
+			// En mode tournoi, récupérer les noms depuis les éléments HTML qui les affichent
+			const leftPlayerName = this.playerNameElements[0]?.textContent || t('game.player1');
+			const rightPlayerName = this.playerNameElements[1]?.textContent || t('game.player2');
+			
+			winner = data.winner === 'left' ? leftPlayerName : rightPlayerName;
+		} else {
+			// Pour les autres modes, utiliser les traductions génériques
+			winner = data.winner === 'left' ? t('game.player1') : 
+						this.mode === 'solo' ? t('game.ai') : t('game.player2');
+		}
 		winnerText.textContent = `🏆 ${winner} ${t('game.wins')}`;
 		
 		// Score final
@@ -500,14 +550,26 @@ ctx.stroke();
       const urlParams = new URLSearchParams(window.location.search);
       const matchId = urlParams.get("matchId");
 
+      // Extraire les IDs numériques pour correspondre à la base de données
+      const leftPlayerId = this.player1Id.startsWith('user-') ? this.player1Id.substring(5) : this.player1Id;
+      const rightPlayerId = this.player2Id.startsWith('user-') ? this.player2Id.substring(5) : this.player2Id;
+
+      console.log(`🎯 Submitting tournament result:
+        - Winner: ${data.winner} 
+        - Score: ${data.score.left}-${data.score.right}
+        - Player1ID (left): ${this.player1Id} → ${leftPlayerId}
+        - Player2ID (right): ${this.player2Id} → ${rightPlayerId}
+        - URL player1: ${params.get("player1")}
+        - URL player2: ${params.get("player2")}`);
+
       const response = await api(`/tournaments/${tournamentId}/match-result`, {
         method: "POST",
         body: JSON.stringify({
           winner: data.winner,
           score: data.score,
           players: {
-            left: this.player1Id,
-            right: this.player2Id
+            left: leftPlayerId,
+            right: rightPlayerId
           },
           matchId: matchId
         })
@@ -635,28 +697,57 @@ export default async function View() {
 
   let titleText = "🎮 ";
   let subtitleText = "";
-  if (mode === "solo") titleText += "Solo vs IA";
-  else if (mode === "local") titleText += "2 Joueurs Local";
-  else if (mode === "tournament") {
+  let player1Label = t('game.player1');
+  let player2Label = t('game.player2');
+  
+  if (mode === "solo") {
+    titleText += `${t('game.quickGame')} vs ${t('game.ai')}`;
+    player2Label = t('game.ai');
+  } else if (mode === "local") {
+    titleText += t('game.localGame');
+    // Garder les labels par défaut : player1Label = "Joueur 1", player2Label = "Joueur 2"
+  } else if (mode === "tournament") {
     titleText += "Match de Tournoi";
     subtitleText = '<p class="text-center text-text/70 mb-4">🏆 Match local à 2 joueurs sur le même ordinateur</p>';
+    
+    // Récupérer les noms des joueurs uniquement en mode tournoi
+    const rawPlayer1Id = params.get("player1");
+    const rawPlayer2Id = params.get("player2");
+    
+    if (rawPlayer1Id && rawPlayer2Id) {
+      try {
+        const player1Id = rawPlayer1Id.startsWith('user-') ? rawPlayer1Id.replace('user-', '') : rawPlayer1Id;
+        const player2Id = rawPlayer2Id.startsWith('user-') ? rawPlayer2Id.replace('user-', '') : rawPlayer2Id;
+        
+        const [player1Response, player2Response] = await Promise.all([
+          api(`/users/${player1Id}`).catch(() => null),
+          api(`/users/${player2Id}`).catch(() => null)
+        ]);
+        
+        if (player1Response?.displayName) player1Label = player1Response.displayName;
+        if (player2Response?.displayName) player2Label = player2Response.displayName;
+      } catch (error) {
+        console.warn("Impossible de récupérer les noms des joueurs:", error);
+      }
+    }
+  } else {
+    titleText += t('game.multiplayer');
   }
-  else titleText += "En ligne";
 
 		wrap.innerHTML = `
 		<h1 class="text-3xl font-bold text-text mb-6">
-			🎮 ${mode === "solo" ? `${t('game.quickGame')} vs ${t('game.ai')}` : mode === "local" ? `${t('game.localGame')}` : t('game.multiplayer')}
+			${titleText}
 		</h1>
 		${subtitleText}
 		<div class="bg-prem rounded-lg shadow-xl p-6">
 			<!-- Score -->
 			<div class="grid grid-cols-2 gap-8 mb-4">
 			<div class="text-center">
-				<h2 class="text-xl font-bold text-text mb-2">${t('game.player1')}</h2>
+				<h2 id="player1-name" class="text-xl font-bold text-text mb-2">${player1Label}</h2>
 				<div id="score-left" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			<div class="text-center">
-				<h2 class="text-xl font-bold text-text mb-2">${mode === "local" ? t('game.player2') : t('game.ai')}</h2>
+				<h2 id="player2-name" class="text-xl font-bold text-text mb-2">${player2Label}</h2>
 				<div id="score-right" class="text-5xl font-bold text-sec">0</div>
 			</div>
 			</div>
@@ -669,17 +760,17 @@ export default async function View() {
 			<div id="start-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 rounded">
 				<div class="text-center">
 				<h2 class="text-4xl font-bold text-sec mb-8">${t('game.readyToPlay')}</h2>
-				${mode === "local" ? `
+				${mode === "local" || mode === "tournament" ? `
 					<div class="flex gap-8 mb-6">
 					<div class="text-center">
-						<p class="text-2xl text-text mb-4">${t('game.player1')}</p>
+						<p class="text-2xl text-text mb-4">${player1Label}</p>
 						<button id="btn-player1-ready" class="bg-sec hover:bg-sec/80 text-white px-12 py-6 rounded-lg font-bold text-2xl transition-all">
 						${t('game.ready')}
 						</button>
 						<p class="text-sm text-text/70 mt-2">W/S</p>
 					</div>
 					<div class="text-center">
-						<p class="text-2xl text-text mb-4">${t('game.player2')}</p>
+						<p class="text-2xl text-text mb-4">${player2Label}</p>
 						<button id="btn-player2-ready" class="bg-sec hover:bg-sec/80 text-white px-12 py-6 rounded-lg font-bold text-2xl transition-all">
 						${t('game.ready')}
 						</button>
@@ -739,6 +830,10 @@ export default async function View() {
   const btnReplay = wrap.querySelector("#btn-replay") as HTMLButtonElement;
   const btnQuit = wrap.querySelector("#btn-quit") as HTMLButtonElement;
   
+  // Références aux noms des joueurs avec IDs spécifiques
+  const player1NameElement = wrap.querySelector('#player1-name') as HTMLElement;
+  const player2NameElement = wrap.querySelector('#player2-name') as HTMLElement;
+  
   // 🆕 Boutons de démarrage
   const btnStart = wrap.querySelector("#btn-start") as HTMLButtonElement | null;
   const btnPlayer1Ready = wrap.querySelector("#btn-player1-ready") as HTMLButtonElement | null;
@@ -746,6 +841,7 @@ export default async function View() {
 
   // Créer et démarrer le jeu
   const game = new PongGame(canvas, mode, scoreLeft, scoreRight);
+  game.setPlayerNameElements(player1NameElement, player2NameElement);
   await game.connect();
   game.start();
   
@@ -758,7 +854,7 @@ export default async function View() {
     btnStart.addEventListener("click", () => {
       game.setPlayerReady(1);
     });
-  } else if (mode === "local" && btnPlayer1Ready && btnPlayer2Ready) {
+  } else if ((mode === "local" || mode === "tournament") && btnPlayer1Ready && btnPlayer2Ready) {
     btnPlayer1Ready.addEventListener("click", () => {
       game.setPlayerReady(1);
       btnPlayer1Ready.disabled = true;

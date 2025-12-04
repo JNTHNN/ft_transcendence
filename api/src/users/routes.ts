@@ -19,6 +19,26 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     return res.send(rows);
   });
 
+  // Route pour récupérer un utilisateur par ID (pour les noms dans les tournois)
+  app.get('/users/:id', async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (!userId || isNaN(userId)) {
+        return res.status(400).send({ error: 'Invalid user ID' });
+      }
+
+      const user = db.prepare("SELECT id, display_name AS displayName, avatar_url AS avatarUrl FROM users WHERE id = ?").get(userId);
+      if (!user) {
+        return res.status(404).send({ error: 'User not found' });
+      }
+
+      return res.send(user);
+    } catch (e) {
+      app.log.error(e);
+      return res.status(500).send({ error: 'Failed to get user' });
+    }
+  });
+
   app.patch('/users/me', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {

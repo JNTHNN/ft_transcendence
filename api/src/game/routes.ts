@@ -104,33 +104,20 @@ export async function registerGameRoutes(app: FastifyInstance) {
 
   /**
    * POST /game/local/create
-   * CrÃ©e une partie locale 2 joueurs
+   * CrÃ©e une partie locale 2 joueurs ou tournoi
    */
   app.post<{
-    Body: { player1Id?: string; player2Id?: string };
+    Body: { player1Id?: string; player2Id?: string; mode?: 'local-2p' | 'tournament' };
   }>('/game/local/create', async (request, reply) => {
-    const { player1Id = 'player-1', player2Id = 'player-2' } = request.body;
+    const { player1Id = 'player-1', player2Id = 'player-2', mode = 'local-2p' } = request.body;
 
     try {
-      // CrÃ©er la partie
-      const matchId = gameManager.createGame('local-2p');
-
-    //   // Ajouter les deux joueurs
-    //   gameManager.addPlayerToGame(matchId, {
-    //     id: player1Id,
-    //     side: 'left',
-    //     controllerType: 'human-arrows',
-    //   });
-
-    //   gameManager.addPlayerToGame(matchId, {
-    //     id: player2Id,
-    //     side: 'right',
-    //     controllerType: 'local-player2',
-    //   });
+      // CrÃ©er la partie (sans ajouter automatiquement les joueurs)
+      const matchId = gameManager.createGame(mode);
 
       return reply.code(201).send({
         matchId,
-        mode: 'local-2p',
+        mode,
         player1Id,
         player2Id,
         wsUrl: `/ws/game`,
