@@ -25,9 +25,6 @@ export async function TournoiView() {
         <button id="btn-create-tournament" class="bg-sec hover:bg-sec/80 text-text font-bold px-6 py-2 rounded-lg">
           ➕ ${t('tournament.createTournament')}
         </button>
-        <button id="btn-blockchain-status" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded-lg">
-          ⛓️ Blockchain
-        </button>
       </div>
     </div>
 
@@ -65,29 +62,14 @@ export async function TournoiView() {
       </div>
     </div>
 
-    <!-- Modal pour le statut blockchain -->
-    <div id="blockchain-status-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-prem rounded-xl p-6 max-w-lg mx-4 w-full">
-        <h2 class="text-2xl font-bold text-text mb-4">⛓️ Statut Blockchain</h2>
-        <div id="blockchain-status-content">
-          <div class="text-center py-8">
-            <div class="animate-spin w-8 h-8 border-2 border-sec border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p class="text-text/70">Vérification...</p>
-          </div>
-        </div>
-        <button id="btn-close-blockchain" class="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-          Fermer
-        </button>
-      </div>
-    </div>
+
   `;
 
   const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
   const createModal = wrap.querySelector("#create-tournament-modal") as HTMLDivElement;
-  const blockchainModal = wrap.querySelector("#blockchain-status-modal") as HTMLDivElement;
 
   // Event listeners pour les modals
-  setupModalHandlers(wrap, createModal, blockchainModal);
+  setupModalHandlers(wrap, createModal);
 
   try {
     await api("/auth/me");
@@ -181,7 +163,7 @@ async function loadTournaments(content: HTMLDivElement) {
         </div>
       </div>
 
-      <!-- Tournois terminés avec blockchain -->
+      <!-- Tournois terminés -->
       <div class="bg-prem rounded-lg shadow-xl p-6">
         <h2 class="font-display font-black text-2xl text-text mb-4">🏅 Tournois terminés</h2>
         <div id="completed-tournaments" class="space-y-3">
@@ -211,11 +193,9 @@ async function loadTournaments(content: HTMLDivElement) {
   }
 }
 
-function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement, blockchainModal: HTMLDivElement) {
+function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
   const btnCreateTournament = wrap.querySelector("#btn-create-tournament") as HTMLButtonElement;
-  const btnBlockchainStatus = wrap.querySelector("#btn-blockchain-status") as HTMLButtonElement;
   const btnCloseCreateModal = wrap.querySelector("#btn-close-create-modal") as HTMLButtonElement;
-  const btnCloseBlockchain = wrap.querySelector("#btn-close-blockchain") as HTMLButtonElement;
   const createForm = wrap.querySelector("#create-tournament-form") as HTMLFormElement;
 
   // Ouvrir modal création
@@ -230,17 +210,6 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement, b
   });
 
 
-
-  // Ouvrir modal blockchain
-  btnBlockchainStatus.addEventListener('click', async () => {
-    blockchainModal.classList.remove('hidden');
-    await loadBlockchainStatus(wrap);
-  });
-
-  // Fermer modal blockchain
-  btnCloseBlockchain.addEventListener('click', () => {
-    blockchainModal.classList.add('hidden');
-  });
 
   // Créer tournoi
   createForm.addEventListener('submit', async (e) => {
@@ -297,49 +266,6 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement, b
       submitBtn.textContent = originalText;
     }
   });
-}
-
-async function loadBlockchainStatus(wrap: HTMLDivElement) {
-  const content = wrap.querySelector("#blockchain-status-content") as HTMLDivElement;
-  
-  try {
-    const status = await api("/blockchain/status");
-    
-    content.innerHTML = `
-      <div class="space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-3 h-3 rounded-full ${status.available ? 'bg-green-500' : 'bg-red-500'}"></div>
-          <span class="text-text">Service blockchain: ${status.available ? 'Connecté' : 'Déconnecté'}</span>
-        </div>
-        
-        <div class="bg-gray-800 rounded p-3">
-          <p class="text-text/70 text-sm mb-1">Réseau:</p>
-          <p class="text-text font-mono">${status.network}</p>
-        </div>
-        
-        <div class="bg-gray-800 rounded p-3">
-          <p class="text-text/70 text-sm mb-1">Contrat:</p>
-          <p class="text-text font-mono text-xs break-all">${status.contract_address}</p>
-        </div>
-        
-        ${status.available ? `
-          <div class="bg-green-500/10 border border-green-500/30 rounded p-3">
-            <p class="text-green-400 text-sm">✅ Les résultats de tournois sont automatiquement stockés sur la blockchain Avalanche pour garantir leur intégrité et transparence.</p>
-          </div>
-        ` : `
-          <div class="bg-red-500/10 border border-red-500/30 rounded p-3">
-            <p class="text-red-400 text-sm">❌ Service blockchain indisponible. Les tournois fonctionnent normalement mais les résultats ne seront pas stockés sur blockchain.</p>
-          </div>
-        `}
-      </div>
-    `;
-  } catch (error) {
-    content.innerHTML = `
-      <div class="bg-red-500/10 border border-red-500/30 rounded p-3">
-        <p class="text-red-400">❌ Impossible de vérifier le statut blockchain</p>
-      </div>
-    `;
-  }
 }
 
 function getStatusColor(status: string): string {
