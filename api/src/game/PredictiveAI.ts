@@ -1,37 +1,11 @@
-import type { AIController, GameState, PlayerInput } from '../types.js';
-import { GAME_CONFIG as CFG } from '../constants.js';
-
-/**
- * IA d'exemple : suit bêtement la balle
- * 
- * ⚠️ CETTE IA EST VOLONTAIREMENT SIMPLE
- * C'est un exemple pour montrer l'interface
- */
-// export class DummyAI implements AIController {
-//   decide(gameState: GameState, side: 'left' | 'right'): PlayerInput {
-//     const { ball, paddles } = gameState;
-    
-//     // Position du paddle en pixels
-//     const myPaddle = side === 'left' ? paddles.left : paddles.right;
-//     const paddleY = myPaddle.y * CFG.COURT_HEIGHT;
-    
-//     // Zone morte pour éviter les micro-mouvements
-//     const deadZone = 20;
-    
-//     if (ball.position.y > paddleY + deadZone) {
-//       return { up: false, down: true };  // Descendre
-//     } else if (ball.position.y < paddleY - deadZone) {
-//       return { up: true, down: false };  // Monter
-//     } else {
-//       return { up: false, down: false };  // Rester
-//     }
-//   }
-// }
+import type { AIController, GameState, PlayerInput } from './types.js';
+import { GAME_CONFIG as CFG } from './constants.js';
 
 export class PredictiveAI implements AIController {
   private prevBallSample: { x: number, y: number } | null = null;
   private lastBallSample: { x: number, y: number } | null = null;
   private lastSampleTime = 0; // in ms
+
   decide(gameState: GameState, side: 'left' | 'right'): PlayerInput {
     const { ball, paddles } = gameState;
     const now = performance.now(); // current time in ms
@@ -39,16 +13,19 @@ export class PredictiveAI implements AIController {
       x: ball.position.x,
       y: ball.position.y
     };
+
     // --- SAMPLE THE BALL POSITION ONCE PER SECOND ---
     if (now - this.lastSampleTime >= 1000) {
       this.prevBallSample = this.lastBallSample;
       this.lastBallSample = currentBall;
       this.lastSampleTime = now;
     }
+
     // If we don't have two samples yet, do nothing
     if (!this.prevBallSample || !this.lastBallSample) {
       return { up: false, down: false };
     }
+
     // --- Predict impact point ---
     const aiX = side === 'left' ? 0 : CFG.COURT_WIDTH;
     const predictedY = this.predictBallLanding(
@@ -56,6 +33,7 @@ export class PredictiveAI implements AIController {
       this.lastBallSample,
       aiX
     );
+
     // --- Move paddle toward predicted Y ---
     const myPaddle = side === 'left' ? paddles.left : paddles.right;
     const paddleY = myPaddle.y * CFG.COURT_HEIGHT;
@@ -68,6 +46,7 @@ export class PredictiveAI implements AIController {
     }
     return { up: false, down: false };
   }
+  
   // prediction function (same as before)
   private predictBallLanding(first: { x: number, y: number },
                              second: { x: number, y: number },

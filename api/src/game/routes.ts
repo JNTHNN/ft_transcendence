@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { gameManager } from './GameManager.js';
-import { PredictiveAI } from './IA/DummyAI.js'; 
+import { PredictiveAI } from './PredictiveAI.js'; 
 import type { GameMode } from './types.js';
 
 /**
