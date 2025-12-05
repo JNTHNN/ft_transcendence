@@ -320,7 +320,7 @@ export async function GameSessionDetailView() {
           </div>
           <div class="text-center p-4 bg-sec/20 rounded-lg">
             <div class="text-2xl font-bold text-purple-400">
-              ${Math.max(myScore, opponentScore) === 0 ? '0' : ((Math.min(myScore, opponentScore) / Math.max(myScore, opponentScore)) * 100).toFixed(0)}%
+              ${Math.max(myScore, opponentScore) === 0 ? '0' : (100 - ((Math.abs(myScore - opponentScore) / (myScore + opponentScore)) * 100)).toFixed(0)}%
             </div>
             <div class="text-sm text-text/70">${t('matchDetails.matchBalance')}</div>
           </div>
