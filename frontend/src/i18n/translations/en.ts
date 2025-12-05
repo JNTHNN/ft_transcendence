@@ -108,6 +108,7 @@ export default {
     noMatches: "No matches played",
     victory: "Victory",
     defeat: "Defeat",
+    viewStatsAndHistory: "View Statistics and Match History",
     loadError: "Error loading statistics",
     historyLoadError: "Error loading match history"
   },

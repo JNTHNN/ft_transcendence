@@ -236,7 +236,7 @@ export default async function View() {
     <h3 class="font-display text-2xl font-bold text-text mb-6">${t('stats.title')}</h3>
     <div class="text-center">
       <button id="view-my-stats" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-3 px-6 rounded-lg transition-colors">
-        ${t('stats.title')} et historique des matchs
+${t('stats.viewStatsAndHistory')}
       </button>
     </div>
   `;

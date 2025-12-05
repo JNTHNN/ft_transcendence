@@ -108,7 +108,8 @@ export default {
     noMatches: "No se han jugado partidas",
     victory: "Victoria",
     defeat: "Derrota",
-    loadError: "Error al cargar las estadísticas",
+    viewStatsAndHistory: "Ver Estadísticas e Historial de Partidas",
+    loadError: "Error al cargar estadísticas",
     historyLoadError: "Error al cargar el historial"
   },
 
