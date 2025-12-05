@@ -16,7 +16,7 @@ import { registerAuthRoutes } from './auth/routes.js';
 import { register2FARoutes } from './auth/2fa-routes.js';
 import { registerUserRoutes } from './users/routes.js';
 import db, { migrate } from './db/db.js';
-import { registerChatWS } from './chat/ws.js';
+import { registerChatWS, broadcastTournamentNotification } from './chat/ws.js';
 import { registerGameWS } from './game/ws.js';
 import { registerFriendsWS } from './friends/ws.js';
 import { initPresenceService } from './core/presence.js';
@@ -90,8 +90,12 @@ await registerGameWS(app);
 await registerFriendsWS(app, db);
 await app.register(tournamentRoutes);
 
+await registerChatWS(app, db);
 
-await registerChatWS(app);
+// Ajouter la fonction sendTournamentNotification à Fastify
+app.decorate('sendTournamentNotification', (tournamentId: string, tournamentName: string, matchId: string, player1: string, player2: string) => {
+  broadcastTournamentNotification(db, tournamentId, tournamentName, matchId, player1, player2);
+});
 
 app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: string}}>, res: FastifyReply) => {
   const { filename } = req.params;

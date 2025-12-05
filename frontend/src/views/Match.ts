@@ -1,6 +1,7 @@
 import { connectWS } from "../ws-client";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
+import { authManager } from "../auth";
 
 // 📦 TYPES (depuis ton backend)
 interface GameState {
@@ -84,6 +85,12 @@ class PongGame {
   // 🆕 Définir les références aux éléments des noms des joueurs
   public setPlayerNameElements(player1Element: HTMLElement, player2Element: HTMLElement): void {
     this.playerNameElements = [player1Element, player2Element] as any;
+  }
+
+  // 🆕 Définir l'ID de match pour les invitations
+  public setMatchId(matchId: string): void {
+    this.matchId = matchId;
+    console.log("🎮 Match ID défini:", matchId);
   }
 
   // 🆕 Mettre à jour les noms des joueurs (seulement en mode tournoi)
@@ -199,6 +206,18 @@ async connect() {
           mode: "tournament"
         })
       });
+    } else if (this.mode === "multiplayer") {
+      // Mode multijoueur en ligne - utiliser le matchId existant ou en créer un
+      if (this.matchId) {
+        // Utiliser l'ID de match existant pour les invitations
+        response = { matchId: this.matchId };
+      } else {
+        // Créer un nouveau match multijoueur
+        response = await api("/game/create", {
+          method: "POST",
+          body: JSON.stringify({ mode: "online-2p" })
+        });
+      }
     } else {
         // Mode online (à implémenter plus tard)
         return;
@@ -212,32 +231,52 @@ async connect() {
       });
 
       this.ws.onopen = () => {
+        // Déterminer le côté du joueur pour le mode multiplayer
+        let playerSide = "left";
+        if (this.mode === "multiplayer") {
+          // En mode multiplayer, déterminer le côté basé sur l'utilisateur actuel
+          const currentUserId = authManager.getState().user?.id;
+          const params = new URLSearchParams(window.location.search);
+          const inviteId = params.get("invite");
+          
+          // Si je suis l'inviteur, je suis à gauche, sinon à droite
+          playerSide = (currentUserId?.toString() === inviteId) ? "left" : "right";
+        }
+        
         // Rejoindre la partie
         this.ws?.send(JSON.stringify({
           type: "join",
           matchId: this.matchId,
           playerId: this.player1Id,
-          side: "left"
+          side: playerSide
         }));
 
-		if (this.mode === "local" || this.mode === "tournament") {
-			setTimeout(() => {
-			this.ws?.send(JSON.stringify({
-				type: "join",
-				matchId: this.matchId,
-				playerId: this.player2Id,
-				side: "right"
-			}));
-			
-			// Demander l'état initial après que les deux joueurs soient connectés
-			setTimeout(() => {
-				this.ws?.send(JSON.stringify({
-					type: "getState",
-					matchId: this.matchId
-				}));
-			}, 200);
-			}, 100);
-		}
+        if (this.mode === "local" || this.mode === "tournament") {
+          setTimeout(() => {
+          this.ws?.send(JSON.stringify({
+            type: "join",
+            matchId: this.matchId,
+            playerId: this.player2Id,
+            side: "right"
+          }));
+          
+          // Demander l'état initial après que les deux joueurs soient connectés
+          setTimeout(() => {
+            this.ws?.send(JSON.stringify({
+              type: "getState",
+              matchId: this.matchId
+            }));
+          }, 200);
+          }, 100);
+        } else if (this.mode === "multiplayer") {
+          // En mode multiplayer, demander l'état après connexion
+          setTimeout(() => {
+            this.ws?.send(JSON.stringify({
+              type: "getState",
+              matchId: this.matchId
+            }));
+          }, 200);
+        }
       };
 
       this.ws.onerror = () => {
@@ -690,7 +729,10 @@ public resume(): void {
 // 🎬 FONCTION PRINCIPALE DE LA VUE
 export default async function View() {
   const params = new URLSearchParams(window.location.search);
-  const mode = params.get("mode") || "solo";
+  let mode = params.get("mode") || "solo";
+  const inviteId = params.get("invite"); // Support pour les invitations depuis le chat
+  const gameId = params.get("gameId"); // ID unique de partie pour invitations
+  const targetId = params.get("target"); // ID du joueur cible
 
   const wrap = document.createElement("div");
   wrap.className = "max-w-4xl mx-auto mt-8";
@@ -700,7 +742,49 @@ export default async function View() {
   let player1Label = t('game.player1');
   let player2Label = t('game.player2');
   
-  if (mode === "solo") {
+  if (inviteId && gameId) {
+    // Mode invitation depuis le chat avec gameId - devient un match multijoueur
+    mode = "multiplayer";
+    titleText += t('game.invitedGame');
+    subtitleText = '<p class="text-center text-text/70 mb-4">🎮 Partie multijoueur en ligne depuis une invitation chat</p>';
+    
+    // Récupérer les infos des deux joueurs
+    const currentUserId = authManager.getState().user?.id;
+    try {
+      if (targetId && currentUserId) {
+        const [inviterResponse, targetResponse] = await Promise.all([
+          api(`/users/${inviteId}`).catch(() => null),
+          api(`/users/${targetId}`).catch(() => null)
+        ]);
+        
+        // Déterminer qui est le joueur 1 et le joueur 2
+        if (currentUserId.toString() === inviteId) {
+          // Je suis l'inviteur (joueur 1)
+          player1Label = inviterResponse?.displayName || t('game.player1');
+          player2Label = targetResponse?.displayName || t('game.player2');
+        } else {
+          // Je suis l'invité (joueur 2)
+          player1Label = targetResponse?.displayName || t('game.player1');
+          player2Label = inviterResponse?.displayName || t('game.player2');
+        }
+      }
+    } catch (error) {
+      console.warn("Impossible de récupérer les infos des joueurs:", error);
+    }
+  } else if (inviteId) {
+    // Mode invitation ancien (fallback)
+    titleText += t('game.invitedGame');
+    subtitleText = '<p class="text-center text-text/70 mb-4">🎮 Partie lancée depuis une invitation chat</p>';
+    
+    try {
+      const inviterResponse = await api(`/users/${inviteId}`).catch(() => null);
+      if (inviterResponse?.displayName) {
+        player2Label = inviterResponse.displayName;
+      }
+    } catch (error) {
+      console.warn("Impossible de récupérer les infos de l'inviteur:", error);
+    }
+  } else if (mode === "solo") {
     titleText += `${t('game.quickGame')} vs ${t('game.ai')}`;
     player2Label = t('game.ai');
   } else if (mode === "local") {
@@ -842,6 +926,12 @@ export default async function View() {
   // Créer et démarrer le jeu
   const game = new PongGame(canvas, mode, scoreLeft, scoreRight);
   game.setPlayerNameElements(player1NameElement, player2NameElement);
+  
+  // Pour les invitations avec gameId, définir l'ID de match
+  if (gameId) {
+    game.setMatchId(gameId);
+  }
+  
   await game.connect();
   game.start();
   

@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import { createI18nForRequest } from '../i18n/translations.js';
 import { markUserOnline, markUserOffline } from '../middleware/presence.js';
+import { disconnectUserFromChat } from '../chat/ws.js';
 
 declare const process: any;
 
@@ -259,6 +260,8 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
           const decoded: any = app.jwt.verify(token);
           if (decoded?.uid) {
             markUserOffline(decoded.uid, token);
+            // Déconnecter l'utilisateur du chat
+            disconnectUserFromChat(decoded.uid, db);
           }
         } catch (e) {
           // Ignorer les erreurs de décodage du token

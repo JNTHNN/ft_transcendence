@@ -3,6 +3,28 @@ import { router } from "../router";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 
+// Helper pour extraire l'heure locale depuis une date
+function getLocalTime(dateString: string, includeSeconds = false): string {
+  // S'assurer que la date est interprétée comme UTC
+  let dateStr = dateString;
+  if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z';
+  }
+  const date = new Date(dateStr);
+  const options: Intl.DateTimeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  if (includeSeconds) {
+    options.second = '2-digit';
+  }
+  // Utiliser toLocaleDateString qui gère automatiquement le fuseau horaire
+  const fullDate = date.toLocaleDateString('fr-FR', { ...options, day: '2-digit', month: '2-digit', year: 'numeric' });
+  // Extraire uniquement la partie heure (après l'espace ou la virgule)
+  const parts = fullDate.split(/[,\s]+/);
+  return parts[parts.length - 1]; // Retourne la dernière partie qui est l'heure
+}
+
 interface MatchDetail {
   id: number;
   player1Name: string;
@@ -206,7 +228,7 @@ export async function GameSessionDetailView() {
             </div>
             <div class="flex justify-between">
               <span class="text-text/70">${t('matchDetails.time')}</span>
-              <span class="font-semibold text-text">${new Date(match.created_at).toLocaleTimeString()}</span>
+              <span class="font-semibold text-text">${getLocalTime(match.created_at, true)}</span>
             </div>
             ${match.duration ? `
               <div class="flex justify-between">

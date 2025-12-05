@@ -152,3 +152,33 @@ CREATE INDEX IF NOT EXISTS idx_tournament_participants_user ON tournament_partic
 CREATE INDEX IF NOT EXISTS idx_tournament_matches_tournament ON tournament_matches(tournament_id);
 CREATE INDEX IF NOT EXISTS idx_tournament_matches_round ON tournament_matches(round_number);
 CREATE INDEX IF NOT EXISTS idx_tournament_matches_status ON tournament_matches(status);
+
+-- Table pour les messages de chat persistés
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL CHECK (type IN ('message', 'system', 'game_invite', 'tournament_notification', 'user_join', 'user_leave')),
+  user_id INTEGER,
+  username TEXT,
+  text TEXT,
+  tournament_id TEXT,
+  game_invite_data TEXT, -- JSON pour les invitations
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_type ON chat_messages(type);
+
+-- Table pour les utilisateurs bloqués dans le chat
+CREATE TABLE IF NOT EXISTS user_blocks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  blocker_id INTEGER NOT NULL,
+  blocked_id INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (blocker_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (blocked_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(blocker_id, blocked_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks(blocker_id);
+CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id);

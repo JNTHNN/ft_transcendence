@@ -82,7 +82,7 @@ export class MenuManager {
       : this.fullUser?.avatarUrl;
 
     const menuHTML = `
-      <nav class="font-display text-2xl font-black flex flex-col p-4 space-y-2">
+      <nav class="font-display text-2xl font-black flex flex-col p-4 space-y-2 flex-1 overflow-y-auto">
         <button data-navigate="/" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
           ${t('nav.home')}
         </button>

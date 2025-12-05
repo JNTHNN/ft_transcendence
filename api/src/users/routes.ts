@@ -15,8 +15,40 @@ const updateSchema = z.object({
 
 export async function registerUserRoutes(app: FastifyInstance, db: Database.Database) {
   app.get('/users', { preHandler: app.auth }, async (_req, res) => {
-    const rows = db.prepare("SELECT id, email, display_name AS displayName, created_at AS createdAt FROM users").all();
-    return res.send(rows);
+    try {
+      // Optimisation : seulement les champs nécessaires pour le chat
+      const rows = db.prepare(`
+        SELECT id, display_name AS displayName, avatar_url as avatarUrl
+        FROM users 
+        ORDER BY display_name ASC
+        LIMIT 100
+      `).all();
+      return res.send(rows);
+    } catch (e) {
+      console.error('Error fetching users:', e);
+      return res.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  // Endpoint pour récupérer les utilisateurs bloqués
+  app.get('/users/blocked', { preHandler: app.auth }, async (req: any, res) => {
+    try {
+      const uid = req.user?.uid;
+      if (!uid) return res.status(401).send({ error: 'Unauthorized' });
+
+      const rows = db.prepare(`
+        SELECT u.id, u.display_name AS displayName, u.avatar_url as avatarUrl
+        FROM user_blocks ub
+        JOIN users u ON ub.blocked_id = u.id
+        WHERE ub.blocker_id = ?
+        ORDER BY u.display_name ASC
+      `).all(uid);
+      
+      return res.send(rows);
+    } catch (e) {
+      console.error('Error fetching blocked users:', e);
+      return res.status(500).send({ error: 'Internal server error' });
+    }
   });
 
   // Routes spécifiques AVANT la route générique pour éviter les conflits

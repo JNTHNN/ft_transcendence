@@ -1,6 +1,26 @@
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 
+// Helper pour extraire l'heure locale depuis une date
+function getLocalTime(dateString: string): string {
+  // S'assurer que la date est interprétée comme UTC
+  let dateStr = dateString;
+  if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z';
+  }
+  const date = new Date(dateStr);
+  const fullDate = date.toLocaleDateString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  // Extraire uniquement la partie heure (après l'espace ou la virgule)
+  const parts = fullDate.split(/[,\s]+/);
+  return parts[parts.length - 1]; // Retourne la dernière partie qui est l'heure
+}
+
 interface UserStats {
   totalGames: number;
   wins: number;
@@ -22,17 +42,29 @@ interface MatchHistoryItem {
   created_at: string;
 }
 
-export async function createUserStatsModal(userId: number, userName: string): Promise<HTMLElement> {
+export async function createUserStatsModal(userId: number, userName: string, avatarUrl?: string): Promise<HTMLElement> {
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4';
   modal.id = 'user-stats-modal';
+
+  const avatarHtml = avatarUrl 
+    ? `<img src="${avatarUrl}" alt="${userName}" class="w-16 h-16 rounded-full object-cover ring-2 ring-sec/50" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+       <div class="w-16 h-16 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/50" style="display:none">
+         <span class="text-white text-2xl font-bold">${userName.charAt(0).toUpperCase()}</span>
+       </div>`
+    : `<div class="w-16 h-16 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/50">
+         <span class="text-white text-2xl font-bold">${userName.charAt(0).toUpperCase()}</span>
+       </div>`;
 
   modal.innerHTML = `
     <div class="bg-prem rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
       <div class="p-6">
         <!-- En-tête -->
         <div class="flex items-center justify-between mb-6">
-          <h2 class="font-display text-3xl font-bold text-text">${t('stats.title')} - ${userName}</h2>
+          <div class="flex items-center gap-4">
+            ${avatarHtml}
+            <h2 class="font-display text-3xl font-bold text-text">${t('stats.title')} - ${userName}</h2>
+          </div>
           <button id="close-stats-modal" class="text-text/70 hover:text-text">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -143,7 +175,7 @@ export async function createUserStatsModal(userId: number, userName: string): Pr
                     ${match.player1Name} vs ${match.player2Name}
                   </p>
                   <p class="text-sm text-gray-400">
-                    ${match.match_type === 'solo' ? 'Tournament' : match.match_type} • ${new Date(match.created_at).toLocaleDateString()} • ${new Date(match.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    ${match.match_type === 'solo' ? 'Tournament' : match.match_type} • ${new Date(match.created_at).toLocaleDateString()} • ${getLocalTime(match.created_at)}
                   </p>
                 </div>
               </div>
@@ -172,7 +204,7 @@ export async function createUserStatsModal(userId: number, userName: string): Pr
   return modal;
 }
 
-(window as any).viewUserStats = async (userId: number, userName: string) => {
-  const modal = await createUserStatsModal(userId, userName);
+(window as any).viewUserStats = async (userId: number, userName: string, avatarUrl?: string) => {
+  const modal = await createUserStatsModal(userId, userName, avatarUrl);
   document.body.appendChild(modal);
 };

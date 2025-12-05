@@ -245,7 +245,7 @@ export class TournamentService {
   /**
    * Start tournament (generate bracket)
    */
-  static startTournament(tournamentId: string, userId: number): Tournament {
+  static startTournament(tournamentId: string, userId: number, fastify?: any): Tournament {
     const tournament = this.getTournament(tournamentId);
     if (!tournament) {
       throw new Error('Tournament not found');
@@ -269,7 +269,7 @@ export class TournamentService {
     
     // Generate bracket for elimination tournament
     if (tournament.tournament_type === 'elimination') {
-      this.generateEliminationBracket(tournamentId, participants);
+      this.generateEliminationBracket(tournamentId, participants, fastify);
     }
 
     // Update tournament status
@@ -286,9 +286,12 @@ export class TournamentService {
   /**
    * Generate elimination bracket
    */
-  private static generateEliminationBracket(tournamentId: string, participants: TournamentParticipant[]): void {
+  private static generateEliminationBracket(tournamentId: string, participants: TournamentParticipant[], fastify?: any): void {
     const playerCount = participants.length;
     console.log(`🎲 Generating elimination bracket for tournament ${tournamentId} with ${playerCount} participants:`, participants);
+    
+    // Get tournament info for notifications
+    const tournament = db.prepare('SELECT name FROM tournaments WHERE id = ?').get(tournamentId) as { name: string };
     
     // Calculate number of rounds needed
     // const rounds = Math.ceil(Math.log2(playerCount));
@@ -337,6 +340,18 @@ export class TournamentService {
           SET winner_id = ?, status = ?, end_time = ? 
           WHERE match_id = ?
         `).run(player1.user_id, 'completed', new Date().toISOString(), matchId);
+      } else {
+        // Both players present, match is ready to play - send notification
+        if (fastify && fastify.sendTournamentNotification && tournament) {
+          fastify.sendTournamentNotification(
+            tournamentId,
+            tournament.name,
+            matchId,
+            player1.display_name,
+            player2.display_name
+          );
+          console.log(`💬 Tournament notification sent for match ${matchId}`);
+        }
       }
     }
   }
@@ -347,7 +362,7 @@ export class TournamentService {
   /**
    * Start a tournament match by setting it to active status
    */
-  static startMatch(matchId: string, userId: number): void {
+  static startMatch(matchId: string, userId: number, _fastify?: any): void {
     const match = db.prepare('SELECT * FROM tournament_matches WHERE match_id = ?').get(matchId) as TournamentMatch;
     
     if (!match) {
@@ -379,6 +394,8 @@ export class TournamentService {
       throw new Error('You already have an active match in this tournament');
     }
 
+    // Note: Player and tournament info retrieved when notifications are needed
+
     const now = new Date().toISOString();
     
     // Mark match as active
@@ -387,9 +404,11 @@ export class TournamentService {
       SET status = 'active', start_time = ?
       WHERE match_id = ?
     `).run(now, matchId);
+
+    // Note: Tournament notifications are sent when matches become available, not when they start
   }
 
-  static completeMatch(matchId: string, winnerId: number, player1Score: number, player2Score: number): void {
+  static completeMatch(matchId: string, winnerId: number, player1Score: number, player2Score: number, fastify?: any): void {
     const match = db.prepare('SELECT * FROM tournament_matches WHERE match_id = ?').get(matchId) as TournamentMatch;
     
     if (!match) {
@@ -421,16 +440,16 @@ export class TournamentService {
     `).run(winnerId, player1Score, player2Score, 'completed', now, matchId);
 
     // Advance winner to next round first (creates next match if needed)
-    this.advanceWinner(match.tournament_id, winnerId, match.round_number, match.match_order);
+    this.advanceWinner(match.tournament_id, winnerId, match.round_number, match.match_order, fastify);
 
     // Then check if tournament is complete (after potential next match creation)
-    this.checkTournamentCompletion(match.tournament_id);
+    this.checkTournamentCompletion(match.tournament_id, fastify);
   }
 
   /**
    * Advance winner to next round
    */
-  private static advanceWinner(tournamentId: string, winnerId: number, currentRound: number, currentOrder: number): void {
+  private static advanceWinner(tournamentId: string, winnerId: number, currentRound: number, currentOrder: number, fastify?: any): void {
     // Check how many matches are left in current round
     const remainingMatchesInRound = db.prepare(`
       SELECT COUNT(*) as count FROM tournament_matches 
@@ -490,6 +509,21 @@ export class TournamentService {
         console.log(`⚡ Setting ${winnerId} as player2, match is now ready`);
         db.prepare('UPDATE tournament_matches SET player2_id = ? WHERE match_id = ?')
           .run(winnerId, existingWinner.match_id);
+        
+        // Send notification about new match ready to play
+        if (fastify && fastify.sendTournamentNotification) {
+          const player1 = db.prepare('SELECT display_name FROM users WHERE id = ?').get(existingWinner.player1_id) as { display_name: string };
+          const player2 = db.prepare('SELECT display_name FROM users WHERE id = ?').get(winnerId) as { display_name: string };
+          const tournament = db.prepare('SELECT name FROM tournaments WHERE id = ?').get(tournamentId) as { name: string };
+          
+          const roundName = nextRound === 1 ? 'Finale' : 
+                          nextRound === 2 ? 'Demi-finale' : 
+                          nextRound === 3 ? 'Quart de finale' : 
+                          `Round ${nextRound}`;
+          
+          const message = `⚔️ Match prêt à jouer dans "${tournament.name}" : ${player1.display_name} vs ${player2.display_name} (${roundName}). Les joueurs peuvent maintenant commencer leur match !`;
+          fastify.sendTournamentNotification(tournamentId, message);
+        }
       } else {
         console.log(`❌ Cannot add winner ${winnerId} - match already complete or duplicate`);
       }
@@ -499,7 +533,7 @@ export class TournamentService {
   /**
    * Check if tournament is complete
    */
-  private static checkTournamentCompletion(tournamentId: string): void {
+  private static checkTournamentCompletion(tournamentId: string, _fastify?: any): void {
     const pendingMatches = db.prepare(`
       SELECT COUNT(*) as count FROM tournament_matches 
       WHERE tournament_id = ? AND status IN ('pending', 'active')

@@ -428,7 +428,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       fastify.log.info(`🚀 Starting tournament ${tournamentId} with ${playerCount.count} players. Participants: ${JSON.stringify(participants)}`);
       
       try {
-        const startedTournament = TournamentService.startTournament(tournamentId, userId);
+        const startedTournament = TournamentService.startTournament(tournamentId, userId, fastify);
         
         // Verify matches were created
         const createdMatches = db.prepare('SELECT COUNT(*) as count FROM tournament_matches WHERE tournament_id = ?').get(tournamentId) as { count: number };
@@ -573,7 +573,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
 
       // Utiliser la méthode TournamentManager pour compléter le match (avec validation automatique)
       try {
-        TournamentService.completeMatch(activeMatch.match_id, winnerId, score.left, score.right);
+        TournamentService.completeMatch(activeMatch.match_id, winnerId, score.left, score.right, fastify);
       } catch (error) {
         fastify.log.error(`Error completing tournament match: ${error}`);
         const errorMessage = error instanceof Error ? error.message : 'Failed to complete tournament match';
@@ -656,7 +656,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      TournamentService.startMatch(matchId, userId);
+      TournamentService.startMatch(matchId, userId, fastify);
       return reply.send({ success: true, message: 'Match started successfully' });
     } catch (error) {
       fastify.log.error(error, 'Error starting match');
