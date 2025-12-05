@@ -331,53 +331,53 @@ export async function GameSessionDetailView() {
         <!-- Blockchain Verification -->
         <div class="bg-prem rounded-lg p-8 shadow-xl">
           <h3 class="font-display text-2xl font-bold text-text mb-6">
-            🔗 Blockchain Verification
+            🔗 ${t('matchDetails.blockchainVerification')}
           </h3>
           <div class="bg-green-500/20 border border-green-500/30 rounded-lg p-4 mb-4">
             <div class="flex items-center space-x-2 mb-2">
               <span class="text-green-400">✅</span>
-              <span class="font-semibold text-green-400">${blockchainData.is_verified ? 'Verified on Blockchain' : 'Stored on Blockchain'}</span>
+              <span class="font-semibold text-green-400">${blockchainData.is_verified ? t('matchDetails.verifiedOnBlockchain') : t('matchDetails.storedOnBlockchain')}</span>
             </div>
-            <p class="text-sm text-text/70">This match result has been permanently stored on the Avalanche blockchain for integrity and verification.</p>
+            <p class="text-sm text-text/70">${t('matchDetails.blockchainDescription')}</p>
           </div>
           
           <div class="space-y-3">
             <div class="flex justify-between items-center">
-              <span class="text-text/70">Transaction Hash</span>
+              <span class="text-text/70">${t('matchDetails.transactionHash')}</span>
               <a href="${blockchainData.network_info?.explorer_url || '#'}" target="_blank" rel="noopener noreferrer" class="font-mono text-sm text-blue-400 hover:text-blue-300 break-all">
                 ${blockchainData.tx_hash ? `${blockchainData.tx_hash.substring(0, 20)}...` : 'N/A'}
               </a>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-text/70">Blockchain Match ID</span>
+              <span class="text-text/70">${t('matchDetails.blockchainMatchId')}</span>
               <span class="font-mono text-sm text-text break-all">${blockchainData.blockchain_match_id ? `${blockchainData.blockchain_match_id.substring(0, 20)}...` : 'N/A'}</span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-text/70">Network</span>
+              <span class="text-text/70">${t('matchDetails.network')}</span>
               <span class="text-text font-semibold">${blockchainData.network_info?.networkName || 'Avalanche Fuji Testnet'}</span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-text/70">Verification Status</span>
+              <span class="text-text/70">${t('matchDetails.verificationStatus')}</span>
               <span class="text-text font-semibold ${blockchainData.is_verified ? 'text-green-400' : 'text-yellow-400'}">${blockchainData.verification_status || 'STORED'}</span>
             </div>
             ${blockchainData.blockchain_data ? `
               <div class="mt-4 pt-4 border-t border-text/10">
-                <h4 class="text-sm font-semibold text-text mb-2">Blockchain Data</h4>
+                <h4 class="text-sm font-semibold text-text mb-2">${t('matchDetails.blockchainData')}</h4>
                 <div class="bg-sec/20 rounded p-3 space-y-1 text-sm">
                   <div class="flex justify-between">
-                    <span class="text-text/70">Players:</span>
+                    <span class="text-text/70">${t('matchDetails.players')}:</span>
                     <span class="text-text">${blockchainData.blockchain_data.player1Name} vs ${blockchainData.blockchain_data.player2Name}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Score:</span>
+                    <span class="text-text/70">${t('matchDetails.score')}:</span>
                     <span class="text-text">${blockchainData.blockchain_data.player1Score} - ${blockchainData.blockchain_data.player2Score}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Winner:</span>
+                    <span class="text-text/70">${t('matchDetails.winner')}:</span>
                     <span class="text-text">${blockchainData.blockchain_data.winner}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Round:</span>
+                    <span class="text-text/70">${t('matchDetails.round')}:</span>
                     <span class="text-text">${blockchainData.blockchain_data.round}</span>
                   </div>
                 </div>
