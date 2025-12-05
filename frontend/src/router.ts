@@ -15,6 +15,8 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/2fa-login": async () => (await import("./views/TwoFactorLogin")).default(),
   "/2fa-settings": async () => (await import("./views/TwoFactorAuth")).default(),
   "/profile": async () => (await import("./views/profile")).default(),
+  "/dashboard": async () => (await import("./views/dashboard")).default(),
+  "/stats": async () => (await import("./views/dashboard")).default(),
   "/chat": async () => (await import("./views/Chat")).default(),
   "/match": async () => (await import("./views/Match")).default(),
   "/partie": async () => (await import("./views/partie-view")).PartieView(),
@@ -25,10 +27,13 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/auth/oauth42/callback": async () => (await import("./views/oauth42-callback")).default()
 };
 
-// Route dynamique pour les détails de tournoi
+// Route dynamique pour les détails de tournoi et sessions de jeu
 function getDynamicRoute(path: string): (() => Promise<HTMLElement>) | null {
   if (path.startsWith('/tournament/')) {
     return async () => (await import("./views/tournament-detail-view")).TournamentDetailView();
+  }
+  if (path.startsWith('/game-session/')) {
+    return async () => (await import("./views/game-session-detail")).GameSessionDetailView();
   }
   return null;
 }

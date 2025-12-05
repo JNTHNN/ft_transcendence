@@ -93,6 +93,9 @@ export class MenuManager {
           <button data-navigate="/partie" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.play')}
           </button>
+          <button data-navigate="/dashboard" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+            ${t('nav.dashboard')}
+          </button>
           <button data-navigate="/chat" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.chat')}
           </button>

@@ -34,6 +34,8 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
       const matches = db.prepare(`
         SELECT 
           m.id,
+          m.player1_id,
+          m.player2_id,
           m.player1_score,
           m.player2_score,
           m.winner_id,
@@ -816,6 +818,131 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     } catch (e) {
       app.log.error(e);
       return res.status(500).send({ error: 'Stats load failed' });
+    }
+  });
+
+  // Route pour récupérer les statistiques étendues de l'utilisateur connecté
+  app.get('/users/me/stats', { preHandler: app.auth }, async (req: any, res) => {
+    try {
+      const uid = req.user?.uid;
+      if (!uid) return res.status(401).send({ error: 'Unauthorized' });
+
+      // Statistiques de base
+      const basicStats = db.prepare(`
+        SELECT 
+          COUNT(*) as totalGames,
+          SUM(CASE WHEN winner_id = ? THEN 1 ELSE 0 END) as wins,
+          SUM(CASE WHEN winner_id != ? AND winner_id IS NOT NULL THEN 1 ELSE 0 END) as losses,
+          AVG(CASE WHEN player1_id = ? THEN player1_score WHEN player2_id = ? THEN player2_score END) as avgScore,
+          MAX(CASE WHEN player1_id = ? THEN player1_score WHEN player2_id = ? THEN player2_score END) as bestScore,
+          SUM(COALESCE(duration, 0)) as totalPlayTime,
+          AVG(COALESCE(duration, 0)) as avgDuration
+        FROM match_history 
+        WHERE player1_id = ? OR player2_id = ?
+      `).get(uid, uid, uid, uid, uid, uid, uid, uid) as any;
+
+      // Statistiques par mode de jeu
+      const modeStats = db.prepare(`
+        SELECT 
+          match_type,
+          COUNT(*) as total,
+          SUM(CASE WHEN winner_id = ? THEN 1 ELSE 0 END) as wins,
+          SUM(CASE WHEN winner_id != ? AND winner_id IS NOT NULL THEN 1 ELSE 0 END) as losses
+        FROM match_history 
+        WHERE player1_id = ? OR player2_id = ?
+        GROUP BY match_type
+      `).all(uid, uid, uid, uid);
+
+      // Jeux cette semaine et ce mois
+      const timeStats = db.prepare(`
+        SELECT 
+          SUM(CASE WHEN created_at > datetime('now', '-7 days') THEN 1 ELSE 0 END) as gamesThisWeek,
+          SUM(CASE WHEN created_at > datetime('now', '-30 days') THEN 1 ELSE 0 END) as gamesThisMonth
+        FROM match_history 
+        WHERE player1_id = ? OR player2_id = ?
+      `).get(uid, uid) as any;
+
+      // Progression récente (derniers matchs avec score)
+      const recentPerformance = db.prepare(`
+        SELECT 
+          id as match_id,
+          CASE WHEN winner_id = ? THEN 'win' ELSE 'loss' END as result,
+          CASE WHEN player1_id = ? THEN player1_score ELSE player2_score END as score,
+          created_at
+        FROM match_history 
+        WHERE player1_id = ? OR player2_id = ?
+        ORDER BY created_at DESC
+        LIMIT 10
+      `).all(uid, uid, uid, uid);
+
+      // Calcul des streaks (série de victoires/défaites)
+      const matches = db.prepare(`
+        SELECT CASE WHEN winner_id = ? THEN 'win' ELSE 'loss' END as result
+        FROM match_history 
+        WHERE player1_id = ? OR player2_id = ?
+        ORDER BY created_at DESC
+        LIMIT 50
+      `).all(uid, uid, uid);
+
+      let currentStreak = 0;
+      let bestStreak = 0;
+      let tempStreak = 0;
+      let lastResult = null;
+
+      for (const match of matches) {
+        if (lastResult === null) {
+          lastResult = (match as any).result;
+          currentStreak = 1;
+          tempStreak = 1;
+        } else if ((match as any).result === lastResult) {
+          currentStreak++;
+          tempStreak++;
+        } else {
+          if (lastResult === 'win' && tempStreak > bestStreak) {
+            bestStreak = tempStreak;
+          }
+          lastResult = (match as any).result;
+          currentStreak = 1;
+          tempStreak = 1;
+        }
+      }
+
+      // Vérifier si le streak actuel est le meilleur
+      if (lastResult === 'win' && tempStreak > bestStreak) {
+        bestStreak = tempStreak;
+      }
+
+      // Transformer les stats par mode en objets
+      const winsByMode: { [mode: string]: number } = {};
+      const lossesByMode: { [mode: string]: number } = {};
+      
+      modeStats.forEach((stat: any) => {
+        winsByMode[stat.match_type] = stat.wins;
+        lossesByMode[stat.match_type] = stat.losses;
+      });
+
+      return res.send({
+        stats: {
+          totalGames: basicStats.totalGames || 0,
+          wins: basicStats.wins || 0,
+          losses: basicStats.losses || 0,
+          winRate: basicStats.totalGames ? ((basicStats.wins || 0) / basicStats.totalGames * 100).toFixed(1) : '0.0',
+          avgScore: basicStats.avgScore ? parseFloat(basicStats.avgScore).toFixed(1) : '0.0',
+          bestScore: basicStats.bestScore || 0,
+          totalPlayTime: Math.round(basicStats.totalPlayTime || 0),
+          averageGameDuration: Math.round(basicStats.avgDuration || 0),
+          currentStreak: currentStreak,
+          bestStreak: bestStreak,
+          gamesThisWeek: timeStats.gamesThisWeek || 0,
+          gamesThisMonth: timeStats.gamesThisMonth || 0,
+          winsByMode,
+          lossesByMode,
+          recentPerformance
+        }
+      });
+    } catch (e) {
+      app.log.error(e);
+      return res.status(500).send({ error: 'Extended stats load failed' });
     }
   });
 }
