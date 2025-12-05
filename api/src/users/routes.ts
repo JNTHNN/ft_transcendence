@@ -796,6 +796,7 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
           p1.avatar_url as player1Avatar,
           p2.display_name as player2Name,
           p2.avatar_url as player2Avatar,
+          tm.match_id as tournament_match_id,
           CASE 
             WHEN m.winner_id = ? THEN 'win' 
             WHEN m.winner_id IS NULL THEN 'draw'
@@ -805,6 +806,7 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         FROM match_history m
         JOIN users p1 ON p1.id = m.player1_id
         JOIN users p2 ON p2.id = m.player2_id
+        LEFT JOIN tournament_matches tm ON m.id = tm.id
         WHERE m.player1_id = ? OR m.player2_id = ?
         ORDER BY m.created_at DESC
         LIMIT 50
