@@ -21,6 +21,21 @@ function getLocalTime(dateString: string): string {
   return parts[parts.length - 1]; // Retourne la dernière partie qui est l'heure
 }
 
+// Helper pour formater la date locale depuis une date UTC
+function getLocalDate(dateString: string): string {
+  // S'assurer que la date est interprétée comme UTC
+  let dateStr = dateString;
+  if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z';
+  }
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
 interface UserStats {
   totalGames: number;
   wins: number;
@@ -175,7 +190,7 @@ export async function createUserStatsModal(userId: number, userName: string, ava
                     ${match.player1Name} vs ${match.player2Name}
                   </p>
                   <p class="text-sm text-gray-400">
-                    ${match.match_type === 'solo' ? 'Tournament' : match.match_type} • ${new Date(match.created_at).toLocaleDateString()} • ${getLocalTime(match.created_at)}
+                    ${match.match_type === 'solo' ? 'Tournament' : match.match_type} • ${getLocalDate(match.created_at)} • ${getLocalTime(match.created_at)}
                   </p>
                 </div>
               </div>
