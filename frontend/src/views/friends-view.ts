@@ -150,7 +150,7 @@ export async function FriendsView() {
           </div>
           <div class="flex space-x-2">
             <button 
-              onclick="viewProfile(${friend.id}, '${friend.displayName}')"
+              onclick="viewProfile(${friend.id}, '${friend.displayName}', '${friend.avatarUrl || ''}')"
               class="bg-gray-600 hover:bg-gray-500 text-text px-3 py-1 rounded text-sm transition"
             >
               ${t('friends.viewProfile')}
@@ -558,10 +558,10 @@ export async function FriendsView() {
     }
   };
 
-  (window as any).viewProfile = async (userId: number, userName: string) => {
+  (window as any).viewProfile = async (userId: number, userName: string, avatarUrl?: string) => {
     // Utiliser la fonction globale définie dans user-stats-modal.ts
     if ((window as any).viewUserStats) {
-      (window as any).viewUserStats(userId, userName);
+      (window as any).viewUserStats(userId, userName, avatarUrl);
     }
   };
 

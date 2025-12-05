@@ -374,7 +374,7 @@ ${t('stats.viewStatsAndHistory')}
   const viewStatsBtn = stats.querySelector("#view-my-stats") as HTMLButtonElement;
   viewStatsBtn.onclick = () => {
     if ((window as any).viewUserStats) {
-      (window as any).viewUserStats(user.id, user.displayName || user.email.split('@')[0]);
+      (window as any).viewUserStats(user.id, user.displayName || user.email.split('@')[0], user.avatarUrl);
     }
   };
 
