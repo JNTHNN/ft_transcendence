@@ -222,6 +222,12 @@ export default {
     pending: "En attente",
     active: "En cours",
     completed: "Terminé",
+    cancelled: "Annulé",
+    activeTournaments: "Tournois en cours",
+    completedTournaments: "Tournois terminés",
+    noWinner: "Pas de gagnant",
+    noDescription: "Pas de description",
+    join: "Rejoindre",
     bracket: "Tableau",
     round: "Tour {number}",
     final: "Finale",
@@ -506,5 +512,175 @@ export default {
     notFoundError: "Match introuvable",
     loadingError: "Échec du chargement des détails du match",
     loading: "Chargement..."
+  },
+
+  tournamentDetail: {
+    missingId: "ID de tournoi manquant",
+    backToTournaments: "Retour aux tournois",
+    loading: "Chargement...",
+    loadingTournament: "Chargement du tournoi...",
+    loadError: "Impossible de charger le tournoi",
+    tournamentNotFound: "Tournoi non trouvé",
+    unknownError: "Erreur inconnue",
+    
+    // Status
+    players: "joueurs",
+    
+    // Actions
+    startTournament: "Démarrer le tournoi",
+    deleteTournament: "Supprimer le tournoi",
+    playMatch: "Jouer le match",
+    resetMatch: "Reset match",
+    leaveTournament: "Quitter le tournoi",
+    joinTournament: "Rejoindre",
+    blockchainProof: "Preuve blockchain",
+    
+    // Start button states
+    needMorePlayers: "Besoin de plus de joueurs",
+    needPowerOfTwo: "Besoin de 2, 4 ou 8 joueurs",
+    
+    // Sections
+    information: "Informations",
+    description: "Description",
+    noDescription: "Aucune description",
+    type: "Type",
+    createdOn: "Créé le",
+    winner: "Gagnant",
+    playerNumber: "Joueur #",
+    free: "Libre",
+    eliminated: "Éliminé",
+    bracket: "Bracket",
+    matchHistory: "Historique des Matchs",
+    noMatchesYet: "Aucun match joué pour l'instant",
+    matchesWillAppear: "Les matchs apparaîtront ici une fois qu'ils auront été joués",
+    
+    // Tournament types
+    elimination: "Élimination",
+    roundRobin: "Round Robin",
+    
+    // Tournament status (for display)
+    statusWaiting: "EN ATTENTE",
+    statusActive: "ACTIF",
+    statusCompleted: "TERMINÉ",
+    statusCancelled: "ANNULÉ",
+    
+    // Match status (lowercase for UI text)
+    completed: "Terminé",
+    active: "En cours",
+    pending: "En attente",
+    cancelled: "Annulé",
+    
+    // Round names
+    final: "Finale",
+    semiFinals: "Demi-finales",
+    quarterFinals: "Quart de finale",
+    round: "Round",
+    match: "Match",
+    
+    // Match card
+    vs: "vs",
+    wins: "remporte le match",
+    duration: "Durée",
+    
+    // Blockchain
+    blockchainProofDetailed: "Preuve Blockchain Détaillée",
+    tournamentVerified: "Tournoi vérifié sur blockchain",
+    storedPermanently: "Ce tournoi et ses résultats sont stockés de manière permanente et immuable sur la blockchain Avalanche Fuji Testnet.",
+    decodedData: "Données Décodées",
+    localDatabase: "Base de Données Locale",
+    blockchainAvalanche: "Blockchain Avalanche",
+    cryptographicHash: "Hash Cryptographique",
+    contains: "Contient",
+    score: "Score",
+    storedOn: "Stocké le",
+    blockchainStatus: "Status Blockchain",
+    finalizedImmutable: "Finalisé et immuable",
+    inProgress: "En cours de finalisation",
+    integrityProof: "Preuve d'Intégrité",
+    cryptoProofText: "Ce hash Keccak256 est la preuve cryptographique que les résultats exacts du match sont stockés de manière immuable sur la blockchain Avalanche.",
+    blockchainGuarantee: "Garantie Blockchain",
+    guaranteeText: "Ce hash cryptographique prouve que les résultats du match sont stockés de manière permanente et immuable sur la blockchain Avalanche.",
+    coherenceVerification: "Vérification de Cohérence",
+    exactMatch: "Correspondance exacte",
+    syncing: "En cours de synchronisation",
+    scores: "Scores",
+    transactionHash: "Transaction Hash",
+    network: "Réseau",
+    integrity: "Intégrité",
+    verified: "Vérifiée",
+    verificationFailed: "Échec de vérification",
+    contractAddress: "Adresse du Contrat",
+    blockchainGuarantees: "Garanties Blockchain",
+    immutability: "Immutabilité",
+    immutabilityText: "Les données ne peuvent pas être modifiées après stockage",
+    transparency: "Transparence",
+    transparencyText: "Toutes les transactions sont publiques et vérifiables",
+    decentralization: "Décentralisation",
+    decentralizationText: "Aucune entité unique ne contrôle les données",
+    timestamp: "Horodatage",
+    timestampText: "Preuve cryptographique de la date/heure de stockage",
+    viewOnSnowTrace: "Voir sur Snowtrace",
+    rawData: "Données Brutes",
+    
+    // Confirmations
+    confirmStart: "Démarrer le tournoi maintenant ? Aucun autre joueur ne pourra rejoindre après.",
+    confirmLeave: "Êtes-vous sûr de vouloir quitter ce tournoi ?",
+    confirmDelete: "⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce tournoi ?\\n\\nCette action est irréversible et supprimera :\\n- Le tournoi\\n- Tous les participants\\n- Tous les matchs associés",
+    confirmReset: "Réinitialiser votre dernier match ? Ceci annulera la partie en cours ou récente.",
+    
+    // Errors
+    joinError: "Erreur lors de l'inscription au tournoi",
+    leaveError: "Erreur lors de la sortie du tournoi",
+    playError: "Erreur lors du lancement du match",
+    startError: "Impossible de démarrer le match",
+    resetError: "Erreur lors de la réinitialisation",
+    resetSuccess: "Match réinitialisé avec succès ! (était en statut: {status})\\nVous pouvez maintenant relancer une partie.",
+    resetFailed: "Erreur lors de la réinitialisation du match.",
+    noResettableMatch: "Aucun match à réinitialiser trouvé. Le match est peut-être déjà terminé ou vous n'y participez pas.",
+    notParticipant: "Vous ne participez pas à ce match.",
+    deleteError: "Erreur lors de la suppression du tournoi",
+    blockchainError: "Erreur lors de la récupération des informations blockchain",
+    rawDataError: "Erreur lors de la récupération des données brutes",
+    
+    // Messages
+    missingTournamentId: "Erreur: ID du tournoi manquant",
+    noMatchWaiting: "Aucun match en attente pour vous dans ce tournoi",
+    blockedMatchConfirm: "Vous avez un match en cours qui semble bloqué. Voulez-vous le réinitialiser et recommencer ?",
+    needTwoPlayers: "Le tournoi a besoin d'au moins 2 joueurs pour commencer.\\n\\nActuellement: {current} joueur(s)\\nManquant: {needed} joueur(s)",
+    needPowerOfTwoPlayers: "Les tournois d'élimination nécessitent exactement 2, 4 ou 8 joueurs.\\n\\nActuellement: {current} joueur(s)\\nProchain nombre valide: {next} joueurs\\n\\nAjoutez {toAdd} joueur(s) ou supprimez-en pour atteindre 2 ou 4."
+  },
+
+  blockchainModal: {
+    title: "Preuve Blockchain",
+    verified: "VÉRIFIÉ",
+    inconsistency: "INCOHÉRENCE",
+    notStored: "NON STOCKÉ",
+    blockchainInfo: "Informations Blockchain",
+    stored: "Stocké",
+    notStoredLower: "Non stocké",
+    smartContract: "Contrat Smart Contract",
+    notAvailable: "Non disponible",
+    matchState: "État du Match",
+    storedAt: "Stocké le",
+    undetermined: "Non déterminé",
+    integrityVerification: "Vérification d'Intégrité des Données",
+    localDatabase: "Base de Données Locale",
+    player1Score: "Score J1",
+    player2Score: "Score J2",
+    verificationResult: "Résultat de la Vérification",
+    integrityVerified: "INTÉGRITÉ VÉRIFIÉE",
+    allStatsMatch: "Toutes les statistiques correspondent parfaitement entre la base locale et la blockchain",
+    inconsistencyDetected: "INCOHÉRENCE DÉTECTÉE",
+    statsDoNotMatch: "Une ou plusieurs statistiques ne correspondent pas entre la base locale et la blockchain",
+    unavailable: "Données Blockchain Indisponibles",
+    unavailableText: "Les données blockchain pour ce match ne sont pas disponibles ou n'ont pas pu être récupérées.",
+    cryptographicProof: "Preuve Cryptographique",
+    dataHash: "Hash de Données",
+    cryptoHashVerified: "Hash cryptographique vérifié",
+    keccakProofText: "Ce hash Keccak256 contient les statistiques du match stockées de manière immuable sur la blockchain Avalanche Fuji.",
+    includedData: "Données incluses",
+    includedDataText: "Scores des joueurs, index du gagnant, round, timestamp du match",
+    rawJsonData: "Données Brutes JSON",
+    rawDataModalTitle: "Données Blockchain Brutes - Match"
   }
 };

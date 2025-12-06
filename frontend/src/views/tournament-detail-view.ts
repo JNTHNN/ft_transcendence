@@ -1,4 +1,5 @@
 import { api } from "../api-client";
+import { t } from "../i18n/index.js";
 
 interface Tournament {
   id: string;
@@ -44,8 +45,8 @@ export async function TournamentDetailView() {
   if (!tournamentId) {
     wrap.innerHTML = `
       <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-        <p class="text-red-400">❌ ID de tournoi manquant</p>
-        <a href="/tournois" class="text-sec hover:underline">← Retour aux tournois</a>
+        <p class="text-red-400">❌ ${t('tournamentDetail.missingId')}</p>
+        <a href="/tournois" class="text-sec hover:underline">← ${t('tournamentDetail.backToTournaments')}</a>
       </div>
     `;
     return wrap;
@@ -53,10 +54,10 @@ export async function TournamentDetailView() {
 
   wrap.innerHTML = `
     <div class="mb-6">
-      <a href="/tournois" class="text-sec hover:underline mb-4 inline-block">← Retour aux tournois</a>
+      <a href="/tournois" class="text-sec hover:underline mb-4 inline-block">← ${t('tournamentDetail.backToTournaments')}</a>
       <div id="tournament-header" class="flex justify-between items-center">
         <div>
-          <h1 id="tournament-title" class="font-display font-black text-4xl text-text">Chargement...</h1>
+          <h1 id="tournament-title" class="font-display font-black text-4xl text-text">${t('tournamentDetail.loading')}</h1>
           <div id="tournament-status" class="mt-2"></div>
         </div>
         <div id="tournament-actions" class="flex gap-3"></div>
@@ -66,7 +67,7 @@ export async function TournamentDetailView() {
     <div id="tournament-content" class="space-y-6">
       <div class="text-center py-12">
         <div class="animate-spin w-12 h-12 border-4 border-sec border-t-transparent rounded-full mx-auto mb-4"></div>
-        <p class="text-text/70">Chargement du tournoi...</p>
+        <p class="text-text/70">${t('tournamentDetail.loadingTournament')}</p>
       </div>
     </div>
   `;
@@ -98,10 +99,10 @@ export async function TournamentDetailView() {
     
   } catch (error: unknown) {
     const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
-    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+    const errorMessage = error instanceof Error ? error.message : t('tournamentDetail.unknownError');
     content.innerHTML = `
       <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-        <p class="text-red-400">❌ Impossible de charger le tournoi</p>
+        <p class="text-red-400">❌ ${t('tournamentDetail.loadError')}</p>
         <p class="text-text/70 mt-2">${errorMessage}</p>
       </div>
     `;
@@ -127,8 +128,8 @@ async function loadTournamentDetails(wrap: HTMLDivElement, tournamentId: string)
     updateContent(wrap, tournament, participants, matches, userMe);
     
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-    throw new Error(`Tournoi non trouvé: ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : t('tournamentDetail.unknownError');
+    throw new Error(`${t('tournamentDetail.tournamentNotFound')}: ${errorMessage}`);
   }
 }
 
@@ -142,9 +143,9 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
   status.innerHTML = `
     <div class="flex items-center gap-4">
       <span class="px-3 py-1 ${getStatusColor(tournament.status)} text-white rounded-full font-medium">
-        ${getStatusIcon(tournament.status)} ${tournament.status.toUpperCase()}
+        ${getStatusIcon(tournament.status)} ${getStatusText(tournament.status)}
       </span>
-      <span class="text-text/70">👥 ${tournament.current_players}/${tournament.max_players} joueurs</span>
+      <span class="text-text/70">👥 ${tournament.current_players}/${tournament.max_players} ${t('tournamentDetail.players')}</span>
 
     </div>
   `;
@@ -159,9 +160,9 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
         const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
         const canStart = participants.length >= 2 && (tournament.tournament_type !== 'elimination' || isPowerOfTwo(participants.length));
         const startButtonClass = canStart ? "bg-green-500 hover:bg-green-600" : "bg-gray-500 cursor-not-allowed";
-        const startButtonText = canStart ? "🚀 Démarrer le tournoi" : 
-          (participants.length < 2 ? "⏳ Besoin de plus de joueurs" :
-           (!isPowerOfTwo(participants.length) ? "⚠️ Besoin de 2, 4 ou 8 joueurs" : "🚀 Démarrer le tournoi"));
+        const startButtonText = canStart ? `🚀 ${t('tournamentDetail.startTournament')}` : 
+          (participants.length < 2 ? `⏳ ${t('tournamentDetail.needMorePlayers')}` :
+           (!isPowerOfTwo(participants.length) ? `⚠️ ${t('tournamentDetail.needPowerOfTwo')}` : `🚀 ${t('tournamentDetail.startTournament')}`));
 
         actionsHtml += `
           <button onclick="${canStart ? `startTournament('${tournament.id}')` : 'showTournamentStartError()'}" 
@@ -170,7 +171,7 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
             ${startButtonText}
           </button>
           <button onclick="deleteTournament('${tournament.id}')" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2 rounded-lg">
-            🗑️ Supprimer le tournoi
+            🗑️ ${t('tournamentDetail.deleteTournament')}
           </button>
         `;
       }
@@ -182,10 +183,10 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
       if (userParticipant) {
         actionsHtml += `
           <button onclick="playTournamentMatch('${tournament.id}')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2 rounded-lg">
-            🎮 Jouer le match
+            🎮 ${t('tournamentDetail.playMatch')}
           </button>
-          <button onclick="resetStaleMatch('${tournament.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded-lg" title="Réinitialiser un match bloqué">
-            🔄 Reset match
+          <button onclick="resetStaleMatch('${tournament.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded-lg" title="${t('tournamentDetail.resetMatch')}">
+            🔄 ${t('tournamentDetail.resetMatch')}
           </button>
         `;
       }
@@ -199,14 +200,14 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
         // L'utilisateur a rejoint - afficher le bouton "Quitter"
         actionsHtml += `
           <button onclick="leaveTournament('${tournament.id}')" class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg">
-            ❌ Quitter le tournoi
+            ❌ ${t('tournamentDetail.leaveTournament')}
           </button>
         `;
       } else if (tournament.current_players < tournament.max_players) {
         // L'utilisateur n'a pas rejoint et il y a de la place
         actionsHtml += `
           <button onclick="joinTournament('${tournament.id}')" class="bg-sec hover:bg-sec/80 text-text font-bold px-6 py-2 rounded-lg">
-            ➕ Rejoindre
+            ➕ ${t('tournamentDetail.joinTournament')}
           </button>
         `;
       }
@@ -229,22 +230,22 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
   // Informations générales
   contentHtml += `
     <div class="bg-prem rounded-lg shadow-xl p-6">
-      <h2 class="text-2xl font-bold text-text mb-4">📋 Informations</h2>
+      <h2 class="text-2xl font-bold text-text mb-4">📋 ${t('tournamentDetail.information')}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <p class="text-text/70 mb-2">Description:</p>
-          <p class="text-text">${tournament.description || 'Aucune description'}</p>
+          <p class="text-text/70 mb-2">${t('tournamentDetail.description')}:</p>
+          <p class="text-text">${tournament.description || t('tournamentDetail.noDescription')}</p>
           
-          <p class="text-text/70 mt-4 mb-2">Type:</p>
-          <p class="text-text">${tournament.tournament_type === 'elimination' ? '🏆 Élimination' : '🔄 Round Robin'}</p>
+          <p class="text-text/70 mt-4 mb-2">${t('tournamentDetail.type')}:</p>
+          <p class="text-text">${tournament.tournament_type === 'elimination' ? `🏆 ${t('tournamentDetail.elimination')}` : `🔄 ${t('tournamentDetail.roundRobin')}`}</p>
         </div>
         <div>
-          <p class="text-text/70 mb-2">Créé le:</p>
+          <p class="text-text/70 mb-2">${t('tournamentDetail.createdOn')}:</p>
           <p class="text-text">${new Date(tournament.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
           
           ${tournament.winner_id ? `
-            <p class="text-text/70 mt-4 mb-2">Gagnant:</p>
-            <p class="text-green-400 font-bold">🏆 Joueur #${tournament.winner_id}</p>
+            <p class="text-text/70 mt-4 mb-2">${t('tournamentDetail.winner')}:</p>
+            <p class="text-green-400 font-bold">🏆 ${t('tournamentDetail.playerNumber')}${tournament.winner_id}</p>
           ` : ''}
         </div>
       </div>
@@ -254,7 +255,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
   // Participants
   contentHtml += `
     <div class="bg-prem rounded-lg shadow-xl p-6">
-      <h2 class="text-2xl font-bold text-text mb-4">👥 Participants</h2>
+      <h2 class="text-2xl font-bold text-text mb-4">👥 ${t('tournamentDetail.participants')}</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         ${participants.map((participant, _index) => `
           <div class="bg-gray-800 rounded-lg p-3 border border-gray-700" data-participant-id="${participant.id}">
@@ -267,7 +268,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
                 }
               </div>
               <p class="text-text font-medium">${participant.username}</p>
-              ${participant.eliminated_at ? '<p class="text-red-400 text-sm">❌ Éliminé</p>' : ''}
+              ${participant.eliminated_at ? `<p class="text-red-400 text-sm">❌ ${t('tournamentDetail.eliminated')}</p>` : ''}
             </div>
           </div>
         `).join('')}
@@ -278,7 +279,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
               <div class="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-2">
                 <span class="text-gray-400">?</span>
               </div>
-              <p class="text-gray-400">Libre</p>
+              <p class="text-gray-400">${t('tournamentDetail.free')}</p>
             </div>
           </div>
         `).join('')}
@@ -319,7 +320,7 @@ function generateBracket(tournament: Tournament, participants: any[], matches: T
 
   let bracketHtml = `
     <div class="bg-prem rounded-lg shadow-xl p-6">
-      <h2 class="text-2xl font-bold text-text mb-6">🏆 Bracket</h2>
+      <h2 class="text-2xl font-bold text-text mb-6">🏆 ${t('tournamentDetail.bracket')}</h2>
       <div class="overflow-x-auto">
         <div class="flex gap-8 min-w-fit">
   `;
@@ -328,13 +329,13 @@ function generateBracket(tournament: Tournament, participants: any[], matches: T
     const roundMatches = matchesByRound[roundNumber];
     
     // Determine round name based on position from the end
-    let roundName = `Round ${roundNumber}`;
+    let roundName = `${t('tournamentDetail.round')} ${roundNumber}`;
     if (roundNumber === totalExpectedRounds) {
-      roundName = 'Finale';
+      roundName = t('tournamentDetail.final');
     } else if (roundNumber === totalExpectedRounds - 1) {
-      roundName = 'Demi-finales';
+      roundName = t('tournamentDetail.semiFinals');
     } else if (roundNumber === totalExpectedRounds - 2) {
-      roundName = 'Quart de finale';
+      roundName = t('tournamentDetail.quarterFinals');
     }
 
     bracketHtml += `
@@ -369,27 +370,27 @@ function generateBracket(tournament: Tournament, participants: any[], matches: T
 }
 
 function generateMatchCard(match: TournamentMatch): string {
-  const player1 = match.player1_username || (match.player1_id ? `Joueur #${match.player1_id}` : '...');
-  const player2 = match.player2_username || (match.player2_id ? `Joueur #${match.player2_id}` : '...');
+  const player1 = match.player1_username || (match.player1_id ? `${t('tournamentDetail.playerNumber')}${match.player1_id}` : '...');
+  const player2 = match.player2_username || (match.player2_id ? `${t('tournamentDetail.playerNumber')}${match.player2_id}` : '...');
   
   let statusHtml = '';
   
   if (match.status === 'completed') {
     statusHtml = `
       <div class="text-center mt-2">
-        <span class="text-green-400 text-sm">✅ Terminé</span>
+        <span class="text-green-400 text-sm">✅ ${t('tournamentDetail.completed')}</span>
       </div>
     `;
   } else if (match.status === 'active') {
     statusHtml = `
       <div class="text-center mt-2">
-        <span class="text-yellow-400 text-sm">⚡ En cours</span>
+        <span class="text-yellow-400 text-sm">⚡ ${t('tournamentDetail.active')}</span>
       </div>
     `;
   } else {
     statusHtml = `
       <div class="text-center mt-2">
-        <span class="text-gray-400 text-sm">⏳ En attente</span>
+        <span class="text-gray-400 text-sm">⏳ ${t('tournamentDetail.pending')}</span>
       </div>
     `;
   }
@@ -419,22 +420,22 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
   
   let historyHtml = `
     <div class="bg-prem rounded-lg shadow-xl p-6">
-      <h2 class="text-2xl font-bold text-text mb-6">📈 Historique des Matchs</h2>
+      <h2 class="text-2xl font-bold text-text mb-6">📈 ${t('tournamentDetail.matchHistory')}</h2>
   `;
 
   if (sortedMatches.length === 0) {
     historyHtml += `
       <div class="text-center py-8">
-        <p class="text-text/60">🎮 Aucun match joué pour l'instant</p>
-        <p class="text-text/40 text-sm mt-2">Les matchs apparaîtront ici une fois qu'ils auront été joués</p>
+        <p class="text-text/60">🎮 ${t('tournamentDetail.noMatchesYet')}</p>
+        <p class="text-text/40 text-sm mt-2">${t('tournamentDetail.matchesWillAppear')}</p>
       </div>
     `;
   } else {
     historyHtml += `<div class="space-y-4">`;
     
     sortedMatches.forEach((match, _index) => {
-      const player1 = match.player1_username || (match.player1_id ? `Joueur #${match.player1_id}` : '...');
-      const player2 = match.player2_username || (match.player2_id ? `Joueur #${match.player2_id}` : '...');
+      const player1 = match.player1_username || (match.player1_id ? `${t('tournamentDetail.playerNumber')}${match.player1_id}` : '...');
+      const player2 = match.player2_username || (match.player2_id ? `${t('tournamentDetail.playerNumber')}${match.player2_id}` : '...');
       
       // Calculer la durée du match si disponible
       let duration = '';
@@ -478,22 +479,22 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
         case 'completed':
           statusClass = 'bg-green-500/10 border-green-500/30 text-green-400';
           statusIcon = '✅';
-          statusText = 'Terminé';
+          statusText = t('tournamentDetail.completed');
           break;
         case 'active':
           statusClass = 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400';
           statusIcon = '⚡';
-          statusText = 'En cours';
+          statusText = t('tournamentDetail.active');
           break;
         case 'cancelled':
           statusClass = 'bg-red-500/10 border-red-500/30 text-red-400';
           statusIcon = '❌';
-          statusText = 'Annulé';
+          statusText = t('tournamentDetail.cancelled');
           break;
         default:
           statusClass = 'bg-gray-500/10 border-gray-500/30 text-gray-400';
           statusIcon = '⏳';
-          statusText = 'En attente';
+          statusText = t('tournamentDetail.pending');
       }
 
       historyHtml += `
@@ -501,7 +502,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
           <div class="flex justify-between items-start mb-3">
             <div class="flex-1">
               <h3 class="text-text font-semibold mb-1">
-                Round ${match.round_number} - Match ${match.match_order}
+                ${t('tournamentDetail.round')} ${match.round_number} - ${t('tournamentDetail.match')} ${match.match_order}
               </h3>
               ${matchDateHtml}
             </div>
@@ -512,8 +513,8 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               ${match.status === 'completed' && match.blockchain_tx_hash ? `
                 <button onclick="viewMatchBlockchainProof('${match.match_id}')" 
                         class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded-lg transition-colors"
-                        title="Voir la preuve blockchain de ce match">
-                  ⛓️ Preuve
+                        title="${t('tournamentDetail.viewBlockchainProof')}">
+                  ⛓️ Blockchain
                 </button>
               ` : ''}
             </div>
@@ -528,7 +529,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
                   <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player1_id ? 'ring-2 ring-green-500' : ''}">
                     <span class="text-text font-bold text-lg">${player1.charAt(0).toUpperCase()}</span>
                   </div>
-                  ${match.status === 'completed' && match.winner_id === match.player1_id && match.player2_id ? '<div class="text-green-400 text-xs mt-1">🏆 Gagnant</div>' : ''}
+                  ${match.status === 'completed' && match.winner_id === match.player1_id && match.player2_id ? `<div class="text-green-400 text-xs mt-1">🏆 ${t('tournamentDetail.winner')}</div>` : ''}
                 </div>
               </div>
 
@@ -547,7 +548,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
                   <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player2_id ? 'ring-2 ring-green-500' : ''}">
                     <span class="text-text font-bold text-lg">${player2.charAt(0).toUpperCase()}</span>
                   </div>
-                  ${match.status === 'completed' && match.winner_id === match.player2_id && match.player2_id ? '<div class="text-green-400 text-xs mt-1">🏆 Gagnant</div>' : ''}
+                  ${match.status === 'completed' && match.winner_id === match.player2_id && match.player2_id ? `<div class="text-green-400 text-xs mt-1">🏆 ${t('tournamentDetail.winner')}</div>` : ''}
                 </div>
               </div>
             </div>
@@ -556,7 +557,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
           ${match.status === 'completed' && winnerName ? `
             <div class="mt-3 text-center">
               <p class="text-text/70 text-sm">
-                🎉 <span class="text-green-400 font-semibold">${winnerName}</span> remporte le match ${scoreDisplay}
+                🎉 <span class="text-green-400 font-semibold">${winnerName}</span> ${t('tournamentDetail.wins')} ${scoreDisplay}
               </p>
             </div>
           ` : ''}
@@ -591,6 +592,16 @@ function getStatusIcon(status: string): string {
   }
 }
 
+function getStatusText(status: string): string {
+  switch (status) {
+    case 'waiting': return t('tournamentDetail.statusWaiting');
+    case 'active': return t('tournamentDetail.statusActive');
+    case 'completed': return t('tournamentDetail.statusCompleted');
+    case 'cancelled': return t('tournamentDetail.statusCancelled');
+    default: return status.toUpperCase();
+  }
+}
+
 // Fonctions globales pour les événements
 (window as any).joinTournament = async (tournamentId: string) => {
   try {
@@ -601,12 +612,12 @@ function getStatusIcon(status: string): string {
     
     window.location.reload();
   } catch (error) {
-    alert("Erreur lors de l'inscription au tournoi: " + (error as Error).message);
+    alert(t('tournamentDetail.joinError') + ": " + (error as Error).message);
   }
 };
 
 (window as any).leaveTournament = async (tournamentId: string) => {
-  if (!confirm("Êtes-vous sûr de vouloir quitter ce tournoi ?")) {
+  if (!confirm(t('tournamentDetail.confirmLeave'))) {
     return;
   }
 
@@ -617,14 +628,14 @@ function getStatusIcon(status: string): string {
     
     window.location.reload();
   } catch (error) {
-    alert("Erreur lors de la sortie du tournoi: " + (error as Error).message);
+    alert(t('tournamentDetail.leaveError') + ": " + (error as Error).message);
   }
 };
 
 (window as any).playTournamentMatch = async (tournamentId: string) => {
   try {
     if (!tournamentId) {
-      alert("Erreur: ID du tournoi manquant");
+      alert(t('tournamentDetail.missingTournamentId'));
       return;
     }
     
@@ -634,7 +645,7 @@ function getStatusIcon(status: string): string {
     if (!nextMatch || !nextMatch.match) {
       // Vérifier s'il y a un match actif bloqué
       if (nextMatch.activeMatchId && nextMatch.canRestart) {
-        if (confirm("Vous avez un match en cours qui semble bloqué. Voulez-vous le réinitialiser et recommencer ?")) {
+        if (confirm(t('tournamentDetail.blockedMatchConfirm'))) {
           try {
             await api(`/tournaments/${tournamentId}/reset-match`, {
               method: "POST",
@@ -643,12 +654,12 @@ function getStatusIcon(status: string): string {
             // Réessayer après reset
             return (window as any).playTournamentMatch(tournamentId);
           } catch (resetError: any) {
-            alert("Erreur lors de la réinitialisation: " + resetError.message);
+            alert(t('tournamentDetail.resetError') + ": " + resetError.message);
             return;
           }
         }
       }
-      alert(nextMatch.message || "Aucun match en attente pour vous dans ce tournoi");
+      alert(nextMatch.message || t('tournamentDetail.noMatchWaiting'));
       return;
     }
 
@@ -661,7 +672,7 @@ function getStatusIcon(status: string): string {
         body: JSON.stringify({ matchId: match.match_id })
       });
     } catch (startError: any) {
-      alert("Impossible de démarrer le match: " + startError.message);
+      alert(t('tournamentDetail.startError') + ": " + startError.message);
       return;
     }
     
@@ -679,13 +690,13 @@ function getStatusIcon(status: string): string {
     window.location.href = url;
   } catch (error) {
     console.error('Erreur playTournamentMatch:', error);
-    alert("Erreur lors du lancement du match: " + (error as Error).message);
+    alert(t('tournamentDetail.playError') + ": " + (error as Error).message);
   }
 };
 
 (window as any).resetStaleMatch = async (tournamentId: string) => {
   try {
-    if (!confirm("Réinitialiser votre dernier match ? Ceci annulera la partie en cours ou récente.")) {
+    if (!confirm(t('tournamentDetail.confirmReset'))) {
       return;
     }
 
@@ -696,20 +707,20 @@ function getStatusIcon(status: string): string {
     });
     
     if (result.success) {
-      alert(`Match réinitialisé avec succès ! (était en statut: ${result.previousStatus})\nVous pouvez maintenant relancer une partie.`);
+      alert(t('tournamentDetail.resetSuccess').replace('{status}', result.previousStatus));
       window.location.reload();
     } else {
-      alert("Erreur lors de la réinitialisation du match.");
+      alert(t('tournamentDetail.resetFailed'));
     }
   } catch (error: any) {
     console.error('Erreur resetStaleMatch:', error);
     
     // Messages d'erreur plus utiles
-    let errorMessage = "Erreur lors de la réinitialisation";
+    let errorMessage = t('tournamentDetail.resetError');
     if (error.message.includes("No resettable match found")) {
-      errorMessage = "Aucun match à réinitialiser trouvé. Le match est peut-être déjà terminé ou vous n'y participez pas.";
+      errorMessage = t('tournamentDetail.noResettableMatch');
     } else if (error.message.includes("not a participant")) {
-      errorMessage = "Vous ne participez pas à ce match.";
+      errorMessage = t('tournamentDetail.notParticipant');
     } else {
       errorMessage += ": " + error.message;
     }
@@ -719,7 +730,7 @@ function getStatusIcon(status: string): string {
 };
 
 (window as any).startTournament = async (tournamentId: string) => {
-  if (!confirm("Démarrer le tournoi maintenant ? Aucun autre joueur ne pourra rejoindre après.")) {
+  if (!confirm(t('tournamentDetail.confirmStart'))) {
     return;
   }
 
@@ -731,12 +742,12 @@ function getStatusIcon(status: string): string {
     
     window.location.reload();
   } catch (error) {
-    alert("Erreur lors du démarrage du tournoi: " + (error as Error).message);
+    alert(t('tournamentDetail.joinError') + ": " + (error as Error).message);
   }
 };
 
 (window as any).deleteTournament = async (tournamentId: string) => {
-  if (!confirm("⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce tournoi ?\n\nCette action est irréversible et supprimera :\n- Le tournoi\n- Tous les participants\n- Tous les matchs associés")) {
+  if (!confirm(t('tournamentDetail.confirmDelete'))) {
     return;
   }
 
@@ -748,7 +759,7 @@ function getStatusIcon(status: string): string {
     // Rediriger vers la page des tournois après suppression
     window.location.href = "/tournois";
   } catch (error) {
-    alert("Erreur lors de la suppression du tournoi: " + (error as Error).message);
+    alert(t('tournamentDetail.deleteError') + ": " + (error as Error).message);
   }
 };
 
@@ -934,7 +945,7 @@ function getStatusIcon(status: string): string {
     
     document.body.appendChild(modal);
   } catch (error) {
-    alert("Erreur lors de la récupération des informations blockchain");
+    alert(t('tournamentDetail.blockchainError'));
   }
 };
 
@@ -958,7 +969,7 @@ function getStatusIcon(status: string): string {
     
     document.body.appendChild(modal);
   } catch (error) {
-    alert("Erreur lors de la récupération des données brutes");
+    alert(t('tournamentDetail.rawDataError'));
   }
 };
 
@@ -992,19 +1003,19 @@ function getStatusIcon(status: string): string {
     modal.innerHTML = `
       <div class="bg-prem rounded-xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-text">⛓️ Preuve Blockchain - ${response.match_name}</h2>
+          <h2 class="text-2xl font-bold text-text">⛓️ ${t('blockchainModal.title')} - ${response.match_name}</h2>
           <div class="flex items-center gap-2">
             ${isVerified ? `
               <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">
-                ✅ VÉRIFIÉ
+                ✅ ${t('blockchainModal.verified')}
               </span>
             ` : response.blockchain_data ? `
               <span class="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm font-medium">
-                ❌ INCOHÉRENCE
+                ❌ ${t('blockchainModal.inconsistency')}
               </span>
             ` : `
               <span class="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-medium">
-                ⏳ NON STOCKÉ
+                ⏳ ${t('blockchainModal.notStored')}
               </span>
             `}
           </div>
@@ -1016,35 +1027,35 @@ function getStatusIcon(status: string): string {
           <!-- Informations Blockchain -->
           <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
             <h3 class="text-blue-400 font-bold mb-3 flex items-center gap-2">
-              <span class="text-xl">⛓️</span> Informations Blockchain
+              <span class="text-xl">⛓️</span> ${t('blockchainModal.blockchainInfo')}
             </h3>
             <div class="space-y-3 text-sm">
               <div>
-                <span class="text-text/70 block mb-1">Transaction Hash:</span>
+                <span class="text-text/70 block mb-1">${t('tournamentDetail.transactionHash')}:</span>
                 <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
-                  ${response.tx_hash || 'Non disponible'}
+                  ${response.tx_hash || t('blockchainModal.notAvailable')}
                 </code>
               </div>
               <div>
-                <span class="text-text/70 block mb-1">Match ID Blockchain:</span>
+                <span class="text-text/70 block mb-1">${t('tournamentDetail.blockchainMatchId')}:</span>
                 <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
-                  ${response.blockchain_match_id || 'Non disponible'}
+                  ${response.blockchain_match_id || t('blockchainModal.notAvailable')}
                 </code>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <span class="text-text/70 block mb-1">Réseau:</span>
+                  <span class="text-text/70 block mb-1">${t('matchDetails.network')}:</span>
                   <div class="text-text">${response.network_info?.network || 'Avalanche Fuji'}</div>
                 </div>
                 <div>
-                  <span class="text-text/70 block mb-1">Statut:</span>
-                  <div class="text-text">${response.is_stored ? '✅ Stocké' : '❌ Non stocké'}</div>
+                  <span class="text-text/70 block mb-1">${t('tournamentDetail.status')}:</span>
+                  <div class="text-text">${response.is_stored ? '✅ ' + t('blockchainModal.stored') : '❌ ' + t('blockchainModal.notStoredLower')}</div>
                 </div>
               </div>
               <div>
-                <span class="text-text/70 block mb-1">Contrat Smart Contract:</span>
+                <span class="text-text/70 block mb-1">${t('blockchainModal.smartContract')}:</span>
                 <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
-                  ${response.network_info?.contractAddress || 'Non disponible'}
+                  ${response.network_info?.contractAddress || t('blockchainModal.notAvailable')}
                 </code>
               </div>
               ${explorerLink}
@@ -1054,41 +1065,41 @@ function getStatusIcon(status: string): string {
           <!-- État du Match -->
           <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
             <h3 class="text-green-400 font-bold mb-3 flex items-center gap-2">
-              <span class="text-xl">🏆</span> État du Match
+              <span class="text-xl">🏆</span> ${t('blockchainModal.matchState')}
             </h3>
             <div class="space-y-3 text-sm">
               <div>
-                <span class="text-text/70 block mb-1">Participants:</span>
+                <span class="text-text/70 block mb-1">${t('tournament.participants')}:</span>
                 <div class="text-text">
                   <div class="flex items-center gap-2">
                     <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
-                    ${localData?.players?.[0] || 'Joueur 1'}
+                    ${localData?.players?.[0] || t('game.player1')}
                   </div>
                   <div class="flex items-center gap-2 mt-1">
                     <span class="w-2 h-2 bg-red-400 rounded-full"></span>
-                    ${localData?.players?.[1] || 'Joueur 2'}
+                    ${localData?.players?.[1] || t('game.player2')}
                   </div>
                 </div>
               </div>
               <div>
-                <span class="text-text/70 block mb-1">Score Final:</span>
+                <span class="text-text/70 block mb-1">${t('matchDetails.finalScore')}:</span>
                 <div class="text-text text-lg font-bold">
                   ${localData?.scores?.[0] || 0} - ${localData?.scores?.[1] || 0}
                 </div>
               </div>
               <div>
-                <span class="text-text/70 block mb-1">Gagnant:</span>
+                <span class="text-text/70 block mb-1">${t('tournamentDetail.winner')}:</span>
                 <div class="text-text font-semibold text-yellow-400">
-                  🏆 ${localData?.winner || 'Non déterminé'}
+                  🏆 ${localData?.winner || t('blockchainModal.undetermined')}
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <span class="text-text/70 block mb-1">Round:</span>
+                  <span class="text-text/70 block mb-1">${t('tournamentDetail.round')}:</span>
                   <div class="text-text">${localData?.round || 'N/A'}</div>
                 </div>
                 <div>
-                  <span class="text-text/70 block mb-1">Stocké le:</span>
+                  <span class="text-text/70 block mb-1">${t('blockchainModal.storedAt')}:</span>
                   <div class="text-text text-xs">${response.stored_at ? new Date(response.stored_at).toLocaleString('fr-FR') : 'N/A'}</div>
                 </div>
               </div>
@@ -1100,7 +1111,7 @@ function getStatusIcon(status: string): string {
         ${blockchainData ? `
           <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
             <h3 class="text-yellow-400 font-bold mb-3 flex items-center gap-2">
-              <span class="text-xl">🔍</span> Vérification d'Intégrité des Données
+              <span class="text-xl">🔍</span> ${t('blockchainModal.integrityVerification')}
             </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1108,31 +1119,31 @@ function getStatusIcon(status: string): string {
               <div class="bg-gray-800/50 rounded-lg p-4">
                 <h4 class="text-text font-semibold mb-3 flex items-center gap-2">
                   <span class="w-3 h-3 bg-blue-400 rounded-full"></span>
-                  Base de Données Locale
+                  ${t('blockchainModal.localDatabase')}
                 </h4>
                 <div class="space-y-2 text-sm">
                   <div class="flex justify-between">
-                    <span class="text-text/70">Joueur 1:</span>
+                    <span class="text-text/70">${t('game.player1')}:</span>
                     <span class="text-text font-mono">${localData.players[0]}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Joueur 2:</span>
+                    <span class="text-text/70">${t('game.player2')}:</span>
                     <span class="text-text font-mono">${localData.players[1]}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Score J1:</span>
+                    <span class="text-text/70">${t('blockchainModal.player1Score')}:</span>
                     <span class="text-text font-mono">${localData.scores[0]}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Score J2:</span>
+                    <span class="text-text/70">${t('blockchainModal.player2Score')}:</span>
                     <span class="text-text font-mono">${localData.scores[1]}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Gagnant:</span>
+                    <span class="text-text/70">${t('tournamentDetail.winner')}:</span>
                     <span class="text-text font-mono">${localData.winner}</span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Round:</span>
+                    <span class="text-text/70">${t('tournamentDetail.round')}:</span>
                     <span class="text-text font-mono">${localData.round}</span>
                   </div>
                 </div>
@@ -1142,36 +1153,36 @@ function getStatusIcon(status: string): string {
               <div class="bg-gray-800/50 rounded-lg p-4">
                 <h4 class="text-text font-semibold mb-3 flex items-center gap-2">
                   <span class="w-3 h-3 bg-purple-400 rounded-full"></span>
-                  Données Blockchain
+                  ${t('matchDetails.blockchainData')}
                 </h4>
                 <div class="space-y-2 text-sm">
                   <div class="flex justify-between">
-                    <span class="text-text/70">Joueur 1:</span>
+                    <span class="text-text/70">${t('game.player1')}:</span>
                     <span class="text-text font-mono">${blockchainData.player1Name} (${blockchainData.player1Score} pts)</span>
                     ${dataMatches?.scores_match && blockchainData.player1Name === localData?.players?.[0] ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Joueur 2:</span>
+                    <span class="text-text/70">${t('game.player2')}:</span>
                     <span class="text-text font-mono">${blockchainData.player2Name} (${blockchainData.player2Score} pts)</span>
                     ${dataMatches?.scores_match && blockchainData.player2Name === localData?.players?.[1] ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Score J1:</span>
+                    <span class="text-text/70">${t('blockchainModal.player1Score')}:</span>
                     <span class="text-text font-mono">${blockchainData.player1Score}</span>
                     ${dataMatches?.scores_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Score J2:</span>
+                    <span class="text-text/70">${t('blockchainModal.player2Score')}:</span>
                     <span class="text-text font-mono">${blockchainData.player2Score}</span>
                     ${dataMatches?.scores_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Gagnant:</span>
+                    <span class="text-text/70">${t('tournamentDetail.winner')}:</span>
                     <span class="text-text font-mono">${blockchainData.winner}</span>
                     ${dataMatches?.winner_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-text/70">Round:</span>
+                    <span class="text-text/70">${t('tournamentDetail.round')}:</span>
                     <span class="text-text font-mono">${blockchainData.round}</span>
                     ${dataMatches?.round_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
@@ -1181,21 +1192,21 @@ function getStatusIcon(status: string): string {
             
             <!-- Résultat de la Vérification -->
             <div class="bg-gray-900 rounded-lg p-4">
-              <h4 class="text-text font-semibold mb-2">Résultat de la Vérification</h4>
+              <h4 class="text-text font-semibold mb-2">${t('blockchainModal.verificationResult')}</h4>
               ${dataMatches?.all_verified ? `
                 <div class="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded">
                   <span class="text-green-400 text-2xl">✅</span>
                   <div>
-                    <div class="text-green-400 font-semibold">INTÉGRITÉ VÉRIFIÉE</div>
-                    <div class="text-text/70 text-sm">Toutes les statistiques correspondent parfaitement entre la base locale et la blockchain</div>
+                    <div class="text-green-400 font-semibold">${t('blockchainModal.integrityVerified')}</div>
+                    <div class="text-text/70 text-sm">${t('blockchainModal.allStatsMatch')}</div>
                   </div>
                 </div>
               ` : `
                 <div class="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/30 rounded">
                   <span class="text-red-400 text-2xl">❌</span>
                   <div>
-                    <div class="text-red-400 font-semibold">INCOHÉRENCE DÉTECTÉE</div>
-                    <div class="text-text/70 text-sm">Une ou plusieurs statistiques ne correspondent pas entre la base locale et la blockchain</div>
+                    <div class="text-red-400 font-semibold">${t('blockchainModal.inconsistencyDetected')}</div>
+                    <div class="text-text/70 text-sm">${t('blockchainModal.statsDoNotMatch')}</div>
                   </div>
                 </div>
               `}
@@ -1203,8 +1214,8 @@ function getStatusIcon(status: string): string {
           </div>
         ` : `
           <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
-            <h3 class="text-red-400 font-bold mb-2">❌ Données Blockchain Indisponibles</h3>
-            <p class="text-text/70 text-sm">Les données blockchain pour ce match ne sont pas disponibles ou n'ont pas pu être récupérées.</p>
+            <h3 class="text-red-400 font-bold mb-2">❌ ${t('blockchainModal.unavailable')}</h3>
+            <p class="text-text/70 text-sm">${t('blockchainModal.unavailableText')}</p>
           </div>
         `}
         
@@ -1212,13 +1223,13 @@ function getStatusIcon(status: string): string {
         ${blockchainData && (blockchainData.verification_info || blockchainData.dataHash) ? `
           <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 mb-6">
             <h3 class="text-purple-400 font-bold mb-3 flex items-center gap-2">
-              <span class="text-xl">🔐</span> Preuve Cryptographique
+              <span class="text-xl">🔐</span> ${t('blockchainModal.cryptographicProof')}
             </h3>
             <div class="space-y-3 text-sm">
               <div>
-                <span class="text-text/70 block mb-1">Hash de Données:</span>
+                <span class="text-text/70 block mb-1">${t('blockchainModal.dataHash')}:</span>
                 <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
-                  ${blockchainData.dataHash || response.blockchain_match_id || 'Non disponible'}
+                  ${blockchainData.dataHash || response.blockchain_match_id || t('blockchainModal.notAvailable')}
                 </code>
               </div>
               ${blockchainData.verification_info ? `
@@ -1230,19 +1241,19 @@ function getStatusIcon(status: string): string {
                     ${blockchainData.verification_info.explanation}
                   </div>
                   <div class="text-purple-400 text-xs mt-2">
-                    <strong>Contenu du hash:</strong> ${blockchainData.verification_info.match_represents}
+                    <strong>${t('blockchainModal.includedData')}:</strong> ${blockchainData.verification_info.match_represents}
                   </div>
                 </div>
               ` : `
                 <div class="bg-gray-900 rounded p-3">
                   <div class="text-green-400 text-xs mb-2">
-                    <strong>🔒 Hash cryptographique vérifié</strong>
+                    <strong>🔒 ${t('blockchainModal.cryptoHashVerified')}</strong>
                   </div>
                   <div class="text-text/70 text-xs">
-                    Ce hash Keccak256 contient les statistiques du match stockées de manière immuable sur la blockchain Avalanche Fuji.
+                    ${t('blockchainModal.keccakProofText')}
                   </div>
                   <div class="text-purple-400 text-xs mt-2">
-                    <strong>Données incluses:</strong> Scores des joueurs, index du gagnant, round, timestamp du match
+                    <strong>${t('blockchainModal.includedData')}:</strong> ${t('blockchainModal.includedDataText')}
                   </div>
                 </div>
               `}
@@ -1254,11 +1265,11 @@ function getStatusIcon(status: string): string {
         <div class="flex gap-3 pt-4 border-t border-gray-700">
           <button onclick="viewRawMatchBlockchainData('${matchId}')" 
                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            📋 Données Brutes JSON
+            📋 ${t('blockchainModal.rawJsonData')}
           </button>
           <button onclick="this.parentElement.parentElement.parentElement.remove()" 
                   class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-            Fermer
+            ${t('common.close')}
           </button>
         </div>
       </div>
@@ -1267,7 +1278,7 @@ function getStatusIcon(status: string): string {
     document.body.appendChild(modal);
   } catch (error) {
     console.error('Erreur blockchain match:', error);
-    alert("Erreur lors de la récupération des informations blockchain du match");
+    alert(t('tournamentDetail.blockchainError'));
   }
 };
 
@@ -1279,19 +1290,19 @@ function getStatusIcon(status: string): string {
     modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
       <div class="bg-prem rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold text-text mb-4">📋 Données Blockchain Brutes - Match</h2>
+        <h2 class="text-2xl font-bold text-text mb-4">📋 ${t('blockchainModal.rawDataModalTitle')}</h2>
         <div class="bg-gray-900 rounded p-4">
           <pre class="text-text text-xs overflow-auto whitespace-pre-wrap">${JSON.stringify(response, null, 2)}</pre>
         </div>
         <button onclick="this.parentElement.parentElement.remove()" class="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-          Fermer
+          ${t('common.close')}
         </button>
       </div>
     `;
     
     document.body.appendChild(modal);
   } catch (error) {
-    alert("Erreur lors de la récupération des données brutes du match");
+    alert(t('tournamentDetail.rawDataError'));
   }
 };
 
@@ -1300,10 +1311,15 @@ function getStatusIcon(status: string): string {
   const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
   
   if (currentParticipants < 2) {
-    alert(`Le tournoi a besoin d'au moins 2 joueurs pour commencer.\n\nActuellement: ${currentParticipants} joueur(s)\nManquant: ${2 - currentParticipants} joueur(s)`);
+    alert(t('tournamentDetail.needTwoPlayers')
+      .replace('{current}', currentParticipants.toString())
+      .replace('{needed}', (2 - currentParticipants).toString()));
   } else if (!isPowerOfTwo(currentParticipants)) {
     const validCounts = [2, 4, 8].filter(n => n >= currentParticipants);
     const nextValid = validCounts[0] || 8;
-    alert(`Les tournois d'élimination nécessitent exactement 2, 4 ou 8 joueurs.\n\nActuellement: ${currentParticipants} joueur(s)\nProchain nombre valide: ${nextValid} joueurs\n\nAjoutez ${nextValid - currentParticipants} joueur(s) ou supprimez-en pour atteindre 2 ou 4.`);
+    alert(t('tournamentDetail.needPowerOfTwoPlayers')
+      .replace('{current}', currentParticipants.toString())
+      .replace('{next}', nextValid.toString())
+      .replace('{toAdd}', (nextValid - currentParticipants).toString()));
   }
 };;

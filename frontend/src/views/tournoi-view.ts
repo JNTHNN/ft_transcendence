@@ -104,13 +104,13 @@ async function loadTournaments(content: HTMLDivElement) {
               <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-sec transition">
                 <div class="flex justify-between items-start mb-2">
                   <h3 class="font-bold text-text">${tournament.name}</h3>
-                  <span class="px-2 py-1 bg-green-500 text-white text-xs rounded">${tournament.status}</span>
+                  <span class="px-2 py-1 ${getStatusColor(tournament.status)} text-white text-xs rounded">${getStatusText(tournament.status)}</span>
                 </div>
-                <p class="text-text/70 text-sm mb-3">${tournament.description || 'Pas de description'}</p>
+                <p class="text-text/70 text-sm mb-3">${tournament.description || t('tournament.noDescription')}</p>
                 <div class="flex justify-between items-center">
                   <span class="text-text/60 text-sm">👥 ${tournament.current_players}/${tournament.max_players}</span>
                   <button onclick="joinTournament('${tournament.id}')" class="bg-sec hover:bg-sec/80 text-text px-4 py-1 rounded text-sm font-bold">
-                    Rejoindre
+                    ${t('tournament.join')}
                   </button>
                 </div>
               </div>
@@ -130,7 +130,7 @@ async function loadTournaments(content: HTMLDivElement) {
                   <h3 class="font-bold text-text">${tournament.name}</h3>
                   <div class="flex items-center gap-2">
 
-                    <span class="px-2 py-1 ${getStatusColor(tournament.status)} text-white text-xs rounded">${tournament.status}</span>
+                    <span class="px-2 py-1 ${getStatusColor(tournament.status)} text-white text-xs rounded">${getStatusText(tournament.status)}</span>
                   </div>
                 </div>
                 <div class="flex justify-between items-center text-text/60 text-sm">
@@ -145,13 +145,13 @@ async function loadTournaments(content: HTMLDivElement) {
 
       <!-- Tournois actifs -->
       <div class="bg-prem rounded-lg shadow-xl p-6">
-        <h2 class="font-display font-black text-2xl text-text mb-4">⚡ Tournois en cours</h2>
+        <h2 class="font-display font-black text-2xl text-text mb-4">⚡ ${t('tournament.activeTournaments')}</h2>
         <div id="active-tournaments" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           ${tournamentsResponse.tournaments.filter((t: Tournament) => t.status === 'active').map((tournament: Tournament) => `
             <div class="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-4 cursor-pointer hover:border-yellow-500/50 transition" onclick="viewTournament('${tournament.id}')">
               <div class="flex justify-between items-start mb-3">
                 <h3 class="font-bold text-text">${tournament.name}</h3>
-                <span class="px-2 py-1 bg-yellow-500 text-black text-xs rounded font-bold">EN COURS</span>
+                <span class="px-2 py-1 bg-yellow-500 text-black text-xs rounded font-bold">${t('tournament.active').toUpperCase()}</span>
               </div>
               <div class="text-text/70 text-sm">
                 <p>👥 ${tournament.current_players} participants</p>
@@ -164,18 +164,18 @@ async function loadTournaments(content: HTMLDivElement) {
 
       <!-- Tournois terminés -->
       <div class="bg-prem rounded-lg shadow-xl p-6">
-        <h2 class="font-display font-black text-2xl text-text mb-4">🏅 Tournois terminés</h2>
+        <h2 class="font-display font-black text-2xl text-text mb-4">🏅 ${t('tournament.completedTournaments')}</h2>
         <div id="completed-tournaments" class="space-y-3">
           ${tournamentsResponse.tournaments.filter((t: Tournament) => t.status === 'completed').map((tournament: Tournament) => `
             <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-green-500/50 transition cursor-pointer" onclick="viewTournament('${tournament.id}')">
               <div class="flex justify-between items-start mb-2">
                 <h3 class="font-bold text-text">${tournament.name}</h3>
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">TERMINÉ</span>
+                  <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">${t('tournament.completed').toUpperCase()}</span>
                 </div>
               </div>
               <div class="text-text/70 text-sm">
-                ${tournament.winner_id ? `🏆 Gagnant: Joueur #${tournament.winner_id}` : 'Pas de gagnant'}
+                ${tournament.winner_id ? `🏆 ${t('tournamentDetail.winner')}: ${t('tournamentDetail.playerNumber')}${tournament.winner_id}` : t('tournament.noWinner')}
               </div>
             </div>
           `).join('')}
@@ -274,6 +274,16 @@ function getStatusColor(status: string): string {
     case 'completed': return 'bg-green-500';
     case 'cancelled': return 'bg-red-500';
     default: return 'bg-gray-500';
+  }
+}
+
+function getStatusText(status: string): string {
+  switch (status) {
+    case 'waiting': return t('tournament.pending').toUpperCase();
+    case 'active': return t('tournament.active').toUpperCase();
+    case 'completed': return t('tournament.completed').toUpperCase();
+    case 'cancelled': return t('tournament.cancelled').toUpperCase();
+    default: return status.toUpperCase();
   }
 }
 

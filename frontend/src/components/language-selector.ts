@@ -126,7 +126,7 @@ export function createLanguageModal(): HTMLElement {
   const languages = i18n.getAvailableLanguages();
 
   modal.innerHTML = `
-    <div class="bg-prem rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+    <div class="bg-prem rounded-lg shadow-xl p-6 w-full max-w-md mx-4" id="modal-content">
       <div class="flex items-center justify-between mb-4">
         <h2 class="font-display text-2xl font-bold text-text">${t('language.title')}</h2>
         <button id="close-language-modal" class="text-text/70 hover:text-text">
@@ -154,11 +154,14 @@ export function createLanguageModal(): HTMLElement {
   modal.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
 
-    if (target.id === 'close-language-modal' || target === modal) {
+    // Check if click is on close button or its children (SVG/path)
+    const closeButton = target.closest('#close-language-modal');
+    if (closeButton) {
       modal.remove();
       return;
     }
 
+    // Check if click is on a language option
     const langOption = target.closest('.modal-language-option') as HTMLElement;
     if (langOption) {
       const lang = langOption.dataset.lang as Language;
@@ -166,6 +169,13 @@ export function createLanguageModal(): HTMLElement {
         i18n.setLanguage(lang);
         modal.remove();
       }
+      return;
+    }
+
+    // Check if click is outside the modal content
+    if (target === modal) {
+      modal.remove();
+      return;
     }
   });
 
