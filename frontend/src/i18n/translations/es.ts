@@ -539,6 +539,7 @@ export default {
     status: "Estado",
     organizer: "Organizador",
     unknown: "Desconocido",
+    unknownError: "Error desconocido",
     participants: "Participantes",
     players: "jugadores",
     createdOn: "Creado el",

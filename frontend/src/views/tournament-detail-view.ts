@@ -255,7 +255,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
   // Participants
   contentHtml += `
     <div class="bg-prem rounded-lg shadow-xl p-6">
-      <h2 class="text-2xl font-bold text-text mb-4">👥 ${t('tournamentDetail.participants')}</h2>
+      <h2 class="text-2xl font-bold text-text mb-4">👥 ${t('tournament.participants')}</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         ${participants.map((participant, _index) => `
           <div class="bg-gray-800 rounded-lg p-3 border border-gray-700" data-participant-id="${participant.id}">
@@ -1031,13 +1031,13 @@ function getStatusText(status: string): string {
             </h3>
             <div class="space-y-3 text-sm">
               <div>
-                <span class="text-text/70 block mb-1">${t('tournamentDetail.transactionHash')}:</span>
+                <span class="text-text/70 block mb-1">${t('matchDetails.transactionHash')}:</span>
                 <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
                   ${response.tx_hash || t('blockchainModal.notAvailable')}
                 </code>
               </div>
               <div>
-                <span class="text-text/70 block mb-1">${t('tournamentDetail.blockchainMatchId')}:</span>
+                <span class="text-text/70 block mb-1">${t('matchDetails.blockchainMatchId')}:</span>
                 <code class="text-text bg-gray-800 px-2 py-1 rounded block break-all text-xs">
                   ${response.blockchain_match_id || t('blockchainModal.notAvailable')}
                 </code>
@@ -1048,7 +1048,7 @@ function getStatusText(status: string): string {
                   <div class="text-text">${response.network_info?.network || 'Avalanche Fuji'}</div>
                 </div>
                 <div>
-                  <span class="text-text/70 block mb-1">${t('tournamentDetail.status')}:</span>
+                  <span class="text-text/70 block mb-1">${t('tournament.status')}:</span>
                   <div class="text-text">${response.is_stored ? '✅ ' + t('blockchainModal.stored') : '❌ ' + t('blockchainModal.notStoredLower')}</div>
                 </div>
               </div>

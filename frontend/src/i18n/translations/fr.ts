@@ -545,6 +545,8 @@ export default {
     noDescription: "Aucune description",
     type: "Type",
     createdOn: "Créé le",
+    organizer: "Organisateur",
+    unknown: "Inconnu",
     winner: "Gagnant",
     playerNumber: "Joueur #",
     free: "Libre",
@@ -569,13 +571,16 @@ export default {
     active: "En cours",
     pending: "En attente",
     cancelled: "Annulé",
+    waiting: "En attente",
+    
+    // Rounds
+    round: "Round",
+    match: "Match",
     
     // Round names
     final: "Finale",
     semiFinals: "Demi-finales",
     quarterFinals: "Quart de finale",
-    round: "Round",
-    match: "Match",
     
     // Match card
     vs: "vs",
