@@ -437,10 +437,18 @@ ctx.stroke();
   private setupInput() {
     // 🧹 Créer et stocker les handlers
     this.keydownHandler = (e: KeyboardEvent) => {
+      // Empêcher le scroll de la page avec les flèches et W/S
+      if (['ArrowUp', 'ArrowDown', 'w', 'W', 's', 'S', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
       this.keys[e.key] = true;
     };
     
     this.keyupHandler = (e: KeyboardEvent) => {
+      // Empêcher le scroll de la page avec les flèches et W/S
+      if (['ArrowUp', 'ArrowDown', 'w', 'W', 's', 'S', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
       this.keys[e.key] = false;
     };
 
