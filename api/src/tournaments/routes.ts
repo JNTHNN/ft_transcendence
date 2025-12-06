@@ -917,11 +917,19 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
             const localWinnerIndex = localData.scores[0] > localData.scores[1] ? 1 : 2;
             const winnerMatch = blockchainData.winnerIndex === localWinnerIndex;
             
+            // Vérifier la correspondance des noms des joueurs
+            const player1NameMatch = blockchainData.player1Name === localData.players[0];
+            const player2NameMatch = blockchainData.player2Name === localData.players[1];
+            const participantsMatch = player1NameMatch && player2NameMatch;
+            
             dataMatches = {
               scores_match: scoresMatch,
               winner_match: winnerMatch,
               round_match: roundMatch,
-              all_verified: scoresMatch && roundMatch && winnerMatch
+              participants_match: participantsMatch,
+              player1_name_match: player1NameMatch,
+              player2_name_match: player2NameMatch,
+              all_verified: scoresMatch && roundMatch && winnerMatch && participantsMatch
             };
             
             // Créer l'affichage blockchain simplifié en incluant les noms des joueurs

@@ -1159,12 +1159,12 @@ function getStatusText(status: string): string {
                   <div class="flex justify-between">
                     <span class="text-text/70">${t('game.player1')}:</span>
                     <span class="text-text font-mono">${blockchainData.player1Name} (${blockchainData.player1Score} pts)</span>
-                    ${dataMatches?.scores_match && blockchainData.player1Name === localData?.players?.[0] ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                    ${dataMatches?.player1_name_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
                   <div class="flex justify-between">
                     <span class="text-text/70">${t('game.player2')}:</span>
                     <span class="text-text font-mono">${blockchainData.player2Name} (${blockchainData.player2Score} pts)</span>
-                    ${dataMatches?.scores_match && blockchainData.player2Name === localData?.players?.[1] ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
+                    ${dataMatches?.player2_name_match ? '<span class="text-green-400 ml-2">✓</span>' : '<span class="text-red-400 ml-2">✗</span>'}
                   </div>
                   <div class="flex justify-between">
                     <span class="text-text/70">${t('blockchainModal.player1Score')}:</span>
