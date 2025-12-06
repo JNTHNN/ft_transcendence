@@ -510,19 +510,21 @@ export class TournamentService {
         db.prepare('UPDATE tournament_matches SET player2_id = ? WHERE match_id = ?')
           .run(winnerId, existingWinner.match_id);
         
-        // Send notification about new match ready to play
+        // Send notification about new match ready to play (simplified - same format as initial matches)
         if (fastify && fastify.sendTournamentNotification) {
           const player1 = db.prepare('SELECT display_name FROM users WHERE id = ?').get(existingWinner.player1_id) as { display_name: string };
           const player2 = db.prepare('SELECT display_name FROM users WHERE id = ?').get(winnerId) as { display_name: string };
           const tournament = db.prepare('SELECT name FROM tournaments WHERE id = ?').get(tournamentId) as { name: string };
           
-          const roundName = nextRound === 1 ? 'Finale' : 
-                          nextRound === 2 ? 'Demi-finale' : 
-                          nextRound === 3 ? 'Quart de finale' : 
-                          `Round ${nextRound}`;
-          
-          const message = `⚔️ Match prêt à jouer dans "${tournament.name}" : ${player1.display_name} vs ${player2.display_name} (${roundName}). Les joueurs peuvent maintenant commencer leur match !`;
-          fastify.sendTournamentNotification(tournamentId, message);
+          // Use the same simple notification format as initial matches
+          fastify.sendTournamentNotification(
+            tournamentId,
+            tournament.name,
+            existingWinner.match_id,
+            player1.display_name,
+            player2.display_name
+          );
+          console.log(`💬 Tournament notification sent for next round match ${existingWinner.match_id}`);
         }
       } else {
         console.log(`❌ Cannot add winner ${winnerId} - match already complete or duplicate`);

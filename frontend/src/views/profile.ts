@@ -159,7 +159,7 @@ export default async function View() {
 
     <div class="mb-4">
       <label class="block font-sans text-text mb-2">${t('auth.displayName')}</label>
-      <input name="displayName" type="text" value="${user.displayName}" required
+      <input name="displayName" type="text" value="${user.displayName}" required maxlength="25"
         class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
 
@@ -396,6 +396,11 @@ ${t('stats.viewStatsAndHistory')}
 
     if (!displayName) {
       showProfileError(t('messages.displayNameRequired'));
+      return;
+    }
+
+    if (displayName.length < 2 || displayName.length > 25) {
+      showProfileError(t('errors.displayNameLength') || 'Username must be between 2 and 25 characters');
       return;
     }
 

@@ -164,7 +164,7 @@ export async function GameSessionDetailView() {
     // Update subtitle
     const subtitle = document.getElementById('match-subtitle');
     if (subtitle) {
-      subtitle.textContent = `${match.player1Name} vs ${match.player2Name} • ${new Date(match.created_at).toLocaleDateString()}`;
+      subtitle.textContent = `${match.player1Name} vs ${match.player2Name} • ${new Date(match.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
     }
 
     const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
@@ -225,7 +225,7 @@ export async function GameSessionDetailView() {
             </div>
             <div class="flex justify-between">
               <span class="text-text/70">${t('matchDetails.date')}</span>
-              <span class="font-semibold text-text">${new Date(match.created_at).toLocaleDateString()}</span>
+              <span class="font-semibold text-text">${new Date(match.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-text/70">${t('matchDetails.time')}</span>

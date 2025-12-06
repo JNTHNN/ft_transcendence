@@ -9,7 +9,7 @@ import { notifyFriendsUsers } from '../friends/ws.js';
 import { getPresenceService } from '../core/presence.js';
 
 const updateSchema = z.object({
-  displayName: z.string().min(2).max(50).optional(),
+  displayName: z.string().min(2).max(25).optional(),
   email: z.string().email().optional(),
 });
 

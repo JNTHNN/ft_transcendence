@@ -47,10 +47,9 @@ export async function TournoiView() {
           <div>
             <label class="block text-text font-medium mb-2">Nombre max de joueurs</label>
             <select id="tournament-max-players" class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec">
+              <option value="2">2 joueurs</option>
               <option value="4">4 joueurs</option>
               <option value="8" selected>8 joueurs</option>
-              <option value="16">16 joueurs</option>
-              <option value="32">32 joueurs</option>
             </select>
           </div>
           <div class="flex pt-4">
@@ -136,7 +135,7 @@ async function loadTournaments(content: HTMLDivElement) {
                 </div>
                 <div class="flex justify-between items-center text-text/60 text-sm">
                   <span>👥 ${tournament.current_players}/${tournament.max_players}</span>
-                  <span>${new Date(tournament.created_at).toLocaleDateString()}</span>
+                  <span>${new Date(tournament.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 </div>
               </div>
             `).join('')}

@@ -143,7 +143,7 @@ export async function FriendsView() {
                 <div class="w-2 h-2 rounded-full flex-shrink-0 ${friend.status === 'online' ? 'bg-green-400' : 'bg-gray-500'}"></div>
                 <span class="text-xs ${friend.status === 'online' ? 'text-green-400' : 'text-gray-500'}">${friend.status === 'online' ? t('chat.online') : t('chat.offline')}</span>
               </div>
-              <p class="text-xs text-gray-400 mt-1">${t('friends.friendsSince')} ${new Date(friend.friendsSince).toLocaleDateString()}</p>
+              <p class="text-xs text-gray-400 mt-1">${t('friends.friendsSince')} ${new Date(friend.friendsSince).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
             </div>
           </div>
           <div class="flex flex-col space-y-1 ml-3 flex-shrink-0">
@@ -187,30 +187,36 @@ export async function FriendsView() {
       }
 
       requestsList.innerHTML = requests.map(request => `
-        <div class="flex items-center justify-between p-3 bg-sec bg-opacity-20 rounded-lg">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full border-2 border-sec overflow-hidden bg-gray-600 flex items-center justify-center">
+        <div class="flex items-center justify-between p-4 bg-sec bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors" data-request-id="${request.requestId}">
+          <div class="flex items-center space-x-3 flex-1 min-w-0">
+            <div class="w-12 h-12 rounded-full border-2 border-sec overflow-hidden bg-gray-600 flex items-center justify-center flex-shrink-0">
               ${request.avatarUrl 
                 ? `<img class="w-full h-full object-cover" src="${request.avatarUrl}" alt="${request.displayName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                    <div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold" style="display:none">${request.displayName[0].toUpperCase()}</div>`
                 : `<div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold">${request.displayName[0].toUpperCase()}</div>`
               }
             </div>
-            <div>
-              <p class="font-semibold text-text">${request.displayName}</p>
-              <p class="text-sm text-gray-400">${new Date(request.requestDate).toLocaleDateString()}</p>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-text truncate">${request.displayName}</p>
+              <p class="text-xs text-gray-400 mt-1">${new Date(request.requestDate).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
             </div>
           </div>
-          <div class="flex space-x-2">
+          <div class="flex flex-col space-y-1 ml-3 flex-shrink-0">
+            <button 
+              onclick="viewProfile(${request.id}, '${request.displayName}', '${request.avatarUrl || ''}')"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition whitespace-nowrap"
+            >
+              ${t('friends.viewProfile')}
+            </button>
             <button 
               onclick="acceptFriendRequest(${request.requestId})"
-              class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-sm transition"
+              class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-medium transition whitespace-nowrap"
             >
               ${t('friends.accept')}
             </button>
             <button 
               onclick="declineFriendRequest(${request.requestId})"
-              class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-sm transition"
+              class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-medium transition whitespace-nowrap"
             >
               ${t('friends.decline')}
             </button>
@@ -242,24 +248,30 @@ export async function FriendsView() {
       }
 
       sentRequestsList.innerHTML = sentRequests.map(request => `
-        <div class="flex items-center justify-between p-3 bg-yellow-600 bg-opacity-20 rounded-lg border border-yellow-600 border-opacity-30">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full border-2 border-yellow-500 overflow-hidden bg-gray-600 flex items-center justify-center">
+        <div class="flex items-center justify-between p-4 bg-sec bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors" data-sent-request-id="${request.id}">
+          <div class="flex items-center space-x-3 flex-1 min-w-0">
+            <div class="w-12 h-12 rounded-full border-2 border-sec overflow-hidden bg-gray-600 flex items-center justify-center flex-shrink-0">
               ${request.avatarUrl 
                 ? `<img class="w-full h-full object-cover" src="${request.avatarUrl}" alt="${request.displayName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                   <div class="w-full h-full bg-yellow-500 flex items-center justify-center text-text font-bold" style="display:none">${request.displayName[0].toUpperCase()}</div>`
-                : `<div class="w-full h-full bg-yellow-500 flex items-center justify-center text-text font-bold">${request.displayName[0].toUpperCase()}</div>`
+                   <div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold" style="display:none">${request.displayName[0].toUpperCase()}</div>`
+                : `<div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold">${request.displayName[0].toUpperCase()}</div>`
               }
             </div>
-            <div>
-              <p class="font-semibold text-text">${request.displayName}</p>
-              <p class="text-sm text-yellow-300">${t('friends.pending')} • ${new Date(request.createdAt).toLocaleDateString()}</p>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-text truncate">${request.displayName}</p>
+              <p class="text-xs text-yellow-300 mt-1">${t('friends.pending')} • ${new Date(request.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
             </div>
           </div>
-          <div class="flex space-x-2">
+          <div class="flex flex-col space-y-1 ml-3 flex-shrink-0">
+            <button 
+              onclick="viewProfile(${request.userId}, '${request.displayName}', '${request.avatarUrl || ''}')"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition whitespace-nowrap"
+            >
+              ${t('friends.viewProfile')}
+            </button>
             <button 
               onclick="cancelFriendRequest(${request.id})"
-              class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm transition"
+              class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-medium transition whitespace-nowrap"
             >
               ${t('friends.cancelRequest')}
             </button>
@@ -267,9 +279,8 @@ export async function FriendsView() {
         </div>
       `).join('');
     } catch (error) {
-
       sentRequestsList.innerHTML = `
-        <div class="text-center py-4">
+        <div class="text-center py-8">
           <p class="text-red-400">${t('friends.loadError')}</p>
         </div>
       `;

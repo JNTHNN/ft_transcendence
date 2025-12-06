@@ -394,7 +394,7 @@ export default async function DashboardView() {
               ${match.player1Name} vs ${match.player2Name}
             </p>
             <p class="text-xs text-text/60">
-              ${new Date(match.created_at).toLocaleDateString()} • ${t('dashboard.clickForDetails')}
+              ${new Date(match.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })} • ${t('dashboard.clickForDetails')}
             </p>
           </div>
         </div>

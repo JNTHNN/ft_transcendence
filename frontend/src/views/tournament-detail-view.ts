@@ -156,11 +156,12 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
   if (userMe) {
     if (tournament.status === 'waiting') {
       if (tournament.creator_id === userMe.id) {
-        const canStart = participants.length >= 2 && (tournament.tournament_type !== 'elimination' || participants.length % 2 === 0);
+        const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
+        const canStart = participants.length >= 2 && (tournament.tournament_type !== 'elimination' || isPowerOfTwo(participants.length));
         const startButtonClass = canStart ? "bg-green-500 hover:bg-green-600" : "bg-gray-500 cursor-not-allowed";
         const startButtonText = canStart ? "🚀 Démarrer le tournoi" : 
           (participants.length < 2 ? "⏳ Besoin de plus de joueurs" :
-           (participants.length % 2 !== 0 ? "⚠️ Nombre impair de joueurs" : "🚀 Démarrer le tournoi"));
+           (!isPowerOfTwo(participants.length) ? "⚠️ Besoin de 2, 4 ou 8 joueurs" : "🚀 Démarrer le tournoi"));
 
         actionsHtml += `
           <button onclick="${canStart ? `startTournament('${tournament.id}')` : 'showTournamentStartError()'}" 
@@ -239,7 +240,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
         </div>
         <div>
           <p class="text-text/70 mb-2">Créé le:</p>
-          <p class="text-text">${new Date(tournament.created_at).toLocaleDateString()}</p>
+          <p class="text-text">${new Date(tournament.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
           
           ${tournament.winner_id ? `
             <p class="text-text/70 mt-4 mb-2">Gagnant:</p>
@@ -399,13 +400,13 @@ function generateMatchCard(match: TournamentMatch): string {
   
   return `
     <div class="space-y-2">
-      <div class="flex justify-between items-center p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player1_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
-        <span class="text-text">${player1}</span>
-        <span class="text-text font-mono">${match.player1_score}</span>
+      <div class="flex justify-between items-center gap-3 p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player1_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
+        <span class="text-text truncate flex-1">${player1}</span>
+        <span class="text-text font-mono whitespace-nowrap">${match.player1_score}</span>
       </div>
-      <div class="flex justify-between items-center p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player2_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
-        <span class="text-text">${player2}</span>
-        <span class="text-text font-mono">${match.player2_score}</span>
+      <div class="flex justify-between items-center gap-3 p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player2_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
+        <span class="text-text truncate flex-1">${player2}</span>
+        <span class="text-text font-mono whitespace-nowrap">${match.player2_score}</span>
       </div>
       ${statusHtml}
     </div>
@@ -1296,10 +1297,13 @@ function getStatusIcon(status: string): string {
 
 (window as any).showTournamentStartError = () => {
   const currentParticipants = document.querySelectorAll('[data-participant-id]').length;
+  const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
   
   if (currentParticipants < 2) {
     alert(`Le tournoi a besoin d'au moins 2 joueurs pour commencer.\n\nActuellement: ${currentParticipants} joueur(s)\nManquant: ${2 - currentParticipants} joueur(s)`);
-  } else if (currentParticipants % 2 !== 0) {
-    alert(`Les tournois d'élimination ont besoin d'un nombre pair de joueurs.\n\nActuellement: ${currentParticipants} joueurs (nombre impair)\n\nAjoutez 1 joueur ou supprimez-en 1 pour continuer.`);
+  } else if (!isPowerOfTwo(currentParticipants)) {
+    const validCounts = [2, 4, 8].filter(n => n >= currentParticipants);
+    const nextValid = validCounts[0] || 8;
+    alert(`Les tournois d'élimination nécessitent exactement 2, 4 ou 8 joueurs.\n\nActuellement: ${currentParticipants} joueur(s)\nProchain nombre valide: ${nextValid} joueurs\n\nAjoutez ${nextValid - currentParticipants} joueur(s) ou supprimez-en pour atteindre 2 ou 4.`);
   }
 };;

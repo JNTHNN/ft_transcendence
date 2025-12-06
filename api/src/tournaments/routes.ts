@@ -195,6 +195,15 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'Name and max_players are required' });
       }
 
+      // Limiter à 8 joueurs maximum et seulement les puissances de 2 (2, 4, 8)
+      if (max_players > 8) {
+        return reply.status(400).send({ error: 'Maximum 8 players allowed per tournament' });
+      }
+      
+      if (![2, 4, 8].includes(max_players)) {
+        return reply.status(400).send({ error: 'Only 2, 4, or 8 players allowed (power of 2)' });
+      }
+
       // Vérifier s'il y a des tournois récents avec le même nom du même créateur (dernières 5 secondes)
       const recentTournaments = db.prepare(`
         SELECT id FROM tournaments 
@@ -409,11 +418,15 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'Tournament needs at least 2 players to start' });
       }
 
-      // Check if tournament type requires even number of players
-      if ((tournament as any).tournament_type === 'elimination' && playerCount.count % 2 !== 0) {
-        return reply.status(400).send({ 
-          error: `Tournament elimination requires an even number of players. Current: ${playerCount.count} players. Add or remove 1 player to continue.` 
-        });
+      // Check if tournament type requires power of 2 number of players
+      if ((tournament as any).tournament_type === 'elimination') {
+        const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
+        
+        if (!isPowerOfTwo(playerCount.count)) {
+          return reply.status(400).send({ 
+            error: `Tournament elimination requires a power of 2 number of players (2, 4, 8). Current: ${playerCount.count} players.` 
+          });
+        }
       }
 
       // Get participants before starting
@@ -920,7 +933,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
               player2Score: originalBlockchainData.player2Score,
               round: originalBlockchainData.round,
               winnerIndex: originalBlockchainData.winnerIndex,
-              winner: originalBlockchainData.winnerIndex === 1 ? localData.players[0] : localData.players[1],
+              winner: originalBlockchainData.winnerIndex === 1 ? originalBlockchainData.player1Name : originalBlockchainData.player2Name,
               timestamp: originalBlockchainData.timestamp,
               dataHash: originalBlockchainData.dataHash
             };
