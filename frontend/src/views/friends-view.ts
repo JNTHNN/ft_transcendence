@@ -128,36 +128,34 @@ export async function FriendsView() {
       }
 
       friendsList.innerHTML = friends.map(friend => `
-        <div class="flex items-center justify-between p-3 bg-sec bg-opacity-20 rounded-lg" data-friend-id="${friend.id}">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full border-2 border-sec overflow-hidden bg-gray-600 flex items-center justify-center">
+        <div class="flex items-center justify-between p-4 bg-sec bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors" data-friend-id="${friend.id}">
+          <div class="flex items-center space-x-3 flex-1 min-w-0">
+            <div class="w-12 h-12 rounded-full border-2 border-sec overflow-hidden bg-gray-600 flex items-center justify-center flex-shrink-0">
               ${friend.avatarUrl 
                 ? `<img class="w-full h-full object-cover" src="${friend.avatarUrl}" alt="${friend.displayName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                    <div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold" style="display:none">${friend.displayName[0].toUpperCase()}</div>`
                 : `<div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold">${friend.displayName[0].toUpperCase()}</div>`
               }
             </div>
-            <div>
-              <div class="flex items-center space-x-2">
-                <p class="font-semibold text-text">${friend.displayName}</p>
-                <div class="flex items-center">
-                  <div class="w-2 h-2 rounded-full status-dot ${friend.status === 'online' ? 'bg-green-400' : 'bg-gray-500'}"></div>
-                  <span class="ml-1 text-xs status-text ${friend.status === 'online' ? 'text-green-400' : 'text-gray-500'}">${friend.status === 'online' ? t('chat.online') : t('chat.offline')}</span>
-                </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-text truncate">${friend.displayName}</p>
+              <div class="flex items-center space-x-1 mt-1">
+                <div class="w-2 h-2 rounded-full flex-shrink-0 ${friend.status === 'online' ? 'bg-green-400' : 'bg-gray-500'}"></div>
+                <span class="text-xs ${friend.status === 'online' ? 'text-green-400' : 'text-gray-500'}">${friend.status === 'online' ? t('chat.online') : t('chat.offline')}</span>
               </div>
-              <p class="text-sm text-gray-400">${t('friends.friendsSince')} ${new Date(friend.friendsSince).toLocaleDateString()}</p>
+              <p class="text-xs text-gray-400 mt-1">${t('friends.friendsSince')} ${new Date(friend.friendsSince).toLocaleDateString()}</p>
             </div>
           </div>
-          <div class="flex space-x-2">
+          <div class="flex flex-col space-y-1 ml-3 flex-shrink-0">
             <button 
               onclick="viewProfile(${friend.id}, '${friend.displayName}', '${friend.avatarUrl || ''}')"
-              class="bg-gray-600 hover:bg-gray-500 text-text px-3 py-1 rounded text-sm transition"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition whitespace-nowrap"
             >
               ${t('friends.viewProfile')}
             </button>
             <button 
               onclick="removeFriend(${friend.id})"
-              class="bg-red-600 hover:bg-red-500 text-text px-3 py-1 rounded text-sm transition"
+              class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-medium transition whitespace-nowrap"
             >
               ${t('friends.remove')}
             </button>

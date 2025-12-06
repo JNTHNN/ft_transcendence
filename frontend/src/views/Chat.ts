@@ -48,7 +48,7 @@ export default async function View() {
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
       <!-- Zone de chat principale -->
       <div class="lg:col-span-3 bg-prem rounded-lg shadow-xl p-6 flex flex-col" style="height: 600px;">
-        <div id="messages-container" class="flex-1 overflow-y-auto mb-4 space-y-3"></div>
+        <div id="messages-container" class="flex-1 overflow-y-auto mb-4 space-y-3 pr-2 pl-1"></div>
         
         <div class="flex gap-2">
           <input 
@@ -224,14 +224,14 @@ export default async function View() {
       messageDiv.innerHTML = `
         <div class="flex ${isMyMessage ? 'justify-end' : 'justify-start'} gap-2">
           ${!isMyMessage ? `
-            <div class="flex-shrink-0 cursor-pointer" onclick="showUserProfile(${msg.userId}, '${msg.username}', '${msg.avatarUrl || ''}')">
+            <div class="flex-shrink-0 cursor-pointer relative z-10" onclick="showUserProfile(${msg.userId}, '${msg.username}', '${msg.avatarUrl || ''}')">
               ${msg.avatarUrl 
-                ? `<img src="${msg.avatarUrl}" alt="${msg.username}" class="w-10 h-10 rounded-full object-cover ring-2 ring-sec/30 hover:ring-sec transition-all" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                   <div class="w-10 h-10 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30 hover:ring-sec transition-all" style="display:none">
-                     <span class="text-white text-sm font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
+                ? `<img src="${msg.avatarUrl}" alt="${msg.username}" class="w-8 h-8 rounded-full object-cover ring-2 ring-sec/30 hover:ring-sec hover:scale-110 transition-all" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                   <div class="w-8 h-8 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30 hover:ring-sec hover:scale-110 transition-all" style="display:none">
+                     <span class="text-white text-xs font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
                    </div>`
-                : `<div class="w-10 h-10 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30 hover:ring-sec transition-all">
-                     <span class="text-white text-sm font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
+                : `<div class="w-8 h-8 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30 hover:ring-sec hover:scale-110 transition-all">
+                     <span class="text-white text-xs font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
                    </div>`
               }
             </div>
@@ -248,12 +248,12 @@ export default async function View() {
           ${isMyMessage ? `
             <div class="flex-shrink-0">
               ${msg.avatarUrl 
-                ? `<img src="${msg.avatarUrl}" alt="${msg.username}" class="w-10 h-10 rounded-full object-cover ring-2 ring-sec/30" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                   <div class="w-10 h-10 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30" style="display:none">
-                     <span class="text-white text-sm font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
+                ? `<img src="${msg.avatarUrl}" alt="${msg.username}" class="w-8 h-8 rounded-full object-cover ring-2 ring-sec/30" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                   <div class="w-8 h-8 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30" style="display:none">
+                     <span class="text-white text-xs font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
                    </div>`
-                : `<div class="w-10 h-10 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30">
-                     <span class="text-white text-sm font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
+                : `<div class="w-8 h-8 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/30">
+                     <span class="text-white text-xs font-bold">${msg.username?.charAt(0).toUpperCase() || '?'}</span>
                    </div>`
               }
             </div>
