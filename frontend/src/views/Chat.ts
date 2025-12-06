@@ -587,12 +587,18 @@ export default async function View() {
   // Charger les messages récents et l'état initial
   const loadInitialData = async () => {
     try {
-      // Charger les messages récents
-      const messages = await api('/chat/messages');
-      messages.forEach((msg: ChatMessage) => addMessage(msg));
-      
-      // Charger les utilisateurs bloqués
+      // Charger les utilisateurs bloqués en premier
       await updateBlockedUsers();
+      
+      // Charger les messages récents et filtrer les utilisateurs bloqués
+      const messages = await api('/chat/messages');
+      messages.forEach((msg: ChatMessage) => {
+        // Filtrer les messages des utilisateurs bloqués
+        if (msg.type === 'user' && msg.userId && blockedUsers.has(msg.userId)) {
+          return;
+        }
+        addMessage(msg);
+      });
       
       // Charger les utilisateurs en ligne (charge initiale uniquement)
       await updateOnlineUsers();
