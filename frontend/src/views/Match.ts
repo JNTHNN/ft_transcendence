@@ -620,8 +620,8 @@ ctx.stroke();
         if (winnerText) {
           winnerText.innerHTML = `
             🏆 ${winnerText.textContent}<br>
-            <span class="text-lg text-green-400">🎉 Tournoi terminé !</span><br>
-            <span class="text-sm text-text/70">ℹ️ Chaque match stocké individuellement sur blockchain</span>
+            <span class="text-lg text-green-400">🎉 ${t('game.tournamentCompleted')}</span><br>
+            <span class="text-sm text-text/70">ℹ️ ${t('game.tournamentBlockchainInfo')}</span>
           `;
         }
       }
@@ -791,8 +791,8 @@ export default async function View() {
     titleText += t('game.localGame');
     // Garder les labels par défaut : player1Label = "Joueur 1", player2Label = "Joueur 2"
   } else if (mode === "tournament") {
-    titleText += "Match de Tournoi";
-    subtitleText = '<p class="text-center text-text/70 mb-4">🏆 Match local à 2 joueurs sur le même ordinateur</p>';
+    titleText += t('game.tournamentMatch');
+    subtitleText = `<p class="text-center text-text/70 mb-4">🏆 ${t('game.tournamentMatchDesc')}</p>`;
     
     // Récupérer les noms des joueurs uniquement en mode tournoi
     const rawPlayer1Id = params.get("player1");

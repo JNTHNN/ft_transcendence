@@ -204,8 +204,12 @@ export default {
     abandonGame: "¿Abandonar la partida?",
     abandonMessage: "La partida se contará como una derrota.",
     continue: "Continuar",
-    wins: "gana!",
+    wins: "¡gana!",
     ai: "IA",
+    tournamentMatch: "Partido de Torneo",
+    tournamentMatchDesc: "Partido local de 2 jugadores en la misma computadora",
+    tournamentCompleted: "¡Torneo completado!",
+    tournamentBlockchainInfo: "Cada partido almacenado individualmente en blockchain",
     controls: {
       local: "W/S Jugador 1 | ↑/↓ Jugador 2",
       solo: "W/S o ↑/↓ para mover tu paleta"
@@ -276,6 +280,7 @@ export default {
     tournamentUpdate: "Actualización del torneo",
     gameInviteReceived: "Invitación de juego recibida",
     invitesYouToPlay: "te invita a jugar",
+    gameInviteNotification: "{{inviter}} invitó a {{target}} a jugar",
     accept: "Aceptar",
     decline: "Rechazar",
     viewFullProfile: "Ver perfil completo",

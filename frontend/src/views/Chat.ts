@@ -217,10 +217,18 @@ export default async function View() {
           </div>
         `;
       } else {
+        const translatedText = t('chat.gameInviteNotification', { 
+          inviter: msg.gameInvite.inviterName, 
+          target: msg.gameInvite.targetName 
+        });
+        const withStrongTags = translatedText
+          .replace(msg.gameInvite.inviterName, `<strong>${msg.gameInvite.inviterName}</strong>`)
+          .replace(msg.gameInvite.targetName, `<strong>${msg.gameInvite.targetName}</strong>`);
+        
         messageDiv.innerHTML = `
           <div class="bg-gray-600/20 border-l-4 border-gray-500 p-3 rounded-r-lg">
             <div class="text-sm text-text/70">
-              <strong>${msg.gameInvite.inviterName}</strong> a invité <strong>${msg.gameInvite.targetName}</strong> à jouer
+              ${withStrongTags}
             </div>
           </div>
         `;

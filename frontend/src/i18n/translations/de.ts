@@ -206,6 +206,10 @@ export default {
     continue: "Fortsetzen",
     wins: "gewinnt!",
     ai: "KI",
+    tournamentMatch: "Turnierspiel",
+    tournamentMatchDesc: "Lokales 2-Spieler-Spiel auf demselben Computer",
+    tournamentCompleted: "Turnier abgeschlossen!",
+    tournamentBlockchainInfo: "Jedes Spiel einzeln auf Blockchain gespeichert",
     controls: {
       local: "W/S Spieler 1 | ↑/↓ Spieler 2",
       solo: "W/S oder ↑/↓ um Ihren Schläger zu bewegen"
@@ -275,7 +279,8 @@ export default {
     confirmBlock: "Blockieren",
     tournamentUpdate: "Turnier-Update",
     gameInviteReceived: "Spieleinladung erhalten",
-    invitesYouToPlay: "lädt Sie zum Spielen ein",
+    invitesYouToPlay: "lädt dich zum Spielen ein",
+    gameInviteNotification: "{{inviter}} hat {{target}} zum Spielen eingeladen",
     accept: "Annehmen",
     decline: "Ablehnen",
     viewFullProfile: "Vollständiges Profil anzeigen",

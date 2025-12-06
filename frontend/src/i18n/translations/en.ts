@@ -205,6 +205,10 @@ export default {
     continue: "Continue",
     wins: "wins!",
     ai: "AI",
+    tournamentMatch: "Tournament Match",
+    tournamentMatchDesc: "Local 2-player match on the same computer",
+    tournamentCompleted: "Tournament completed!",
+    tournamentBlockchainInfo: "Each match stored individually on blockchain",
     controls: {
       local: "W/S Player 1 | ↑/↓ Player 2",
       solo: "W/S or ↑/↓ to move your paddle"
@@ -273,8 +277,9 @@ export default {
     viewProfile: "View profile",
     confirmBlock: "Block",
     tournamentUpdate: "Tournament Update",
-    gameInviteReceived: "Game Invitation Received",
+    gameInviteReceived: "Game invitation received",
     invitesYouToPlay: "invites you to play",
+    gameInviteNotification: "{{inviter}} invited {{target}} to play",
     accept: "Accept",
     decline: "Decline",
     viewFullProfile: "View Full Profile",
