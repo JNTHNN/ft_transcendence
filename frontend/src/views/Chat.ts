@@ -107,10 +107,19 @@ export default async function View() {
   let chatSocket: WebSocket | null = null;
   let blockedUsers: Set<number> = new Set();
 
-  // Formater l'heure
-  const formatTime = (timestamp: number) => {
+  // Formater la date et l'heure comme : 06/12/2025 · 13:18
+  const formatDateTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const timeStr = date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `${dateStr} · ${timeStr}`;
   };
 
   const createMessageElement = (msg: ChatMessage): HTMLElement => {
@@ -237,10 +246,8 @@ export default async function View() {
             </div>
           ` : ''}
           <div class="flex flex-col ${isMyMessage ? 'items-end' : 'items-start'} max-w-[70%]">
-            <div class="text-xs mb-1">
-              <span class="text-white font-semibold cursor-pointer hover:underline" onclick="${!isMyMessage ? `showUserProfile(${msg.userId}, '${msg.username}', '${msg.avatarUrl || ''}')` : ''}">${msg.username}</span>
-              <span class="text-text/50"> · ${formatTime(msg.timestamp || Date.now())}</span>
-            </div>
+            <span class="text-xs text-white font-semibold cursor-pointer hover:underline mb-1" onclick="${!isMyMessage ? `showUserProfile(${msg.userId}, '${msg.username}', '${msg.avatarUrl || ''}')` : ''}">${msg.username}</span>
+            <span class="text-xs text-text/50 mb-2">${formatDateTime(msg.timestamp || Date.now())}</span>
             <div class="${isMyMessage ? 'bg-sec text-white border-2 border-sec/50' : 'bg-prem border-2 border-text/20 text-text'} px-4 py-2 rounded-lg shadow-md inline-block">
               ${msg.text}
             </div>
