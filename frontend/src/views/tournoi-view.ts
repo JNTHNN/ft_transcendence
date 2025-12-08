@@ -295,12 +295,14 @@ function getStatusText(status: string): string {
       body: JSON.stringify({})
     });
     
-    window.location.reload();
+    const { router } = await import('../router.js');
+    router.forceRender();
   } catch (error) {
     alert("Erreur lors de l'inscription au tournoi: " + (error as Error).message);
   }
 };
 
-(window as any).viewTournament = (tournamentId: string) => {
-  window.location.href = `/tournament/${tournamentId}`;
+(window as any).viewTournament = async (tournamentId: string) => {
+  const { router } = await import('../router.js');
+  router.navigate(`/tournament/${tournamentId}`);
 };

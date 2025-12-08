@@ -728,7 +728,8 @@ public resume(): void {
 		
 		// Nettoie et retourne au menu
 		this.destroy();
-		window.location.href = '/partie';
+		const { router } = await import('../router.js');
+		router.navigate('/partie');
 	} catch (error) {
 	}
   }
@@ -1044,23 +1045,27 @@ export default async function View() {
 		});
 		
 		if (response.matchId) {
-		// Recharger la page avec le nouveau match
-		window.location.href = `/match?mode=${mode}`;
+		// Naviguer vers la page avec le nouveau match
+		const { router } = await import('../router.js');
+		router.navigate(`/match?mode=${mode}`);
 		} else {
-		window.location.reload();
+		const { router } = await import('../router.js');
+		router.forceRender();
 		}
 	} catch (error) {
-		window.location.reload();
+		const { router } = await import('../router.js');
+		router.forceRender();
 	}
 	});
 
 	// 🆕 Bouton Quitter (fin de partie)
-	btnQuit.addEventListener("click", () => {
+	btnQuit.addEventListener("click", async () => {
 	// ✅ Autoriser la navigation
 	game.allowNavigation = true;
 	
 	game.destroy();
-	window.location.href = '/partie';
+	const { router } = await import('../router.js');
+	router.navigate('/partie');
 	});
 
   return wrap;

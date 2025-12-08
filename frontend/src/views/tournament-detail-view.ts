@@ -610,7 +610,8 @@ function getStatusText(status: string): string {
       body: JSON.stringify({})
     });
     
-    window.location.reload();
+    const { router } = await import('../router.js');
+    router.forceRender();
   } catch (error) {
     alert(t('tournamentDetail.joinError') + ": " + (error as Error).message);
   }
@@ -626,7 +627,8 @@ function getStatusText(status: string): string {
       method: "DELETE"
     });
     
-    window.location.reload();
+    const { router } = await import('../router.js');
+    router.forceRender();
   } catch (error) {
     alert(t('tournamentDetail.leaveError') + ": " + (error as Error).message);
   }
@@ -687,7 +689,8 @@ function getStatusText(status: string): string {
       url
     });
 
-    window.location.href = url;
+    const { router } = await import('../router.js');
+    router.navigate(url);
   } catch (error) {
     console.error('Erreur playTournamentMatch:', error);
     alert(t('tournamentDetail.playError') + ": " + (error as Error).message);
@@ -708,7 +711,8 @@ function getStatusText(status: string): string {
     
     if (result.success) {
       alert(t('tournamentDetail.resetSuccess').replace('{status}', result.previousStatus));
-      window.location.reload();
+      const { router } = await import('../router.js');
+      router.forceRender();
     } else {
       alert(t('tournamentDetail.resetFailed'));
     }
@@ -740,7 +744,8 @@ function getStatusText(status: string): string {
       body: JSON.stringify({})
     });
     
-    window.location.reload();
+    const { router } = await import('../router.js');
+    router.forceRender();
   } catch (error) {
     alert(t('tournamentDetail.joinError') + ": " + (error as Error).message);
   }
@@ -757,7 +762,8 @@ function getStatusText(status: string): string {
     });
     
     // Rediriger vers la page des tournois après suppression
-    window.location.href = "/tournois";
+    const { router } = await import('../router.js');
+    router.navigate('/tournois');
   } catch (error) {
     alert(t('tournamentDetail.deleteError') + ": " + (error as Error).message);
   }
