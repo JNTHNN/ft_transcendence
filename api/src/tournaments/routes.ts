@@ -441,6 +441,10 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       fastify.log.info(`🚀 Starting tournament ${tournamentId} with ${playerCount.count} players. Participants: ${JSON.stringify(participants)}`);
       
       try {
+        // 📢 Broadcast tournament start notification BEFORE creating matches
+        const { broadcastTournamentStart } = await import('../chat/ws.js');
+        broadcastTournamentStart(db, tournamentId, (tournament as any).name);
+        
         const startedTournament = TournamentService.startTournament(tournamentId, userId, fastify);
         
         // Verify matches were created
@@ -639,6 +643,15 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         // Vérifier si le tournoi est maintenant terminé
         const finalTournament = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(tournamentId) as any;
         const tournamentComplete = finalTournament?.status === 'completed';
+        
+        // 📢 Broadcast tournament end notification si terminé
+        if (tournamentComplete && finalTournament?.winner_id) {
+          const winnerUser = db.prepare('SELECT display_name FROM users WHERE id = ?').get(finalTournament.winner_id) as any;
+          if (winnerUser) {
+            const { broadcastTournamentEnd } = await import('../chat/ws.js');
+            broadcastTournamentEnd(db, tournamentId, finalTournament.name, winnerUser.display_name);
+          }
+        }
         
         return { 
           success: true, 
