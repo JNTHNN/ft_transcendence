@@ -1,4 +1,6 @@
 import { api } from "../api-client";
+import { authManager } from "../auth";
+import { router } from "../router";
 import { t } from "../i18n/index.js";
 
 interface Tournament {
@@ -26,6 +28,7 @@ interface TournamentMatch {
   player2_username?: string;
   player1_score: number;
   player2_score: number;
+  duration?: number;
   winner_id?: number;
   status: 'pending' | 'active' | 'completed' | 'cancelled';
   start_time?: string;
@@ -36,6 +39,12 @@ interface TournamentMatch {
 }
 
 export async function TournamentDetailView() {
+  // Check authentication
+  if (!authManager.isAuthenticated()) {
+    router.navigate("/login");
+    return document.createElement("div");
+  }
+  
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-8";
 
@@ -100,12 +109,26 @@ export async function TournamentDetailView() {
   } catch (error: unknown) {
     const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
     const errorMessage = error instanceof Error ? error.message : t('tournamentDetail.unknownError');
-    content.innerHTML = `
-      <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-        <p class="text-red-400">❌ ${t('tournamentDetail.loadError')}</p>
-        <p class="text-text/70 mt-2">${errorMessage}</p>
-      </div>
-    `;
+    
+    // Si erreur d'authentification, rediriger vers login
+    if (errorMessage.includes('Authentication') || errorMessage.includes('Unauthorized') || errorMessage.includes('expired')) {
+      content.innerHTML = `
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-6 text-center">
+          <p class="text-yellow-400">🔒 ${t('auth.loginRequired')}</p>
+          <p class="text-text/70 mt-2">${t('auth.loginRequiredTournaments')}</p>
+          <a href="/login" class="mt-4 inline-block bg-sec hover:bg-sec/80 text-white px-6 py-2 rounded-lg font-bold transition-colors">
+            ${t('auth.loginHere')}
+          </a>
+        </div>
+      `;
+    } else {
+      content.innerHTML = `
+        <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
+          <p class="text-red-400">❌ ${t('tournamentDetail.loadError')}</p>
+          <p class="text-text/70 mt-2">${errorMessage}</p>
+        </div>
+      `;
+    }
   }
 
   return wrap;
@@ -453,9 +476,13 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
       const player1 = match.player1_username || (match.player1_id ? `${t('tournamentDetail.playerNumber')}${match.player1_id}` : '...');
       const player2 = match.player2_username || (match.player2_id ? `${t('tournamentDetail.playerNumber')}${match.player2_id}` : '...');
       
-      // Calculer la durée du match si disponible
+      // Utiliser la durée la plus précise (champ duration si dispo)
       let duration = '';
-      if (match.start_time && match.end_time) {
+      if (typeof match.duration === 'number' && match.duration > 0) {
+        const durationMinutes = Math.floor(match.duration / 60);
+        const durationSeconds = Math.round(match.duration % 60);
+        duration = `${durationMinutes}m ${durationSeconds}s`;
+      } else if (match.start_time && match.end_time) {
         const startTime = new Date(match.start_time);
         const endTime = new Date(match.end_time);
         const durationMs = endTime.getTime() - startTime.getTime();
