@@ -3,7 +3,7 @@ import type { Database } from 'better-sqlite3';
 
 interface ChatMessage {
   id?: string;
-  type: 'user' | 'system' | 'tournament_notification' | 'game_invite' | 'game_invite_declined' | 'online_users_update' | 'typing_indicator' | 'read_receipt';
+  type: 'user' | 'system' | 'tournament_notification' | 'tournament_start' | 'tournament_end' | 'game_invite' | 'game_invite_declined' | 'online_users_update' | 'typing_indicator' | 'read_receipt';
   username?: string;
   userId?: number;
   avatarUrl?: string;
@@ -73,7 +73,7 @@ function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
              CAST((julianday(cm.created_at) - 2440587.5) * 86400000 AS INTEGER) as timestamp
       FROM chat_messages cm
       LEFT JOIN users u ON cm.user_id = u.id
-      WHERE cm.type IN ('message', 'tournament_notification')
+      WHERE cm.type IN ('message', 'tournament_notification', 'tournament_start', 'tournament_end')
       ORDER BY cm.created_at DESC
       LIMIT ?
     `);
@@ -89,11 +89,43 @@ function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
           id: msg.id,
           type: 'tournament_notification' as const,
           tournamentNotification: {
-            tournamentId: msg.tournament_id, // Garder comme string
+            tournamentId: msg.tournament_id,
             tournamentName,
-            matchId: 0, // Non utilisé
+            matchId: 0,
             player1: players[0],
             player2: players[1]
+          },
+          timestamp: msg.timestamp
+        };
+      }
+      if (msg.type === 'tournament_start') {
+        const tournamentName = msg.text.replace('TOURNAMENT_START:', '');
+        return {
+          id: msg.id,
+          type: 'tournament_start' as const,
+          tournamentNotification: {
+            tournamentId: msg.tournament_id,
+            tournamentName,
+            matchId: 0,
+            player1: '',
+            player2: ''
+          },
+          timestamp: msg.timestamp
+        };
+      }
+      if (msg.type === 'tournament_end') {
+        const parts = msg.text.replace('TOURNAMENT_END:', '').split(':');
+        const tournamentName = parts[0];
+        const winnerName = parts[1] || '';
+        return {
+          id: msg.id,
+          type: 'tournament_end' as const,
+          tournamentNotification: {
+            tournamentId: msg.tournament_id,
+            tournamentName,
+            matchId: 0,
+            player1: winnerName,
+            player2: ''
           },
           timestamp: msg.timestamp
         };
@@ -213,6 +245,99 @@ export function broadcastTournamentNotification(
   });
 
   console.log(`Tournament notification sent: ${tournamentName} - ${player1} vs ${player2}`);
+}
+
+// Fonction pour diffuser le début d'un tournoi
+export function broadcastTournamentStart(
+  db: Database,
+  tournamentId: string,
+  tournamentName: string
+) {
+  const notification: ChatMessage = {
+    type: 'tournament_start',
+    tournamentNotification: {
+      tournamentId: tournamentId,
+      tournamentName,
+      matchId: 0,
+      player1: '',
+      player2: ''
+    },
+    timestamp: Date.now()
+  };
+
+  // Sauvegarder la notification en DB
+  try {
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const stmt = db.prepare(`
+      INSERT INTO chat_messages (id, type, tournament_id, text, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const text = `TOURNAMENT_START:${tournamentName}`;
+    stmt.run(messageId, 'tournament_start', tournamentId, text, new Date().toISOString());
+  } catch (error) {
+    console.error('Error saving tournament start notification to DB:', error);
+  }
+
+  const message = JSON.stringify(notification);
+
+  chatConnections.forEach((connection) => {
+    try {
+      if (connection.socket.readyState === 1) {
+        connection.socket.send(message);
+      }
+    } catch (error) {
+      console.error('Error broadcasting tournament start:', error);
+    }
+  });
+
+  console.log(`Tournament start notification sent: ${tournamentName}`);
+}
+
+// Fonction pour diffuser la fin d'un tournoi
+export function broadcastTournamentEnd(
+  db: Database,
+  tournamentId: string,
+  tournamentName: string,
+  winnerName: string
+) {
+  const notification: ChatMessage = {
+    type: 'tournament_end',
+    tournamentNotification: {
+      tournamentId: tournamentId,
+      tournamentName,
+      matchId: 0,
+      player1: winnerName,
+      player2: ''
+    },
+    timestamp: Date.now()
+  };
+
+  // Sauvegarder la notification en DB
+  try {
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const stmt = db.prepare(`
+      INSERT INTO chat_messages (id, type, tournament_id, text, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const text = `TOURNAMENT_END:${tournamentName}:${winnerName}`;
+    stmt.run(messageId, 'tournament_end', tournamentId, text, new Date().toISOString());
+  } catch (error) {
+    console.error('Error saving tournament end notification to DB:', error);
+  }
+
+  const message = JSON.stringify(notification);
+
+  chatConnections.forEach((connection) => {
+    try {
+      if (connection.socket.readyState === 1) {
+        connection.socket.send(message);
+      }
+    } catch (error) {
+      console.error('Error broadcasting tournament end:', error);
+    }
+  });
+
+  console.log(`Tournament end notification sent: ${tournamentName} - Winner: ${winnerName}`);
 }
 
 export async function registerChatWS(app: FastifyInstance, db: Database) {

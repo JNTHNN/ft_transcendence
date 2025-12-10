@@ -157,7 +157,7 @@ CREATE INDEX IF NOT EXISTS idx_tournament_matches_status ON tournament_matches(s
 -- Table pour les messages de chat persistés
 CREATE TABLE IF NOT EXISTS chat_messages (
   id TEXT PRIMARY KEY,
-  type TEXT NOT NULL CHECK (type IN ('message', 'system', 'game_invite', 'tournament_notification', 'user_join', 'user_leave')),
+  type TEXT NOT NULL CHECK (type IN ('message', 'system', 'game_invite', 'tournament_notification', 'tournament_start', 'tournament_end', 'user_join', 'user_leave')),
   user_id INTEGER,
   username TEXT,
   text TEXT,

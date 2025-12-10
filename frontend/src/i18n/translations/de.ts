@@ -302,7 +302,9 @@ export default {
     and: "und",
     areTyping: "schreiben...",
     peopleTyping: "Personen schreiben...",
-    noOnlineUsers: "Keine Online-Benutzer"
+    noOnlineUsers: "Keine Online-Benutzer",
+    tournamentStarted: "Turnier {{name}} hat begonnen!",
+    tournamentEnded: "Turnier {{name}} ist beendet! 🏆 Gewinner: {{winner}}"
   },
 
   common: {

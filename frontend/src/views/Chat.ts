@@ -7,7 +7,7 @@ import "../components/user-stats-modal";
 
 interface ChatMessage {
   id?: string;
-  type: 'user' | 'system' | 'tournament_notification' | 'game_invite' | 'game_invite_declined' | 'online_users_update' | 'typing_indicator' | 'read_receipt' | 'history';
+  type: 'user' | 'system' | 'tournament_notification' | 'tournament_start' | 'tournament_end' | 'game_invite' | 'game_invite_declined' | 'online_users_update' | 'typing_indicator' | 'read_receipt' | 'history';
   username?: string;
   userId?: number;
   avatarUrl?: string;
@@ -199,6 +199,51 @@ export default async function View() {
               <a 
                 href="/tournament/${msg.tournamentNotification.tournamentId}"
                 class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
+              >
+                ${t('chat.viewTournament') || 'Voir le tournoi'} →
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    else if (msg.type === 'tournament_start' && msg.tournamentNotification) {
+      const translatedText = t('chat.tournamentStarted', { name: msg.tournamentNotification.tournamentName });
+      messageDiv.innerHTML = `
+        <div class="bg-green-600/20 border-l-4 border-green-500 p-4 rounded-r-lg">
+          <div class="flex items-start gap-3">
+            <div class="text-3xl">🚀</div>
+            <div class="flex-1">
+              <div class="text-sm text-text/90 mb-2">
+                ${translatedText}
+              </div>
+              <a 
+                href="/tournament/${msg.tournamentNotification.tournamentId}"
+                class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
+              >
+                ${t('chat.viewTournament') || 'Voir le tournoi'} →
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    else if (msg.type === 'tournament_end' && msg.tournamentNotification) {
+      const translatedText = t('chat.tournamentEnded', { 
+        name: msg.tournamentNotification.tournamentName, 
+        winner: msg.tournamentNotification.player1 
+      });
+      messageDiv.innerHTML = `
+        <div class="bg-purple-600/20 border-l-4 border-purple-500 p-4 rounded-r-lg">
+          <div class="flex items-start gap-3">
+            <div class="text-3xl">🏆</div>
+            <div class="flex-1">
+              <div class="text-sm text-text/90 mb-2">
+                ${translatedText}
+              </div>
+              <a 
+                href="/tournament/${msg.tournamentNotification.tournamentId}"
+                class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
               >
                 ${t('chat.viewTournament') || 'Voir le tournoi'} →
               </a>
@@ -749,7 +794,7 @@ export default async function View() {
           }
         }
       }
-    } else if (msg.type === 'user' || msg.type === 'system' || msg.type === 'tournament_notification' || msg.type === 'game_invite' || msg.type === 'game_invite_declined' || msg.type === 'online_users_update') {
+    } else if (msg.type === 'user' || msg.type === 'system' || msg.type === 'tournament_notification' || msg.type === 'tournament_start' || msg.type === 'tournament_end' || msg.type === 'game_invite' || msg.type === 'game_invite_declined' || msg.type === 'online_users_update') {
       // Filtrer les messages des utilisateurs bloqués
       if (msg.type === 'user' && msg.userId && blockedUsers.has(msg.userId)) {
         return;
