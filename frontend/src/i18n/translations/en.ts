@@ -551,7 +551,7 @@ export default {
     organizer: "Organizer",
     unknown: "Unknown",
     unknownError: "Unknown error",
-    participants: "participants",
+    participants: "Participants",
     players: "players",
     createdOn: "Created on",
     winner: "Winner",
