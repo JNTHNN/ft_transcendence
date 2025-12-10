@@ -737,8 +737,8 @@ public resume(): void {
 
 // 🎬 FONCTION PRINCIPALE DE LA VUE
 export default async function View() {
-  // Détection mobile : afficher message informatif
-  if (window.innerWidth < 1024) {
+  // Fonction pour créer le message mobile
+  const createMobileMessage = () => {
     const mobileMessage = document.createElement("div");
     mobileMessage.className = "max-w-2xl mx-auto mt-8 p-6 md:p-8";
     mobileMessage.innerHTML = `
@@ -749,14 +749,31 @@ export default async function View() {
           ${t('game.desktopOnlyMessage') || 'Le jeu Pong nécessite un écran plus large et un clavier pour une expérience optimale. Veuillez utiliser un ordinateur de bureau ou un ordinateur portable.'}
         </p>
         <button 
-          onclick="window.router.navigate('/')" 
+          id="btn-back-home"
           class="bg-sec hover:bg-sec/80 text-white font-bold py-3 px-6 rounded-lg transition"
         >
           ${t('nav.home') || 'Retour à l\'accueil'}
         </button>
       </div>
     `;
+    
+    // Ajouter l'event listener après l'insertion dans le DOM
+    setTimeout(() => {
+      const btn = mobileMessage.querySelector('#btn-back-home');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          const { router } = await import('../router.js');
+          router.navigate('/');
+        });
+      }
+    }, 0);
+    
     return mobileMessage;
+  };
+
+  // Détection mobile initiale
+  if (window.innerWidth < 1024) {
+    return createMobileMessage();
   }
 
   const params = new URLSearchParams(window.location.search);
@@ -1089,6 +1106,42 @@ export default async function View() {
 	const { router } = await import('../router.js');
 	router.navigate('/partie');
 	});
+
+  // 🆕 Listener resize pour détecter passage en mobile
+  let resizeHandler: (() => void) | null = null;
+  
+  const setupResizeListener = () => {
+    resizeHandler = () => {
+      if (window.innerWidth < 1024) {
+        // Passer en mode mobile : détruire le jeu et remplacer le contenu
+        console.log('🔄 Passage en mode mobile détecté, destruction du jeu...');
+        
+        // Détruire le jeu proprement
+        if (game) {
+          game.allowNavigation = true;
+          game.destroy();
+        }
+        
+        // Remplacer tout le contenu par le message mobile
+        const appContainer = document.getElementById('app');
+        if (appContainer) {
+          appContainer.innerHTML = '';
+          appContainer.appendChild(createMobileMessage());
+        }
+        
+        // Nettoyer le listener une fois qu'on a switch
+        if (resizeHandler) {
+          window.removeEventListener('resize', resizeHandler);
+          resizeHandler = null;
+        }
+      }
+    };
+    
+    window.addEventListener('resize', resizeHandler);
+  };
+  
+  // Activer le listener
+  setupResizeListener();
 
   return wrap;
 }

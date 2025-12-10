@@ -210,6 +210,8 @@ export default {
     tournamentMatchDesc: "Partido local de 2 jugadores en la misma computadora",
     tournamentCompleted: "¡Torneo completado!",
     tournamentBlockchainInfo: "Cada partido almacenado individualmente en blockchain",
+    desktopOnly: "Juego disponible en ordenador",
+    desktopOnlyMessage: "El juego Pong requiere una pantalla más grande y un teclado para una experiencia óptima. Por favor, use un ordenador de escritorio o portátil.",
     controls: {
       local: "W/S Jugador 1 | ↑/↓ Jugador 2",
       solo: "W/S o ↑/↓ para mover tu paleta"
