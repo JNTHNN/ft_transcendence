@@ -221,7 +221,7 @@ export default {
     createTournament: "Create Tournament",
     joinTournament: "Join Tournament",
     tournamentName: "Tournament Name",
-    participants: "participants",
+    participants: "Participants",
     status: "Status",
     pending: "Pending",
     active: "Active",
