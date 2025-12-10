@@ -3,7 +3,6 @@ import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 import { authManager } from "../auth";
 
-// 📦 TYPES (depuis ton backend)
 interface GameState {
   matchId: string;
   ball: {
@@ -26,7 +25,6 @@ interface GameState {
   timestamp: number;
 }
 
-// 🎮 CLASSE PRINCIPALE DU JEU
 class PongGame {
 
   private canvas: HTMLCanvasElement;
@@ -52,12 +50,20 @@ class PongGame {
   private scoreRightDiv: HTMLDivElement;
   public allowNavigation: boolean = false;
   
-  // Références aux callbacks pour pouvoir les nettoyer
+  
+  // ─────────────────────────────────────────────────────────────
+  // Event Handlers (pour cleanup)
+  // ─────────────────────────────────────────────────────────────
+  
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyupHandler: ((e: KeyboardEvent) => void) | null = null;
   private beforeUnloadHandler: (() => void) | null = null;
-
-  // Constantes (depuis ton backend constants.ts)
+  
+  
+  // ─────────────────────────────────────────────────────────────
+  // Constantes (depuis backend constants.ts)
+  // ─────────────────────────────────────────────────────────────
+  
   private readonly COURT_WIDTH = 800;
   private readonly COURT_HEIGHT = 600;
   private readonly PADDLE_WIDTH = 10;
@@ -689,22 +695,23 @@ class PongGame {
   /**
    * Abandonner la partie
    */
-//   async abandon() {
-//     if (!this.matchId) return;
+  async abandon() {
+    if (!this.matchId) return;
     
-//     this.allowNavigation = true;
+    this.allowNavigation = true;
     
-//     try {
-//       // Appelle l'API pour supprimer la partie
-//       await api(`/game/${this.matchId}`, { method: 'DELETE' });
+    try {
+      // Appelle l'API pour supprimer la partie
+      await api(`/game/${this.matchId}`, { method: 'DELETE' });
       
-//       // Nettoie et retourne au menu
-//       this.destroy();
-//       window.location.href = '/partie';
-//     } catch (error) {
-//       console.error("❌ Erreur lors de l'abandon:", error);
-//     }
-//   }
+      // Nettoie et retourne au menu
+	  this.destroy();
+	  const { router } = await import('../router.js');
+	  router.navigate('/partie');
+    } catch (error) {
+      console.error("❌ Erreur lors de l'abandon:", error);
+    }
+  }
   
 
   private async endGame(data: any) {
@@ -719,7 +726,10 @@ class PongGame {
     }
     
     
-    // Affiche l'écran de fin
+    // ───────────────────────────────────────────────────────────
+    // Afficher l'écran de fin
+    // ───────────────────────────────────────────────────────────
+    
     const overlay = document.getElementById('game-over-overlay');
     const winnerText = document.getElementById('winner-text');
     const finalScore = document.getElementById('final-score');
@@ -733,7 +743,11 @@ class PongGame {
       // Afficher l'overlay
       overlay.classList.remove('hidden');
       
+      
+      // ─────────────────────────────────────────────────────────
       // Texte du gagnant
+      // ─────────────────────────────────────────────────────────
+      
       let winner: string;
       
       if (this.mode === 'tournament' && this.playerNameElements) {
@@ -753,7 +767,11 @@ class PongGame {
       // Score final
       finalScore.textContent = `${data.score.left} - ${data.score.right}`;
       
+      
+      // ─────────────────────────────────────────────────────────
       // Si c'est un match de tournoi, envoyer les résultats
+      // ─────────────────────────────────────────────────────────
+      
       if (this.mode === 'tournament') {
         await this.submitTournamentResult(data);
       }
@@ -878,24 +896,8 @@ class PongGame {
     // 5. Vider les touches pressées
     this.keys = {};
   }
-
-  async abandon() {
-	if (!this.matchId) return;
-	
-	this.allowNavigation = true;
-	
-	try {
-		// Appelle l'API pour supprimer la partie
-		await api(`/game/${this.matchId}`, { method: 'DELETE' });
-		
-		// Nettoie et retourne au menu
-		this.destroy();
-		const { router } = await import('../router.js');
-		router.navigate('/partie');
-	} catch (error) {
-	}
-  }
 }
+
 
 // ═══════════════════════════════════════════════════════════════
 // FONCTION PRINCIPALE DE LA VUE
