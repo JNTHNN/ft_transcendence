@@ -737,6 +737,28 @@ public resume(): void {
 
 // 🎬 FONCTION PRINCIPALE DE LA VUE
 export default async function View() {
+  // Détection mobile : afficher message informatif
+  if (window.innerWidth < 1024) {
+    const mobileMessage = document.createElement("div");
+    mobileMessage.className = "max-w-2xl mx-auto mt-8 p-6 md:p-8";
+    mobileMessage.innerHTML = `
+      <div class="bg-prem rounded-lg shadow-xl p-6 md:p-8 text-center">
+        <div class="text-6xl mb-4">🎮</div>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-text mb-4">${t('game.desktopOnly') || 'Jeu disponible sur ordinateur'}</h1>
+        <p class="text-text/70 text-base md:text-lg mb-6">
+          ${t('game.desktopOnlyMessage') || 'Le jeu Pong nécessite un écran plus large et un clavier pour une expérience optimale. Veuillez utiliser un ordinateur de bureau ou un ordinateur portable.'}
+        </p>
+        <button 
+          onclick="window.router.navigate('/')" 
+          class="bg-sec hover:bg-sec/80 text-white font-bold py-3 px-6 rounded-lg transition"
+        >
+          ${t('nav.home') || 'Retour à l\'accueil'}
+        </button>
+      </div>
+    `;
+    return mobileMessage;
+  }
+
   const params = new URLSearchParams(window.location.search);
   let mode = params.get("mode") || "solo";
   const inviteId = params.get("invite"); // Support pour les invitations depuis le chat
