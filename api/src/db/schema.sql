@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   oauth42_login TEXT UNIQUE,
   oauth42_data TEXT,
   last_42_sync DATETIME,
+  preferred_language TEXT DEFAULT 'fr' CHECK (preferred_language IN ('fr', 'en', 'es', 'de')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -182,3 +183,17 @@ CREATE TABLE IF NOT EXISTS user_blocks (
 
 CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks(blocker_id);
 CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id);
+
+-- Table pour les read receipts (accusés de lecture)
+CREATE TABLE IF NOT EXISTS message_read_receipts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  message_id TEXT NOT NULL,
+  user_id INTEGER NOT NULL,
+  read_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(message_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_message_read_receipts_message ON message_read_receipts(message_id);
+CREATE INDEX IF NOT EXISTS idx_message_read_receipts_user ON message_read_receipts(user_id);

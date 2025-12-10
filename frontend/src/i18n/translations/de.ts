@@ -297,7 +297,12 @@ export default {
     errorLoadingBlockedUsers: "Fehler beim Laden blockierter Benutzer",
     joinGame: "Spiel beitreten",
     hasDeclinedInvite: "hat Ihre Einladung abgelehnt",
-    inviteDeclined: "Einladung abgelehnt"
+    inviteDeclined: "Einladung abgelehnt",
+    isTyping: "schreibt...",
+    and: "und",
+    areTyping: "schreiben...",
+    peopleTyping: "Personen schreiben...",
+    noOnlineUsers: "Keine Online-Benutzer"
   },
 
   common: {
