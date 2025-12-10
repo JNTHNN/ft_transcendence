@@ -697,5 +697,144 @@ export default {
     includedDataText: "Spielerpunkte, Gewinner-Index, Runde, Match-Zeitstempel",
     rawJsonData: "Rohe JSON-Daten",
     rawDataModalTitle: "Rohe Blockchain-Daten - Match"
+  },
+
+  footer: {
+    allRightsReserved: 'Alle Rechte vorbehalten',
+    privacyPolicy: 'Datenschutzerklärung',
+    termsOfService: 'Nutzungsbedingungen'
+  },
+  
+  privacy: {
+    title: 'Datenschutzerklärung',
+    lastUpdated: 'Zuletzt aktualisiert',
+    section1: {
+      title: 'Gesammelte Informationen',
+      intro: 'Wenn Sie ft_transcendence verwenden, sammeln wir folgende Informationen:',
+      item1: 'Kontoinformationen (Benutzername, E-Mail, Passwort - gehasht)',
+      item2: 'Profilinformationen (Anzeigename, Avatar)',
+      item3: 'Spielstatistiken und Match-Verlauf',
+      item4: 'Freundeslisten und soziale Interaktionen',
+      item5: 'Chat-Nachrichten (temporär für aktive Sitzungen gespeichert)'
+    },
+    section2: {
+      title: 'Verwendung Ihrer Informationen',
+      intro: 'Ihre Informationen werden verwendet für:',
+      item1: 'Bereitstellung und Wartung des Gaming-Services',
+      item2: 'Aktivierung von Mehrspieler-Funktionen und Matchmaking',
+      item3: 'Verfolgung Ihres Spielfortschritts und Ihrer Statistiken',
+      item4: 'Ermöglichung sozialer Funktionen (Freunde, Chat)',
+      item5: 'Verbesserung unserer Dienste und Benutzererfahrung'
+    },
+    section3: {
+      title: 'Datenspeicherung und Sicherheit',
+      intro: 'Wir implementieren branchenübliche Sicherheitsmaßnahmen:',
+      item1: 'Passwörter werden mit bcrypt gehasht vor der Speicherung',
+      item2: 'Alle Verbindungen verwenden HTTPS-Verschlüsselung',
+      item3: 'WebSocket-Verbindungen sind gesichert (wss://)',
+      item4: 'Datenbankzugriff ist eingeschränkt und überwacht',
+      item5: 'Regelmäßige Sicherheitsaudits werden durchgeführt'
+    },
+    section4: {
+      title: 'Datenaufbewahrung',
+      intro: 'Wir bewahren Ihre Daten wie folgt auf:',
+      item1: 'Kontodaten: Bis zur Kontolöschung',
+      item2: 'Spielverlauf: Unbegrenzt (für Statistiken)',
+      item3: 'Chat-Nachrichten: Nur während der aktiven Sitzung',
+      item4: 'Protokolle: Maximal 30 Tage'
+    },
+    section5: {
+      title: 'Ihre Rechte',
+      intro: 'Sie haben das Recht:',
+      item1: 'Auf Ihre persönlichen Daten zuzugreifen',
+      item2: 'Korrektur ungenauer Daten zu verlangen',
+      item3: 'Löschung Ihres Kontos zu verlangen',
+      item4: 'Ihre Spielstatistiken zu exportieren',
+      item5: 'Die nicht-essenzielle Datenerfassung abzulehnen'
+    },
+    section6: {
+      title: 'Drittanbieter-Dienste',
+      content: 'Diese Anwendung teilt Ihre Daten nicht mit Dritten, außer wenn gesetzlich vorgeschrieben, zum Schutz unserer Rechte oder Sicherheit, oder mit Ihrer ausdrücklichen Zustimmung.'
+    },
+    section7: {
+      title: 'Cookies und Tracking',
+      content: 'Wir verwenden Cookies und ähnliche Technologien für Authentifizierung (JWT-Tokens), Sitzungsverwaltung und Benutzerpräferenzen (Sprache, Theme).'
+    },
+    section8: {
+      title: 'Datenschutz für Kinder',
+      content: 'Dieser Service ist nicht für Benutzer unter 13 Jahren bestimmt. Wir sammeln wissentlich keine persönlichen Informationen von Kindern.'
+    },
+    contact: {
+      title: 'Kontaktieren Sie uns',
+      content: 'Für datenschutzbezogene Fragen oder Anfragen kontaktieren Sie uns bitte unter:',
+      email: 'E-Mail',
+      project: 'Dies ist ein Studentenprojekt an der 42 School.'
+    }
+  },
+  
+  terms: {
+    title: 'Nutzungsbedingungen',
+    lastUpdated: 'Zuletzt aktualisiert',
+    section1: {
+      title: 'Annahme der Bedingungen',
+      content1: 'Durch den Zugriff auf und die Nutzung von ft_transcendence ("der Service") akzeptieren Sie diese Nutzungsbedingungen. Wenn Sie diesen Bedingungen nicht zustimmen, verwenden Sie den Service bitte nicht.',
+      content2: 'Dies ist ein Bildungsprojekt, das als Teil des Lehrplans der 42 School entwickelt wurde. Der Service wird "wie besehen" für Bildungs- und Unterhaltungszwecke bereitgestellt.'
+    },
+    section2: {
+      title: 'Benutzerkonten',
+      intro: 'Kontoerstellung:',
+      item1: 'Sie müssen genaue und vollständige Informationen angeben',
+      item2: 'Sie sind für die Sicherheit Ihres Kontos verantwortlich',
+      item3: 'Sie dürfen Ihre Kontodaten nicht weitergeben',
+      item4: 'Sie müssen mindestens 13 Jahre alt sein, um ein Konto zu erstellen',
+      item5: 'Eine Person darf nur ein Konto erstellen'
+    },
+    section3: {
+      title: 'Akzeptable Nutzung',
+      intro: 'Sie stimmen zu, NICHT:',
+      item1: 'Offensive, unangemessene oder diskriminierende Benutzernamen zu verwenden',
+      item2: 'Andere Benutzer zu belästigen, zu missbrauchen oder zu schädigen',
+      item3: 'Zu versuchen, zu betrügen oder Spielmechaniken auszunutzen',
+      item4: 'Bots, Skripte oder automatisierte Tools zu verwenden',
+      item5: 'Die Anwendung zurückzuentwickeln oder zu dekompilieren',
+      item6: 'Unbefugten Zugriff auf Systeme zu erlangen',
+      item7: 'Spam oder bösartigen Inhalt über den Chat zu senden',
+      item8: 'Sich als andere Benutzer oder Administratoren auszugeben'
+    },
+    section4: {
+      title: 'Spielregeln',
+      intro: 'Turnier und Gameplay:',
+      item1: 'Alle Spielregeln und Fair-Play-Richtlinien befolgen',
+      item2: 'Nicht absichtlich trennen, um Niederlagen zu vermeiden',
+      item3: 'Turnier-Brackets und Zeitpläne respektieren',
+      item4: 'Fehler und Exploits an Administratoren melden',
+      item5: 'Match-Ergebnisse als endgültig akzeptieren'
+    },
+    section5: {
+      title: 'Geistiges Eigentum',
+      content: 'Der Service, einschließlich seines ursprünglichen Inhalts, seiner Funktionen und Funktionalität, gehört dem ft_transcendence-Entwicklungsteam und ist durch internationale Urheberrechts-, Marken- und andere Gesetze zum Schutz geistigen Eigentums geschützt. Das klassische Pong-Spielkonzept ist gemeinfrei. Diese Implementierung ist eine Originalarbeit, die zu Bildungszwecken erstellt wurde.'
+    },
+    section6: {
+      title: 'Serviceverfügbarkeit',
+      content: 'Wir bemühen uns, einen zuverlässigen Service bereitzustellen, aber der Service kann für Wartungsarbeiten unterbrochen werden. Wir garantieren keine 100%ige Verfügbarkeit. Funktionen können hinzugefügt, geändert oder entfernt werden. Der Service kann jederzeit eingestellt werden.'
+    },
+    section7: {
+      title: 'Gewährleistungsausschluss',
+      content: 'DER SERVICE WIRD "WIE BESEHEN" OHNE JEGLICHE GEWÄHRLEISTUNG BEREITGESTELLT. Dies ist ein Bildungsprojekt und kann Fehler, Bugs oder Einschränkungen enthalten.'
+    },
+    section8: {
+      title: 'Haftungsbeschränkung',
+      content: 'Die Entwickler haften nicht für indirekte, zufällige, besondere, Folge- oder Strafschäden, die aus Ihrer Nutzung oder Unfähigkeit zur Nutzung des Services resultieren.'
+    },
+    section9: {
+      title: 'Änderungen der Bedingungen',
+      content: 'Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern. Wesentliche Änderungen werden über die Anwendung angekündigt. Die fortgesetzte Nutzung nach Änderungen bedeutet die Akzeptanz der neuen Bedingungen.'
+    },
+    contact: {
+      title: 'Kontaktinformationen',
+      content: 'Für Fragen zu diesen Nutzungsbedingungen:',
+      email: 'E-Mail',
+      project: 'Dies ist ein Studentenprojekt an der 42 School.'
+    }
   }
 };

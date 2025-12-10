@@ -5,6 +5,7 @@ import { authManager } from './auth';
 import { i18n, t } from './i18n/index.js';
 import { connectWS } from './ws-client.js';
 import { WEBSOCKET_PATHS } from './constants.js';
+import { renderFooter } from './views/footer';
 
 const initApp = async () => {
   i18n.initialize().then(() => {
@@ -30,6 +31,8 @@ const initApp = async () => {
   loadingElements.forEach(el => el.remove());
 
   menuManager;
+  addFooterToPage();
+
 
   // Démarrer le WebSocket friends global si l'utilisateur est connecté
   if (authManager.isAuthenticated()) {
@@ -38,6 +41,20 @@ const initApp = async () => {
 
   router.start();
 };
+
+function addFooterToPage() {
+  // Vérifier si le footer existe déjà
+  const footerContainer = document.getElementById('footer-container');
+  
+  if (footerContainer) {
+	footerContainer.innerHTML = renderFooter();
+  }
+}
+
+window.addEventListener('languageChanged', () => {
+  addFooterToPage();
+});
+
 
 // WebSocket friends global
 let globalFriendsWebSocket: WebSocket | null = null;

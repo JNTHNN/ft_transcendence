@@ -118,6 +118,14 @@ export async function FriendsView() {
       const response = await api("/users/friends");
       const friends: Friend[] = response.friends;
 
+      // Formater les avatars avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      friends.forEach(friend => {
+        if (friend.avatarUrl && friend.avatarUrl.startsWith('/uploads/')) {
+          friend.avatarUrl = `${apiBaseUrl}${friend.avatarUrl}`;
+        }
+      });
+
       if (friends.length === 0) {
         friendsList.innerHTML = `
           <div class="text-center py-8">
@@ -176,6 +184,14 @@ export async function FriendsView() {
     try {
       const response = await api("/users/friend-requests");
       const requests: FriendRequest[] = response.requests;
+
+      // Formater les avatars avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      requests.forEach(request => {
+        if (request.avatarUrl && request.avatarUrl.startsWith('/uploads/')) {
+          request.avatarUrl = `${apiBaseUrl}${request.avatarUrl}`;
+        }
+      });
 
       if (requests.length === 0) {
         requestsList.innerHTML = `
@@ -237,6 +253,14 @@ export async function FriendsView() {
     try {
       const response = await api("/users/sent-requests");
       const sentRequests: SentRequest[] = response.sentRequests;
+
+      // Formater les avatars avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      sentRequests.forEach(request => {
+        if (request.avatarUrl && request.avatarUrl.startsWith('/uploads/')) {
+          request.avatarUrl = `${apiBaseUrl}${request.avatarUrl}`;
+        }
+      });
 
       if (sentRequests.length === 0) {
         sentRequestsList.innerHTML = `
@@ -305,6 +329,14 @@ export async function FriendsView() {
     try {
       const response = await api(`/users/search?q=${encodeURIComponent(query)}`);
       const users: SearchUser[] = response.users;
+
+      // Formater les avatars avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      users.forEach(user => {
+        if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
+          user.avatarUrl = `${apiBaseUrl}${user.avatarUrl}`;
+        }
+      });
 
       if (users.length === 0) {
         searchResults.innerHTML = `

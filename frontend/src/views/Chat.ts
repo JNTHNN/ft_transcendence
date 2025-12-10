@@ -605,6 +605,14 @@ export default async function View() {
   updateOnlineUsersFromWS = (users: any[]) => {
     const currentUserId = authManager.getState().user?.id;
     
+    // Formater les avatars avec l'API base URL pour les uploads locaux
+    const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+    users.forEach(user => {
+      if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
+        user.avatarUrl = `${apiBaseUrl}${user.avatarUrl}`;
+      }
+    });
+    
     // Filtrer les utilisateurs bloqués
     const filteredUsers = users.filter((user: any) => !blockedUsers.has(user.userId));
     
@@ -647,6 +655,14 @@ export default async function View() {
       
       // Gérer à la fois {users: []} et [] comme format de réponse
       const onlineUsers = Array.isArray(response) ? response : (response.users || []);
+      
+      // Formater les avatars avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      onlineUsers.forEach((user: any) => {
+        if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
+          user.avatarUrl = `${apiBaseUrl}${user.avatarUrl}`;
+        }
+      });
       
       // Filtrer les utilisateurs bloqués
       const filteredUsers = onlineUsers.filter((user: any) => !blockedUsers.has(user.userId));
@@ -692,6 +708,14 @@ export default async function View() {
     try {
       const blocked = await api('/chat/blocked');
       blockedUsers = new Set(blocked.map((b: any) => b.blockedUserId));
+      
+      // Formater les avatars avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      blocked.forEach((user: any) => {
+        if (user.blockedUserAvatar && user.blockedUserAvatar.startsWith('/uploads/')) {
+          user.blockedUserAvatar = `${apiBaseUrl}${user.blockedUserAvatar}`;
+        }
+      });
       
       if (blocked.length === 0) {
         blockedUsersContainer.innerHTML = `<p class="text-text/50 text-sm text-center py-4">${t('chat.noBlockedUsers') || 'Aucun utilisateur bloqué'}</p>`;
@@ -751,6 +775,15 @@ export default async function View() {
     // Gérer l'historique initial
     if (msg.type === 'history' && msg.messages) {
       messagesContainer.innerHTML = '';
+      
+      // Formater les avatars avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      msg.messages.forEach((historyMsg: ChatMessage) => {
+        if (historyMsg.avatarUrl && historyMsg.avatarUrl.startsWith('/uploads/')) {
+          historyMsg.avatarUrl = `${apiBaseUrl}${historyMsg.avatarUrl}`;
+        }
+      });
+      
       msg.messages.forEach((historyMsg: ChatMessage) => {
         // Filtrer les messages des utilisateurs bloqués
         if (historyMsg.type === 'user' && historyMsg.userId && blockedUsers.has(historyMsg.userId)) {
@@ -798,6 +831,12 @@ export default async function View() {
       // Filtrer les messages des utilisateurs bloqués
       if (msg.type === 'user' && msg.userId && blockedUsers.has(msg.userId)) {
         return;
+      }
+      
+      // Formater l'avatar avec l'API base URL pour les uploads locaux
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+      if (msg.avatarUrl && msg.avatarUrl.startsWith('/uploads/')) {
+        msg.avatarUrl = `${apiBaseUrl}${msg.avatarUrl}`;
       }
       
       // Ajouter le message et envoyer un read receipt pour les messages des autres utilisateurs

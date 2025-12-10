@@ -123,6 +123,22 @@ async function loadTournamentDetails(wrap: HTMLDivElement, tournamentId: string)
     const participants = tournamentData.players || [];
     const matches = tournamentData.matches || [];
     
+    // Formater les avatars avec l'API base URL pour les uploads locaux
+    const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+    participants.forEach((p: any) => {
+      if (p.avatar_url && p.avatar_url.startsWith('/uploads/')) {
+        p.avatar_url = `${apiBaseUrl}${p.avatar_url}`;
+      }
+    });
+    matches.forEach((m: any) => {
+      if (m.player1_avatar_url && m.player1_avatar_url.startsWith('/uploads/')) {
+        m.player1_avatar_url = `${apiBaseUrl}${m.player1_avatar_url}`;
+      }
+      if (m.player2_avatar_url && m.player2_avatar_url.startsWith('/uploads/')) {
+        m.player2_avatar_url = `${apiBaseUrl}${m.player2_avatar_url}`;
+      }
+    });
+    
     // Blockchain verification now handled at individual match level
     updateHeader(wrap, tournament, userMe, participants);
     updateContent(wrap, tournament, participants, matches, userMe);
@@ -245,7 +261,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
           
           ${tournament.winner_id ? `
             <p class="text-text/70 mt-4 mb-2">${t('tournamentDetail.winner')}:</p>
-            <p class="text-green-400 font-bold">🏆 ${t('tournamentDetail.playerNumber')}${tournament.winner_id}</p>
+            <p class="text-green-400 font-bold">🏆 ${(tournament as any).winner_username || t('tournamentDetail.playerNumber') + tournament.winner_id}</p>
           ` : ''}
         </div>
       </div>
@@ -444,7 +460,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
         const endTime = new Date(match.end_time);
         const durationMs = endTime.getTime() - startTime.getTime();
         const durationMinutes = Math.floor(durationMs / 60000);
-        const durationSeconds = Math.floor((durationMs % 60000) / 1000);
+        const durationSeconds = Math.round((durationMs % 60000) / 1000);
         duration = `${durationMinutes}m ${durationSeconds}s`;
       }
 
@@ -526,9 +542,13 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               <div class="text-center">
                 <div class="flex flex-col items-center">
                   <span class="text-text font-medium mb-2">${player1}</span>
-                  <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player1_id ? 'ring-2 ring-green-500' : ''}">
-                    <span class="text-text font-bold text-lg">${player1.charAt(0).toUpperCase()}</span>
-                  </div>
+                  ${(match as any).player1_avatar_url ? `
+                    <img src="${(match as any).player1_avatar_url}" alt="${player1}" class="w-12 h-12 rounded-full object-cover ${match.status === 'completed' && match.winner_id === match.player1_id ? 'ring-2 ring-green-500' : ''}" />
+                  ` : `
+                    <div class="w-12 h-12 bg-sec rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player1_id ? 'ring-2 ring-green-500' : ''}">
+                      <span class="text-text font-bold text-lg">${player1.charAt(0).toUpperCase()}</span>
+                    </div>
+                  `}
                   ${match.status === 'completed' && match.winner_id === match.player1_id && match.player2_id ? `<div class="text-green-400 text-xs mt-1">🏆 ${t('tournamentDetail.winner')}</div>` : ''}
                 </div>
               </div>
@@ -545,9 +565,13 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               <div class="text-center">
                 <div class="flex flex-col items-center">
                   <span class="text-text font-medium mb-2">${player2}</span>
-                  <div class="w-12 h-12 bg-sec/20 rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player2_id ? 'ring-2 ring-green-500' : ''}">
-                    <span class="text-text font-bold text-lg">${player2.charAt(0).toUpperCase()}</span>
-                  </div>
+                  ${(match as any).player2_avatar_url ? `
+                    <img src="${(match as any).player2_avatar_url}" alt="${player2}" class="w-12 h-12 rounded-full object-cover ${match.status === 'completed' && match.winner_id === match.player2_id ? 'ring-2 ring-green-500' : ''}" />
+                  ` : `
+                    <div class="w-12 h-12 bg-sec rounded-full flex items-center justify-center ${match.status === 'completed' && match.winner_id === match.player2_id ? 'ring-2 ring-green-500' : ''}">
+                      <span class="text-text font-bold text-lg">${player2.charAt(0).toUpperCase()}</span>
+                    </div>
+                  `}
                   ${match.status === 'completed' && match.winner_id === match.player2_id && match.player2_id ? `<div class="text-green-400 text-xs mt-1">🏆 ${t('tournamentDetail.winner')}</div>` : ''}
                 </div>
               </div>

@@ -3,6 +3,9 @@ import type { SocketStream } from '@fastify/websocket';
 import { gameManager } from './GameManager.js';
 import type { PlayerInput } from './types.js';
 
+/**
+ * Structure des messages WebSocket reçus du client
+ */
 interface GameMessage {
   type: 'join' | 'input' | 'ping' | 'pause' | 'resume' | 'start' | 'getState';
   matchId?: string;
@@ -15,94 +18,190 @@ interface GameMessage {
  * Enregistre le WebSocket pour le jeu
  */
 export async function registerGameWS(app: FastifyInstance) {
-  app.get(
-    '/ws/game',
-    { websocket: true },
-    (connection: SocketStream, _request: FastifyRequest) => {
+  
+  // ═══════════════════════════════════════════════════════════════
+  // WebSocket endpoint : /ws/game
+  // ═══════════════════════════════════════════════════════════════
+  
+  app.get('/ws/game', { websocket: true }, (connection: SocketStream, _request: FastifyRequest) => {
+      
       const socket = connection.socket;
-
-
+      
+      // Variable pour tracker le joueur connecté
       let currentPlayerId: string | null = null;
-
-      // Message reÃ§u du client
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // ÉVÉNEMENT : Message reçu du client (ecoute en continu)
+      // ═════════════════════════════════════════════════════════════
+      
       socket.on('message', (rawData: Buffer) => {
+        
         try {
+          // Parse le message JSON
           const message = JSON.parse(rawData.toString()) as GameMessage;
-
+          
+          // Router selon le type de message
           switch (message.type) {
+            
             case 'join':
               handleJoin(message);
               break;
-
+            
             case 'input':
               handleInput(message);
               break;
-
+            
             case 'ping':
               socket.send(JSON.stringify({ type: 'pong' }));
               break;
-			
-			case 'start':
-				handleStart(message);
-				break;
-			
-			case 'getState':
-				handleGetState(message);
-				break;
-			
-			case 'pause':
-				if (!message.matchId) {
-					socket.send(JSON.stringify({
-					type: 'error',
-					message: 'Missing matchId for pause'
-					}));
-					break;
-				}
-				
-				const gameToPause = gameManager.getGame(message.matchId);
-				if (gameToPause) {
-					gameToPause.stop();
-
-				}
-				break;
-
-			case 'resume':
-				if (!message.matchId) {
-					socket.send(JSON.stringify({
-					type: 'error',
-					message: 'Missing matchId for resume'
-					}));
-					break;
-				}
-				
-				const gameToResume = gameManager.getGame(message.matchId);
-				if (gameToResume) {
-					gameToResume.start();
-				}
-				break;
-
+            
+            case 'start':
+              handleStart(message);
+              break;
+            
+            case 'getState':
+              handleGetState(message);
+              break;
+            
+            case 'pause':
+              handlePause(message);
+              break;
+            
+            case 'resume':
+              handleResume(message);
+              break;
+            
             default:
+              // Type de message inconnu
+              socket.send(JSON.stringify({
+                type: 'error',
+                message: 'Unknown message type'
+              }));
           }
+          
         } catch (error) {
-          socket.send(
-            JSON.stringify({
-              type: 'error',
-              message: 'Invalid message format',
-            })
-          );
+          // Erreur de parsing JSON
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Invalid message format',
+          }));
         }
       });
-
-	  
-
-      // DÃ©connexion
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // ÉVÉNEMENT : Déconnexion du client
+      // ═════════════════════════════════════════════════════════════
+      
       socket.on('close', () => {
         if (currentPlayerId) {
           handleDisconnect(currentPlayerId);
         }
       });
-
-      // Gestion du démarrage
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // HANDLER : JOIN - Rejoindre une partie
+      // ═════════════════════════════════════════════════════════════
+      
+      function handleJoin(message: GameMessage) {
+        const { matchId, playerId, side } = message;
+        
+        // Validation des paramètres requis
+        if (!matchId || !playerId || !side) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Missing matchId, playerId, or side',
+          }));
+          return;
+        }
+        
+        try {
+          // Récupérer le jeu
+          const game = gameManager.getGame(matchId);
+          
+          if (!game) {
+            socket.send(JSON.stringify({
+              type: 'error',
+              message: 'Game not found',
+            }));
+            return;
+          }
+          
+          // Déterminer le type de contrôleur selon le mode du jeu
+          let controllerType: 'human-ws' | 'human-arrows' | 'local-player2';
+          
+          if (game.mode === 'local-2p' || game.mode === 'tournament') {
+            // Mode local : clavier direct (pas WebSocket)
+            controllerType = side === 'left' ? 'human-arrows' : 'local-player2';
+          } else {
+            // Mode online : WebSocket
+            controllerType = 'human-ws';
+          }
+          
+          // Ajouter le joueur à la partie
+          const added = gameManager.addPlayerToGame(matchId, {
+            id: playerId,
+            side,
+            controllerType,
+            socket,
+          });
+          
+          if (!added) {
+            socket.send(JSON.stringify({
+              type: 'error',
+              message: 'Failed to join game (already full?)',
+            }));
+            return;
+          }
+          
+          // Sauvegarder l'ID du joueur
+          currentPlayerId = playerId;
+          
+          // Envoyer confirmation au client
+          socket.send(JSON.stringify({
+            type: 'joined',
+            matchId,
+            playerId,
+            side,
+          }));
+          
+        } catch (error: any) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: error.message,
+          }));
+        }
+      }
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // HANDLER : INPUT - Recevoir input clavier du joueur
+      // ═════════════════════════════════════════════════════════════
+      
+      function handleInput(message: GameMessage) {
+        const { playerId, matchId, input } = message;
+        
+        // Validation
+        if (!playerId || !matchId || !input) {
+          return;
+        }
+        
+        // Récupérer le jeu
+        const game = gameManager.getGame(matchId);
+        
+        if (game) {
+          // Mettre à jour l'input du joueur
+          game.setPlayerInput(playerId, input);
+        }
+      }
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // HANDLER : START - Démarrer la partie
+      // ═════════════════════════════════════════════════════════════
+      
       function handleStart(message: GameMessage) {
         const { matchId } = message;
         
@@ -115,6 +214,7 @@ export async function registerGameWS(app: FastifyInstance) {
         }
         
         const game = gameManager.getGame(matchId);
+        
         if (game) {
           game.start();
           console.log(`▶️ Game ${matchId} started by player request`);
@@ -126,8 +226,12 @@ export async function registerGameWS(app: FastifyInstance) {
           }));
         }
       }
-
-      // Gestion de la demande d'état
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // HANDLER : GET STATE - Récupérer l'état actuel du jeu
+      // ═════════════════════════════════════════════════════════════
+      
       function handleGetState(message: GameMessage) {
         const { matchId } = message;
         
@@ -140,6 +244,7 @@ export async function registerGameWS(app: FastifyInstance) {
         }
         
         const game = gameManager.getGame(matchId);
+        
         if (game) {
           const state = game.getState();
           socket.send(JSON.stringify({
@@ -153,117 +258,84 @@ export async function registerGameWS(app: FastifyInstance) {
           }));
         }
       }
-
-      // Gestion de la connexion
-      function handleJoin(message: GameMessage) {
-        const { matchId, playerId, side } = message;
-
-        if (!matchId || !playerId || !side) {
-          socket.send(
-            JSON.stringify({
-              type: 'error',
-              message: 'Missing matchId, playerId, or side',
-            })
-          );
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // HANDLER : PAUSE - Mettre en pause
+      // ═════════════════════════════════════════════════════════════
+      
+      function handlePause(message: GameMessage) {
+        const { matchId } = message;
+        
+        if (!matchId) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Missing matchId for pause'
+          }));
           return;
         }
-
-        try {
-			// Récupérer le jeu pour déterminer le mode
-			const game = gameManager.getGame(matchId);
-			if (!game) {
-				socket.send(JSON.stringify({
-					type: 'error',
-					message: 'Game not found',
-				}));
-				return;
-			}
-
-			// Déterminer le type de contrôleur selon le mode du jeu
-			let controllerType: 'human-ws' | 'human-arrows' | 'local-player2';
-			if (game.mode === 'local-2p' || game.mode === 'tournament') {
-				// Mode local et tournoi : utiliser les contrôles clavier appropriés
-				controllerType = side === 'left' ? 'human-arrows' : 'local-player2';
-			} else {
-				// Mode online ou solo : utiliser WebSocket
-				controllerType = 'human-ws';
-			}
-
-			// Ajouter le joueur Ã  la partie
-			const added = gameManager.addPlayerToGame(matchId, {
-			id: playerId,
-			side,
-			controllerType,
-			socket,
-			});
-
-			if (!added) {
-			socket.send(
-				JSON.stringify({
-				type: 'error',
-				message: 'Failed to join game (already full?)',
-				})
-			);
-			return;
-			}
-
-			currentPlayerId = playerId;
-
-			// Confirmation
-			socket.send(
-			JSON.stringify({
-				type: 'joined',
-				matchId,
-				playerId,
-				side,
-			})
-			);
-		} catch (error: any) {
-			socket.send(
-			JSON.stringify({
-				type: 'error',
-				message: error.message,
-			})
-			);
-		}
+        
+        const game = gameManager.getGame(matchId);
+        
+        if (game) {
+          game.stop();
+          console.log(`⏸️ Game ${matchId} paused`);
+        }
       }
-
-      // Gestion des inputs
-		function handleInput(message: GameMessage) {
-		if (!message.playerId || !message.matchId || !message.input) {
-			return;
-		}
-
-
-		const game = gameManager.getGame(message.matchId);
-		if (game) {
-			game.setPlayerInput(message.playerId, message.input);  // âœ… message.playerId
-		}
-		}
-
-      // Gestion de la dÃ©connexion
-		function handleDisconnect(playerId: string) {
-		
-		const game = gameManager.getGameByPlayer(playerId);
-		if (!game) {
-			return;
-		}
-
-		const matchId = game.id;
-		const state = game.getState();
-		
-		// ðŸ§¹ Si la partie n'est pas terminÃ©e, la supprimer immÃ©diatement
-		if (state.status !== 'finished') {
-			game.stop();
-			
-			gameManager.removeGame(matchId);
-		} else {
-			setTimeout(() => {
-			gameManager.removeGame(matchId);
-			}, 5000);
-		}
-		
-		}
-	}
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // HANDLER : RESUME - Reprendre la partie
+      // ═════════════════════════════════════════════════════════════
+      
+      function handleResume(message: GameMessage) {
+        const { matchId } = message;
+        
+        if (!matchId) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Missing matchId for resume'
+          }));
+          return;
+        }
+        
+        const game = gameManager.getGame(matchId);
+        
+        if (game) {
+          game.start();
+          console.log(`▶️ Game ${matchId} resumed`);
+        }
+      }
+      
+      
+      // ═════════════════════════════════════════════════════════════
+      // HANDLER : DISCONNECT - Gérer la déconnexion
+      // ═════════════════════════════════════════════════════════════
+      
+      function handleDisconnect(playerId: string) {
+        const game = gameManager.getGameByPlayer(playerId);
+        
+        if (!game) {
+          return;
+        }
+        
+        const matchId = game.id;
+        const state = game.getState();
+        
+        // Si la partie n'est pas terminée, la supprimer immédiatement
+        if (state.status !== 'finished') {
+          console.log(`🔌 Player ${playerId} disconnected, stopping game ${matchId}`);
+          game.stop();
+          gameManager.removeGame(matchId);
+        } else {
+          // Si terminée, attendre 5s avant de supprimer
+          console.log(`🔌 Player ${playerId} disconnected from finished game ${matchId}`);
+          setTimeout(() => {
+            gameManager.removeGame(matchId);
+          }, 5000);
+        }
+      }
+      
+    }
   );
 }

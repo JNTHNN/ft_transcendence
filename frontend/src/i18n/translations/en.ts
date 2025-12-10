@@ -696,6 +696,145 @@ export default {
     includedDataText: "Player scores, winner index, round, match timestamp",
     rawJsonData: "Raw JSON Data",
     rawDataModalTitle: "Raw Blockchain Data - Match"
+  },
+
+  footer: {
+    allRightsReserved: 'All rights reserved',
+    privacyPolicy: 'Privacy Policy',
+    termsOfService: 'Terms of Service'
+  },
+  
+  privacy: {
+    title: 'Privacy Policy',
+    lastUpdated: 'Last updated',
+    section1: {
+      title: 'Information We Collect',
+      intro: 'When you use ft_transcendence, we collect the following information:',
+      item1: 'Account information (username, email, password - hashed)',
+      item2: 'Profile information (display name, avatar)',
+      item3: 'Game statistics and match history',
+      item4: 'Friend lists and social interactions',
+      item5: 'Chat messages (stored temporarily for active sessions)'
+    },
+    section2: {
+      title: 'How We Use Your Information',
+      intro: 'Your information is used to:',
+      item1: 'Provide and maintain the gaming service',
+      item2: 'Enable multiplayer functionality and matchmaking',
+      item3: 'Track your game progress and statistics',
+      item4: 'Facilitate social features (friends, chat)',
+      item5: 'Improve our services and user experience'
+    },
+    section3: {
+      title: 'Data Storage and Security',
+      intro: 'We implement industry-standard security measures:',
+      item1: 'Passwords are hashed using bcrypt before storage',
+      item2: 'All connections use HTTPS encryption',
+      item3: 'WebSocket connections are secured (wss://)',
+      item4: 'Database access is restricted and monitored',
+      item5: 'Regular security audits are performed'
+    },
+    section4: {
+      title: 'Data Retention',
+      intro: 'We retain your data as follows:',
+      item1: 'Account data: Until account deletion',
+      item2: 'Game history: Indefinitely (for statistics)',
+      item3: 'Chat messages: During active session only',
+      item4: 'Logs: 30 days maximum'
+    },
+    section5: {
+      title: 'Your Rights',
+      intro: 'You have the right to:',
+      item1: 'Access your personal data',
+      item2: 'Request correction of inaccurate data',
+      item3: 'Request deletion of your account',
+      item4: 'Export your game statistics',
+      item5: 'Opt-out of non-essential data collection'
+    },
+    section6: {
+      title: 'Third-Party Services',
+      content: 'This application does not share your data with third parties, except when required by law, to protect our rights or safety, or with your explicit consent.'
+    },
+    section7: {
+      title: 'Cookies and Tracking',
+      content: 'We use cookies and similar technologies for authentication (JWT tokens), session management, and user preferences (language, theme).'
+    },
+    section8: {
+      title: 'Children\'s Privacy',
+      content: 'This service is not intended for users under 13 years of age. We do not knowingly collect personal information from children.'
+    },
+    contact: {
+      title: 'Contact Us',
+      content: 'For privacy-related questions or requests, please contact us at:',
+      email: 'Email',
+      project: 'This is a student project at 42 School.'
+    }
+  },
+  
+  terms: {
+    title: 'Terms of Service',
+    lastUpdated: 'Last updated',
+    section1: {
+      title: 'Acceptance of Terms',
+      content1: 'By accessing and using ft_transcendence ("the Service"), you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.',
+      content2: 'This is an educational project developed as part of the 42 School curriculum. The Service is provided "as is" for educational and entertainment purposes.'
+    },
+    section2: {
+      title: 'User Accounts',
+      intro: 'Account Creation:',
+      item1: 'You must provide accurate and complete information',
+      item2: 'You are responsible for maintaining account security',
+      item3: 'You must not share your account credentials',
+      item4: 'You must be at least 13 years old to create an account',
+      item5: 'One person may only create one account'
+    },
+    section3: {
+      title: 'Acceptable Use',
+      intro: 'You agree NOT to:',
+      item1: 'Use offensive, inappropriate, or discriminatory usernames',
+      item2: 'Harass, abuse, or harm other users',
+      item3: 'Attempt to cheat or exploit game mechanics',
+      item4: 'Use bots, scripts, or automated tools',
+      item5: 'Reverse engineer or decompile the application',
+      item6: 'Attempt to gain unauthorized access to systems',
+      item7: 'Send spam or malicious content through chat',
+      item8: 'Impersonate other users or administrators'
+    },
+    section4: {
+      title: 'Game Rules',
+      intro: 'Tournament and Gameplay:',
+      item1: 'Follow all in-game rules and fair play guidelines',
+      item2: 'Do not intentionally disconnect to avoid losses',
+      item3: 'Respect tournament brackets and schedules',
+      item4: 'Report bugs and exploits to administrators',
+      item5: 'Accept match results as final'
+    },
+    section5: {
+      title: 'Intellectual Property',
+      content: 'The Service, including its original content, features, and functionality, is owned by the ft_transcendence development team and is protected by international copyright, trademark, and other intellectual property laws. The classic Pong game concept is in the public domain. This implementation is original work created for educational purposes.'
+    },
+    section6: {
+      title: 'Service Availability',
+      content: 'We strive to provide reliable service, but service may be interrupted for maintenance. We do not guarantee 100% uptime. Features may be added, modified, or removed. The Service may be discontinued at any time.'
+    },
+    section7: {
+      title: 'Disclaimer of Warranties',
+      content: 'THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. This is an educational project and may contain bugs, errors, or limitations.'
+    },
+    section8: {
+      title: 'Limitation of Liability',
+      content: 'The developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Service.'
+    },
+    section9: {
+      title: 'Changes to Terms',
+      content: 'We reserve the right to modify these terms at any time. Significant changes will be announced through the application. Continued use after changes constitutes acceptance of new terms.'
+    },
+    contact: {
+      title: 'Contact Information',
+      content: 'For questions about these Terms of Service:',
+      email: 'Email',
+      project: 'This is a student project at 42 School.'
+    }
   }
 };
 
