@@ -1,4 +1,6 @@
 import { api } from "../api-client";
+import { authManager } from "../auth";
+import { router } from "../router";
 import { t } from "../i18n/index.js";
 import "../components/user-stats-modal.js";
 
@@ -34,6 +36,12 @@ interface SentRequest {
 }
 
 export async function FriendsView() {
+  // Check authentication
+  if (!authManager.isAuthenticated()) {
+    router.navigate("/login");
+    return document.createElement("div");
+  }
+  
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-8";
 

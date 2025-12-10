@@ -2,6 +2,7 @@ import { connectWS } from "../ws-client";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 import { authManager } from "../auth";
+import { router } from "../router";
 
 interface GameState {
   matchId: string;
@@ -904,6 +905,11 @@ class PongGame {
 // ═══════════════════════════════════════════════════════════════
 
 export default async function View() {
+  // Check authentication
+  if (!authManager.isAuthenticated()) {
+    router.navigate("/login");
+    return document.createElement("div");
+  }
   
   // ─────────────────────────────────────────────────────────────
   // Récupération des paramètres URL
@@ -1116,10 +1122,7 @@ export default async function View() {
             <h2 id="winner-text" class="text-5xl font-bold text-sec mb-4">🏆</h2>
             <p id="final-score" class="text-3xl text-text mb-8">5 - 3</p>
             <div class="flex gap-4 justify-center">
-              <button id="btn-replay" class="bg-sec hover:bg-sec/80 text-white px-8 py-3 rounded-lg font-bold text-xl">
-                ${t('game.replay')}
-              </button>
-              <button id="btn-quit" class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-bold text-xl">
+              <button id="btn-quit" class="bg-sec hover:bg-sec/80 text-white px-8 py-3 rounded-lg font-bold text-xl">
                 ${t('game.quit')}
               </button>
             </div>
@@ -1143,7 +1146,7 @@ export default async function View() {
     </div>
     
     <p class="mt-4 text-center">
-      <a href="/partie" class="text-sec hover:underline">← ${t('common.back')}</a>
+      <a href="#" id="btn-back-to-games" class="text-sec hover:underline">← ${t('common.back')}</a>
     </p>
   `;
   
@@ -1156,7 +1159,6 @@ export default async function View() {
   const scoreLeft = wrap.querySelector("#score-left") as HTMLDivElement;
   const scoreRight = wrap.querySelector("#score-right") as HTMLDivElement;
   const btnAbandon = wrap.querySelector("#btn-abandon") as HTMLButtonElement;
-  const btnReplay = wrap.querySelector("#btn-replay") as HTMLButtonElement;
   const btnQuit = wrap.querySelector("#btn-quit") as HTMLButtonElement;
   
   // Références aux noms des joueurs
@@ -1290,41 +1292,64 @@ export default async function View() {
   
   
   // ─────────────────────────────────────────────────────────────
-  // Bouton Rejouer (fin de partie)
+  // Fonction pour déterminer la redirection selon le contexte
   // ─────────────────────────────────────────────────────────────
   
-  btnReplay.addEventListener("click", async () => {
-    game.allowNavigation = true;
-    
-    try {
-      // Créer une nouvelle partie
-      const response = await api("/game/local/create", {
-        method: "POST",
-        body: JSON.stringify({})
-      });
-      
-      if (response.matchId) {
-        // Recharger la page avec le nouveau match
-        window.location.href = `/match?mode=${mode}`;
-      } else {
-        window.location.reload();
+  const getRedirectPath = () => {
+    // Match de tournoi → retour vers la page du tournoi
+    if (mode === "tournament") {
+      const tournamentId = params.get("tournamentId");
+      if (tournamentId) {
+        return `/tournament/${tournamentId}`;
       }
-    } catch (error) {
-      console.error("❌ Erreur lors du replay:", error);
-      window.location.reload();
     }
-  });
+    
+    // Partie locale lancée depuis le chat → retour vers le chat
+    if (params.get("fromChat") === "true") {
+      return '/chat';
+    }
+    
+    // Invitation depuis le chat (multiplayer avec invite/gameId) → retour vers le chat
+    if (mode === "multiplayer" && (inviteId || gameId)) {
+      return '/chat';
+    }
+    
+    // Invitation depuis le chat (ancien format avec inviteId) → retour vers le chat
+    if (inviteId || gameId) {
+      return '/chat';
+    }
+    
+    // Partie locale, solo ou multiplayer depuis le menu → retour vers le menu jouer
+    return '/partie';
+  };
   
   
   // ─────────────────────────────────────────────────────────────
   // Bouton Quitter (fin de partie)
   // ─────────────────────────────────────────────────────────────
   
-  btnQuit.addEventListener("click", () => {
+  btnQuit.addEventListener("click", async () => {
     game.allowNavigation = true;
     game.destroy();
-    window.location.href = '/partie';
+    const { router } = await import('../router.js');
+    router.navigate(getRedirectPath());
   });
+  
+  
+  // ─────────────────────────────────────────────────────────────
+  // Bouton Retour (lien en bas de page)
+  // ─────────────────────────────────────────────────────────────
+  
+  const btnBackToGames = wrap.querySelector("#btn-back-to-games") as HTMLAnchorElement;
+  if (btnBackToGames) {
+    btnBackToGames.addEventListener("click", async (e) => {
+      e.preventDefault();
+      game.allowNavigation = true;
+      game.destroy();
+      const { router } = await import('../router.js');
+      router.navigate(getRedirectPath());
+    });
+  }
   
   return wrap;
 }

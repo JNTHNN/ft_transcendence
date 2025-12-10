@@ -168,13 +168,18 @@ export function migrate(): void {
         const tournamentMatchesColumns = db.pragma("table_info(tournament_matches)") as any[];
         const hasBlockchainTxHash = tournamentMatchesColumns.some(col => col.name === 'blockchain_tx_hash');
         const hasBlockchainMatchId = tournamentMatchesColumns.some(col => col.name === 'blockchain_match_id');
-        
+        const hasDuration = tournamentMatchesColumns.some(col => col.name === 'duration');
+
         if (!hasBlockchainTxHash) {
           db.exec("ALTER TABLE tournament_matches ADD COLUMN blockchain_tx_hash TEXT");
         }
-        
+
         if (!hasBlockchainMatchId) {
           db.exec("ALTER TABLE tournament_matches ADD COLUMN blockchain_match_id TEXT");
+        }
+
+        if (!hasDuration) {
+          db.exec("ALTER TABLE tournament_matches ADD COLUMN duration INTEGER");
         }
       } catch (blockchainError) {
         console.warn("Blockchain columns migration failed:", blockchainError);

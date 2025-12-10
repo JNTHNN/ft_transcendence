@@ -293,7 +293,7 @@ export default async function View() {
                 </div>
                 <div class="flex gap-2">
                   <a 
-                    href="/match?mode=local"
+                    href="/match?mode=local&fromChat=true"
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
                   >
                     ${t('chat.accept')} ✓

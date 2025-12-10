@@ -594,7 +594,20 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
 
       // Utiliser la méthode TournamentManager pour compléter le match (avec validation automatique)
       try {
-        TournamentService.completeMatch(activeMatch.match_id, winnerId, score.left, score.right, fastify);
+        // Récupérer la vraie durée du match depuis match_history
+        const matchHistory = db.prepare('SELECT duration FROM match_history WHERE player1_id = ? AND player2_id = ? AND player1_score = ? AND player2_score = ? ORDER BY id DESC LIMIT 1')
+          .get(activeMatch.player1_id, activeMatch.player2_id, score.left, score.right);
+        let realDuration = 0;
+        if (
+          matchHistory &&
+          typeof matchHistory === 'object' &&
+          matchHistory !== null &&
+          'duration' in matchHistory &&
+          typeof (matchHistory as any).duration === 'number'
+        ) {
+          realDuration = (matchHistory as any).duration;
+        }
+        TournamentService.completeMatch(activeMatch.match_id, winnerId, score.left, score.right, realDuration, fastify);
       } catch (error) {
         fastify.log.error(`Error completing tournament match: ${error}`);
         const errorMessage = error instanceof Error ? error.message : 'Failed to complete tournament match';

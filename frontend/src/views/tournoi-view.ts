@@ -1,4 +1,6 @@
 import { api } from "../api-client";
+import { authManager } from "../auth";
+import { router } from "../router";
 import { t } from "../i18n/index.js";
 
 interface Tournament {
@@ -15,6 +17,12 @@ interface Tournament {
 }
 
 export async function TournoiView() {
+  // Check authentication
+  if (!authManager.isAuthenticated()) {
+    router.navigate("/login");
+    return document.createElement("div");
+  }
+  
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-8";
 
