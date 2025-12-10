@@ -296,7 +296,12 @@ export default {
     errorLoadingBlockedUsers: "Error loading blocked users",
     joinGame: "Join game",
     hasDeclinedInvite: "has declined your invitation",
-    inviteDeclined: "Invitation declined"
+    inviteDeclined: "Invitation declined",
+    isTyping: "is typing...",
+    and: "and",
+    areTyping: "are typing...",
+    peopleTyping: "people are typing...",
+    noOnlineUsers: "No online users"
   },
 
   common: {
