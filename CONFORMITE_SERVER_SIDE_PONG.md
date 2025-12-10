@@ -67,6 +67,18 @@ private update(dt: number): void {
 
 #### 📝 Exemple d'utilisation CLI:
 
+# ╔═══════════════════════════════════════════════════════════╗
+# ║  VOTRE CONFIGURATION                                      ║
+# ╠═══════════════════════════════════════════════════════════╣
+# ║  Frontend : https://app.localhost:8443                    ║
+# ║  API      : https://api.localhost:8443                    ║
+# ║  Port     : 8443 (mappé depuis 443 de Traefik)           ║
+# ║  TLS      : Activé (certificat auto-signé)               ║
+# ╚═══════════════════════════════════════════════════════════╝
+
+# COMMANDE DE TEST RAPIDE :
+curl -k https://api.localhost:8443/game/list | jq
+
 ```bash
 # 1️⃣ Créer une partie
 curl -X POST http://localhost:3000/game/create \
