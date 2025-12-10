@@ -131,10 +131,12 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       const tournament = db.prepare(`
         SELECT t.*, 
                u.display_name as creator_username,
+               w.display_name as winner_username,
                COUNT(tp.user_id) as player_count,
                COUNT(tp.user_id) as current_players
         FROM tournaments t
         LEFT JOIN users u ON t.creator_id = u.id
+        LEFT JOIN users w ON t.winner_id = w.id
         LEFT JOIN tournament_participants tp ON t.id = tp.tournament_id
         WHERE t.id = ?
         GROUP BY t.id

@@ -245,7 +245,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
           
           ${tournament.winner_id ? `
             <p class="text-text/70 mt-4 mb-2">${t('tournamentDetail.winner')}:</p>
-            <p class="text-green-400 font-bold">🏆 ${t('tournamentDetail.playerNumber')}${tournament.winner_id}</p>
+            <p class="text-green-400 font-bold">🏆 ${(tournament as any).winner_username || t('tournamentDetail.playerNumber') + tournament.winner_id}</p>
           ` : ''}
         </div>
       </div>
@@ -444,7 +444,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
         const endTime = new Date(match.end_time);
         const durationMs = endTime.getTime() - startTime.getTime();
         const durationMinutes = Math.floor(durationMs / 60000);
-        const durationSeconds = Math.floor((durationMs % 60000) / 1000);
+        const durationSeconds = Math.round((durationMs % 60000) / 1000);
         duration = `${durationMinutes}m ${durationSeconds}s`;
       }
 
