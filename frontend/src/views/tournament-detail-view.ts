@@ -734,15 +734,13 @@ function getStatusText(status: string): string {
     });
     
     if (result.success) {
-      alert(t('tournamentDetail.resetSuccess').replace('{status}', result.previousStatus));
+      alert(t('tournamentDetail.resetSuccess'));
       const { router } = await import('../router.js');
       router.forceRender();
     } else {
       alert(t('tournamentDetail.resetFailed'));
     }
   } catch (error: any) {
-    console.error('Erreur resetStaleMatch:', error);
-    
     // Messages d'erreur plus utiles
     let errorMessage = t('tournamentDetail.resetError');
     if (error.message.includes("No resettable match found")) {

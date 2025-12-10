@@ -116,7 +116,7 @@ export default {
   messages: {
     profileUpdated: "Profil mis à jour avec succès !",
     passwordChanged: "Mot de passe changé avec succès !",
-    accountDeleted: "Votre compte a été supprimé avec succès.\nVous allez être redirigé vers la page d'accueil.",
+    accountDeleted: "Votre compte a été supprimé avec succès. Vous allez être redirigé vers la page d'accueil.",
     oauth42AccountDeleted: "Compte OAuth2 supprimé avec succès. Note: Cela ne supprime que votre compte de notre plateforme, pas de 42.",
     deletingAccount: "Suppression en cours...",
     confirmDeleteAccount: "Êtes-vous absolument certain de vouloir supprimer votre compte ?",
@@ -642,7 +642,7 @@ export default {
     // Confirmations
     confirmStart: "Démarrer le tournoi maintenant ? Aucun autre joueur ne pourra rejoindre après.",
     confirmLeave: "Êtes-vous sûr de vouloir quitter ce tournoi ?",
-    confirmDelete: "⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce tournoi ?\\n\\nCette action est irréversible et supprimera :\\n- Le tournoi\\n- Tous les participants\\n- Tous les matchs associés",
+    confirmDelete: "⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce tournoi ? Cette action est irréversible et supprimera le tournoi, tous les participants et tous les matchs associés.",
     confirmReset: "Réinitialiser votre dernier match ? Ceci annulera la partie en cours ou récente.",
     
     // Errors
@@ -651,7 +651,7 @@ export default {
     playError: "Erreur lors du lancement du match",
     startError: "Impossible de démarrer le match",
     resetError: "Erreur lors de la réinitialisation",
-    resetSuccess: "Match réinitialisé avec succès ! (était en statut: {status})\\nVous pouvez maintenant relancer une partie.",
+    resetSuccess: "Match réinitialisé avec succès ! Vous pouvez maintenant relancer une partie.",
     resetFailed: "Erreur lors de la réinitialisation du match.",
     noResettableMatch: "Aucun match à réinitialiser trouvé. Le match est peut-être déjà terminé ou vous n'y participez pas.",
     notParticipant: "Vous ne participez pas à ce match.",
@@ -663,8 +663,8 @@ export default {
     missingTournamentId: "Erreur: ID du tournoi manquant",
     noMatchWaiting: "Aucun match en attente pour vous dans ce tournoi",
     blockedMatchConfirm: "Vous avez un match en cours qui semble bloqué. Voulez-vous le réinitialiser et recommencer ?",
-    needTwoPlayers: "Le tournoi a besoin d'au moins 2 joueurs pour commencer.\\n\\nActuellement: {current} joueur(s)\\nManquant: {needed} joueur(s)",
-    needPowerOfTwoPlayers: "Les tournois d'élimination nécessitent exactement 2, 4 ou 8 joueurs.\\n\\nActuellement: {current} joueur(s)\\nProchain nombre valide: {next} joueurs\\n\\nAjoutez {toAdd} joueur(s) ou supprimez-en pour atteindre 2 ou 4."
+    needTwoPlayers: "Le tournoi a besoin d'au moins 2 joueurs pour commencer. Actuellement: {current} joueur(s), manquant: {needed} joueur(s).",
+    needPowerOfTwoPlayers: "Les tournois d'élimination nécessitent exactement 2, 4 ou 8 joueurs. Actuellement: {current} joueur(s). Prochain nombre valide: {next} joueurs. Ajoutez {toAdd} joueur(s) ou supprimez-en pour atteindre 2 ou 4."
   },
 
   blockchainModal: {
