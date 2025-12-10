@@ -159,7 +159,9 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       const matches = db.prepare(`
         SELECT m.*, 
                p1.display_name as player1_username,
-               p2.display_name as player2_username
+               p1.avatar_url as player1_avatar_url,
+               p2.display_name as player2_username,
+               p2.avatar_url as player2_avatar_url
         FROM tournament_matches m
         LEFT JOIN users p1 ON m.player1_id = p1.id
         LEFT JOIN users p2 ON m.player2_id = p2.id
