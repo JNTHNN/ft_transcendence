@@ -1,8 +1,6 @@
-FROM node:20-bookworm-slim
+FROM node:20-alpine
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 build-essential pkg-config libsqlite3-dev \
- && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache python3 make g++ sqlite-dev pkgconfig
 
 WORKDIR /app
 COPY package.json ./

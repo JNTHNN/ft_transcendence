@@ -73,5 +73,22 @@ export const en = {
     enterPasswordToDisable2FA: "Enter your password to disable two-factor authentication",
     currentPassword: "Current Password",
     internalError: "Internal server error."
+  },
+  friends: {
+    cannotAddYourself: "You cannot add yourself as a friend.",
+    alreadyFriends: "You are already friends.",
+    requestAlreadySent: "A friend request has already been sent.",
+    cannotSendRequest: "Cannot send friend request.",
+    requestSent: "Friend request sent successfully.",
+    requestFailed: "Failed to send friend request.",
+    requestAccepted: "Friend request accepted.",
+    acceptFailed: "Failed to accept friend request.",
+    requestDeclined: "Friend request declined.",
+    declineFailed: "Failed to decline friend request.",
+    friendRemoved: "Friend removed from your list.",
+    removeFailed: "Failed to remove friend.",
+    friendshipNotFound: "Friendship not found.",
+    notAuthorized: "You are not authorized to perform this action.",
+    mutualFriendship: "You are now friends! Your mutual request was automatically accepted."
   }
 };

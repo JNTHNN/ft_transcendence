@@ -43,7 +43,6 @@ export class TwoFactorAuthView {
       const response = await api('/auth/2fa/status');
       this.status = response;
     } catch (error) {
-      console.error('Failed to load 2FA status:', error);
       this.status = null;
     }
   }
@@ -268,7 +267,6 @@ export class TwoFactorAuthView {
       const response = await api('/auth/2fa/setup', { method: 'POST', body: JSON.stringify({}) }) as SetupResponse;
       this.showSetupModal(response);
     } catch (error) {
-      console.error('Failed to start 2FA setup:', error);
       alert(t('failedToStartSetup'));
     }
   }
@@ -360,7 +358,6 @@ export class TwoFactorAuthView {
       
       alert(t('twoFactorSuccessfullyEnabled'));
     } catch (error) {
-      console.error('Failed to verify 2FA setup:', error);
       alert(t('invalidVerificationCode'));
     }
   }
@@ -423,7 +420,6 @@ export class TwoFactorAuthView {
       
       alert(t('twoFactorSuccessfullyDisabled'));
     } catch (error) {
-      console.error('Failed to disable 2FA:', error);
       alert(t('failedToDisableTwoFactor'));
     }
   }
@@ -468,7 +464,6 @@ export class TwoFactorAuthView {
 
       modal.classList.remove('hidden');
     } catch (error) {
-      console.error('Failed to generate backup codes:', error);
       alert(t('failedToGenerateBackupCodes'));
     }
   }

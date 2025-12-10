@@ -26,6 +26,13 @@ build/
 *.tmp
 docker-compose.override.yml
 
+# --- Blockchain artifacts (générés à la compilation) ---
+blockchain/artifacts/
+blockchain/cache/
+blockchain/typechain-types/
+blockchain/deployments/localhost-deployment.json
+blockchain/deployments/hardhat-deployment.json
+
 # --- Éditeurs / IDE ---
 .vscode/
 .idea/

@@ -3,6 +3,7 @@ import { router } from "../router";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 import { menuManager } from "./Menu.js";
+import "../components/user-stats-modal.js";
 
 interface User {
   id: number;
@@ -158,7 +159,7 @@ export default async function View() {
 
     <div class="mb-4">
       <label class="block font-sans text-text mb-2">${t('auth.displayName')}</label>
-      <input name="displayName" type="text" value="${user.displayName}" required
+      <input name="displayName" type="text" value="${user.displayName}" required maxlength="25"
         class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
 
@@ -233,19 +234,10 @@ export default async function View() {
   stats.className = "bg-prem rounded-lg shadow-xl p-8 mt-6";
   stats.innerHTML = `
     <h3 class="font-display text-2xl font-bold text-text mb-6">${t('stats.title')}</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-gray-700 p-4 rounded-lg text-center">
-        <div class="font-display text-3xl font-bold text-sec">0</div>
-        <div class="font-sans text-gray-400">${t('stats.gamesPlayed')}</div>
-      </div>
-      <div class="bg-gray-700 p-4 rounded-lg text-center">
-        <div class="font-display text-3xl font-bold text-green-400">0</div>
-        <div class="font-sans text-gray-400">${t('stats.victories')}</div>
-      </div>
-      <div class="bg-gray-700 p-4 rounded-lg text-center">
-        <div class="font-display text-3xl font-bold text-red-400">0</div>
-        <div class="font-sans text-gray-400">${t('stats.defeats')}</div>
-      </div>
+    <div class="text-center">
+      <button id="view-my-stats" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-3 px-6 rounded-lg transition-colors">
+${t('stats.viewStatsAndHistory')}
+      </button>
     </div>
   `;
 
@@ -379,6 +371,13 @@ export default async function View() {
     router.navigate("/login");
   };
 
+  const viewStatsBtn = stats.querySelector("#view-my-stats") as HTMLButtonElement;
+  viewStatsBtn.onclick = () => {
+    if ((window as any).viewUserStats) {
+      (window as any).viewUserStats(user.id, user.displayName || user.email.split('@')[0], user.avatarUrl);
+    }
+  };
+
   cancelProfileBtn.onclick = () => {
     if (hasUnsavedChanges) {
       displayNameInput.value = originalDisplayName;
@@ -397,6 +396,11 @@ export default async function View() {
 
     if (!displayName) {
       showProfileError(t('messages.displayNameRequired'));
+      return;
+    }
+
+    if (displayName.length < 2 || displayName.length > 25) {
+      showProfileError(t('errors.displayNameLength') || 'Username must be between 2 and 25 characters');
       return;
     }
 
@@ -661,7 +665,7 @@ export default async function View() {
       try {
         await menuManager.forceUpdateAsync();
       } catch (error) {
-        console.warn('Menu update error:', error);
+
 
         menuManager.forceUpdate();
       }

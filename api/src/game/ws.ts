@@ -1,26 +1,269 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
-import "@fastify/websocket";
+import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { SocketStream } from '@fastify/websocket';
+import { gameManager } from './GameManager.js';
+import type { PlayerInput } from './types.js';
 
-const room = new Set<any>();
+interface GameMessage {
+  type: 'join' | 'input' | 'ping' | 'pause' | 'resume' | 'start' | 'getState';
+  matchId?: string;
+  playerId?: string;
+  side?: 'left' | 'right';
+  input?: Partial<PlayerInput>;
+}
 
+/**
+ * Enregistre le WebSocket pour le jeu
+ */
 export async function registerGameWS(app: FastifyInstance) {
-  app.get("/ws/game", { websocket: true }, (conn: any, _req: FastifyRequest) => {
-    room.add(conn);
-    conn.socket.on("close", () => room.delete(conn));
-  });
+  app.get(
+    '/ws/game',
+    { websocket: true },
+    (connection: SocketStream, _request: FastifyRequest) => {
+      const socket = connection.socket;
 
-  setInterval(() => {
-    const msg = JSON.stringify({
-      type: "game/state",
-      v: 1,
-      data: {
-        matchId: "m1",
-        ball: { x: Math.random(), y: Math.random(), vx: 0.1, vy: 0.1 },
-        paddles: { A: 0.5, B: 0.5 },
-        score: { A: 0, B: 0 },
-        t: Date.now()
+
+      let currentPlayerId: string | null = null;
+
+      // Message reÃ§u du client
+      socket.on('message', (rawData: Buffer) => {
+        try {
+          const message = JSON.parse(rawData.toString()) as GameMessage;
+
+          switch (message.type) {
+            case 'join':
+              handleJoin(message);
+              break;
+
+            case 'input':
+              handleInput(message);
+              break;
+
+            case 'ping':
+              socket.send(JSON.stringify({ type: 'pong' }));
+              break;
+			
+			case 'start':
+				handleStart(message);
+				break;
+			
+			case 'getState':
+				handleGetState(message);
+				break;
+			
+			case 'pause':
+				if (!message.matchId) {
+					socket.send(JSON.stringify({
+					type: 'error',
+					message: 'Missing matchId for pause'
+					}));
+					break;
+				}
+				
+				const gameToPause = gameManager.getGame(message.matchId);
+				if (gameToPause) {
+					gameToPause.stop();
+
+				}
+				break;
+
+			case 'resume':
+				if (!message.matchId) {
+					socket.send(JSON.stringify({
+					type: 'error',
+					message: 'Missing matchId for resume'
+					}));
+					break;
+				}
+				
+				const gameToResume = gameManager.getGame(message.matchId);
+				if (gameToResume) {
+					gameToResume.start();
+				}
+				break;
+
+            default:
+          }
+        } catch (error) {
+          socket.send(
+            JSON.stringify({
+              type: 'error',
+              message: 'Invalid message format',
+            })
+          );
+        }
+      });
+
+	  
+
+      // DÃ©connexion
+      socket.on('close', () => {
+        if (currentPlayerId) {
+          handleDisconnect(currentPlayerId);
+        }
+      });
+
+      // Gestion du démarrage
+      function handleStart(message: GameMessage) {
+        const { matchId } = message;
+        
+        if (!matchId) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Missing matchId for start'
+          }));
+          return;
+        }
+        
+        const game = gameManager.getGame(matchId);
+        if (game) {
+          game.start();
+          console.log(`▶️ Game ${matchId} started by player request`);
+        } else {
+          console.warn(`⚠️ Game ${matchId} not found for start`);
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Game not found'
+          }));
+        }
       }
-    });
-    for (const c of room) c.socket.send(msg);
-  }, 1000);
+
+      // Gestion de la demande d'état
+      function handleGetState(message: GameMessage) {
+        const { matchId } = message;
+        
+        if (!matchId) {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Missing matchId for getState'
+          }));
+          return;
+        }
+        
+        const game = gameManager.getGame(matchId);
+        if (game) {
+          const state = game.getState();
+          socket.send(JSON.stringify({
+            type: 'game/state',
+            data: state
+          }));
+        } else {
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Game not found'
+          }));
+        }
+      }
+
+      // Gestion de la connexion
+      function handleJoin(message: GameMessage) {
+        const { matchId, playerId, side } = message;
+
+        if (!matchId || !playerId || !side) {
+          socket.send(
+            JSON.stringify({
+              type: 'error',
+              message: 'Missing matchId, playerId, or side',
+            })
+          );
+          return;
+        }
+
+        try {
+			// Récupérer le jeu pour déterminer le mode
+			const game = gameManager.getGame(matchId);
+			if (!game) {
+				socket.send(JSON.stringify({
+					type: 'error',
+					message: 'Game not found',
+				}));
+				return;
+			}
+
+			// Déterminer le type de contrôleur selon le mode du jeu
+			let controllerType: 'human-ws' | 'human-arrows' | 'local-player2';
+			if (game.mode === 'local-2p' || game.mode === 'tournament') {
+				// Mode local et tournoi : utiliser les contrôles clavier appropriés
+				controllerType = side === 'left' ? 'human-arrows' : 'local-player2';
+			} else {
+				// Mode online ou solo : utiliser WebSocket
+				controllerType = 'human-ws';
+			}
+
+			// Ajouter le joueur Ã  la partie
+			const added = gameManager.addPlayerToGame(matchId, {
+			id: playerId,
+			side,
+			controllerType,
+			socket,
+			});
+
+			if (!added) {
+			socket.send(
+				JSON.stringify({
+				type: 'error',
+				message: 'Failed to join game (already full?)',
+				})
+			);
+			return;
+			}
+
+			currentPlayerId = playerId;
+
+			// Confirmation
+			socket.send(
+			JSON.stringify({
+				type: 'joined',
+				matchId,
+				playerId,
+				side,
+			})
+			);
+		} catch (error: any) {
+			socket.send(
+			JSON.stringify({
+				type: 'error',
+				message: error.message,
+			})
+			);
+		}
+      }
+
+      // Gestion des inputs
+		function handleInput(message: GameMessage) {
+		if (!message.playerId || !message.matchId || !message.input) {
+			return;
+		}
+
+
+		const game = gameManager.getGame(message.matchId);
+		if (game) {
+			game.setPlayerInput(message.playerId, message.input);  // âœ… message.playerId
+		}
+		}
+
+      // Gestion de la dÃ©connexion
+		function handleDisconnect(playerId: string) {
+		
+		const game = gameManager.getGameByPlayer(playerId);
+		if (!game) {
+			return;
+		}
+
+		const matchId = game.id;
+		const state = game.getState();
+		
+		// ðŸ§¹ Si la partie n'est pas terminÃ©e, la supprimer immÃ©diatement
+		if (state.status !== 'finished') {
+			game.stop();
+			
+			gameManager.removeGame(matchId);
+		} else {
+			setTimeout(() => {
+			gameManager.removeGame(matchId);
+			}, 5000);
+		}
+		
+		}
+	}
+  );
 }

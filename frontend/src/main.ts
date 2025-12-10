@@ -3,6 +3,8 @@ import { router } from './router';
 import { menuManager } from './views/Menu';
 import { authManager } from './auth';
 import { i18n, t } from './i18n/index.js';
+import { connectWS } from './ws-client.js';
+import { WEBSOCKET_PATHS } from './constants.js';
 
 const initApp = async () => {
   i18n.initialize().then(() => {
@@ -29,7 +31,60 @@ const initApp = async () => {
 
   menuManager;
 
+  // Démarrer le WebSocket friends global si l'utilisateur est connecté
+  if (authManager.isAuthenticated()) {
+    startGlobalFriendsWebSocket();
+  }
+
   router.start();
 };
+
+// WebSocket friends global
+let globalFriendsWebSocket: WebSocket | null = null;
+
+function startGlobalFriendsWebSocket() {
+  
+  globalFriendsWebSocket = connectWS(WEBSOCKET_PATHS.FRIENDS, (message) => {
+    
+    // Dispatcher TOUS les événements friends globalement
+    const event = new CustomEvent('friendsWebSocketMessage', {
+      detail: message
+    });
+    window.dispatchEvent(event);
+    
+    // Dispatcher aussi les événements de changement de statut spécifiquement
+    if (message.type === 'friend_status_changed') {
+      const statusEvent = new CustomEvent('friendStatusChanged', {
+        detail: {
+          userId: message.data.userId,
+          isOnline: message.data.isOnline,
+          timestamp: message.data.timestamp
+        }
+      });
+      window.dispatchEvent(statusEvent);
+    }
+  }, true);
+}
+
+function stopGlobalFriendsWebSocket() {
+  if (globalFriendsWebSocket) {
+    globalFriendsWebSocket.close();
+    globalFriendsWebSocket = null;
+  }
+}
+
+// Écouter les changements d'authentification pour démarrer/arrêter le WebSocket
+window.addEventListener('authChanged', (event: any) => {
+  if (event.detail.isAuthenticated) {
+    startGlobalFriendsWebSocket();
+  } else {
+    stopGlobalFriendsWebSocket();
+  }
+});
+
+// Nettoyer lors de la fermeture de la page
+window.addEventListener('beforeunload', () => {
+  stopGlobalFriendsWebSocket();
+});
 
 initApp();

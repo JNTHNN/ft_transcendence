@@ -181,7 +181,7 @@ class TwoFactorLoginView {
       }
 
     } catch (error: any) {
-      console.error('2FA verification failed:', error);
+
       let errorMessage = t('invalidVerificationCode');
       
       if (error.message?.includes('expired')) {

@@ -16,8 +16,15 @@ import { registerAuthRoutes } from './auth/routes.js';
 import { register2FARoutes } from './auth/2fa-routes.js';
 import { registerUserRoutes } from './users/routes.js';
 import db, { migrate } from './db/db.js';
-import { registerChatWS } from './chat/ws.js';
+import { registerChatWS, broadcastTournamentNotification } from './chat/ws.js';
 import { registerGameWS } from './game/ws.js';
+import { registerFriendsWS } from './friends/ws.js';
+import { initPresenceService } from './core/presence.js';
+import { registerGameRoutes } from './game/routes.js';
+import { gameManager } from './game/GameManager.js';
+import tournamentRoutes from './tournaments/routes.js';
+
+import { TournamentService } from './core/tournament.js';
 
 const app = Fastify({
   logger: {
@@ -50,6 +57,15 @@ await app.register(authPlugin);
 
 try {
   await migrate();
+  
+  // Initialiser le service de présence
+  initPresenceService(db);
+  
+  // Injecter la base de données dans GameManager
+  gameManager.setDatabase(db);
+  
+  // Décorer l'app avec la base de données pour les plugins
+  app.decorate('db', db);
 
 } catch (e) {
   app.log.error(e, '❌ Migration failed');
@@ -69,6 +85,17 @@ app.get('/ready', async (_req: FastifyRequest, res: FastifyReply) => {
 await registerAuthRoutes(app, db);
 await register2FARoutes(app, db);
 await registerUserRoutes(app, db);
+await registerGameRoutes(app);
+await registerGameWS(app);
+await registerFriendsWS(app, db);
+await app.register(tournamentRoutes);
+
+await registerChatWS(app, db);
+
+// Ajouter la fonction sendTournamentNotification à Fastify
+app.decorate('sendTournamentNotification', (tournamentId: string, tournamentName: string, matchId: string, player1: string, player2: string) => {
+  broadcastTournamentNotification(db, tournamentId, tournamentName, matchId, player1, player2);
+});
 
 app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: string}}>, res: FastifyReply) => {
   const { filename } = req.params;
@@ -106,10 +133,16 @@ app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: str
   }
 });
 
-await registerChatWS(app);
-await registerGameWS(app);
+
+// Cleanup stale matches on startup
+TournamentService.cleanupStaleMatches();
 
 const port = Number(process.env.PORT || 3000);
 app.listen({ port, host: '0.0.0.0' })
-  .then(() => {})
-  .catch((e: any) => { app.log.error(e); process.exit(1); });
+  .then(() => {
+    console.log(`🚀 Server ready at port ${port}`);
+  })
+  .catch((e: any) => { 
+    app.log.error(e); 
+    process.exit(1); 
+  });
