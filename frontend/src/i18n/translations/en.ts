@@ -116,7 +116,7 @@ export default {
   messages: {
     profileUpdated: "Profile updated successfully!",
     passwordChanged: "Password changed successfully!",
-    accountDeleted: "Your account has been successfully deleted.\\nYou will be redirected to the homepage.",
+    accountDeleted: "Your account has been successfully deleted. You will be redirected to the homepage.",
     oauth42AccountDeleted: "OAuth2 account deleted successfully. Note: This only deletes your account from our platform, not from 42.",
     deletingAccount: "Deleting account...",
     confirmDeleteAccount: "Are you absolutely sure you want to delete your account?",
@@ -639,7 +639,7 @@ export default {
     // Confirmations
     confirmStart: "Start the tournament now? No other players will be able to join after.",
     confirmLeave: "Are you sure you want to leave this tournament?",
-    confirmDelete: "⚠️ Are you sure you want to permanently delete this tournament?\\n\\nThis action is irreversible and will delete:\\n- The tournament\\n- All participants\\n- All associated matches",
+    confirmDelete: "⚠️ Are you sure you want to permanently delete this tournament? This action is irreversible and will delete the tournament, all participants and all associated matches.",
     confirmReset: "Reset your last match? This will cancel the current or recent game.",
     
     // Errors
@@ -648,7 +648,7 @@ export default {
     playError: "Error launching match",
     startError: "Unable to start match",
     resetError: "Reset error",
-    resetSuccess: "Match reset successfully! (was in status: {status})\\nYou can now start a new game.",
+    resetSuccess: "Match reset successfully! You can now start a new game.",
     resetFailed: "Error resetting match.",
     noResettableMatch: "No resettable match found. The match may already be finished or you are not participating in it.",
     notParticipant: "You are not participating in this match.",
@@ -660,8 +660,8 @@ export default {
     missingTournamentId: "Error: Missing tournament ID",
     noMatchWaiting: "No match waiting for you in this tournament",
     blockedMatchConfirm: "You have an ongoing match that seems stuck. Do you want to reset it and restart?",
-    needTwoPlayers: "The tournament needs at least 2 players to start.\\n\\nCurrently: {current} player(s)\\nMissing: {needed} player(s)",
-    needPowerOfTwoPlayers: "Elimination tournaments require exactly 2, 4 or 8 players.\\n\\nCurrently: {current} player(s)\\nNext valid number: {next} players\\n\\nAdd {toAdd} player(s) or remove some to reach 2 or 4."
+    needTwoPlayers: "The tournament needs at least 2 players to start. Currently: {current} player(s), missing: {needed} player(s).",
+    needPowerOfTwoPlayers: "Elimination tournaments require exactly 2, 4 or 8 players. Currently: {current} player(s). Next valid number: {next} players. Add {toAdd} player(s) or remove some to reach 2 or 4."
   },
   
   blockchainModal: {

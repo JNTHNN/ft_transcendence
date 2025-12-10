@@ -257,7 +257,6 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
       createForm.reset();
       
     } catch (error) {
-      console.error('Tournament creation error:', error);
       alert("Erreur lors de la création du tournoi: " + (error as Error).message);
     } finally {
       // Réactiver le bouton

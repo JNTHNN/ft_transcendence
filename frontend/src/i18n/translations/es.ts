@@ -116,7 +116,7 @@ export default {
   messages: {
     profileUpdated: "¡Perfil actualizado con éxito!",
     passwordChanged: "¡Contraseña cambiada con éxito!",
-    accountDeleted: "Tu cuenta ha sido eliminada con éxito.\\nSerás redirigido a la página de inicio.",
+    accountDeleted: "Tu cuenta ha sido eliminada con éxito. Serás redirigido a la página de inicio.",
     oauth42AccountDeleted: "Cuenta OAuth2 eliminada con éxito. Nota: Esto solo elimina tu cuenta de nuestra plataforma, no de 42.",
 
     confirmDeleteAccount: "¿Estás absolutamente seguro de que quieres eliminar tu cuenta?",
@@ -640,7 +640,7 @@ export default {
     // Confirmations
     confirmStart: "¿Iniciar el torneo ahora? Ningún otro jugador podrá unirse después.",
     confirmLeave: "¿Estás seguro de que quieres salir de este torneo?",
-    confirmDelete: "⚠️ ¿Estás seguro de que quieres eliminar permanentemente este torneo?\\n\\nEsta acción es irreversible y eliminará:\\n- El torneo\\n- Todos los participantes\\n- Todos los partidos asociados",
+    confirmDelete: "⚠️ ¿Estás seguro de que quieres eliminar permanentemente este torneo? Esta acción es irreversible y eliminará el torneo, todos los participantes y todos los partidos asociados.",
     confirmReset: "¿Reiniciar tu último partido? Esto cancelará la partida actual o reciente.",
     
     // Errors
@@ -649,7 +649,7 @@ export default {
     playError: "Error al lanzar partido",
     startError: "No se puede iniciar el partido",
     resetError: "Error de reinicio",
-    resetSuccess: "¡Partido reiniciado con éxito! (estaba en estado: {status})\\nAhora puedes iniciar una nueva partida.",
+    resetSuccess: "¡Partido reiniciado con éxito! Ahora puedes iniciar una nueva partida.",
     resetFailed: "Error al reiniciar el partido.",
     noResettableMatch: "No se encontró ningún partido reiniciable. El partido puede estar ya terminado o no estás participando en él.",
     notParticipant: "No estás participando en este partido.",
@@ -661,8 +661,8 @@ export default {
     missingTournamentId: "Error: ID de torneo faltante",
     noMatchWaiting: "No hay ningún partido esperándote en este torneo",
     blockedMatchConfirm: "Tienes un partido en curso que parece bloqueado. ¿Quieres reiniciarlo y volver a empezar?",
-    needTwoPlayers: "El torneo necesita al menos 2 jugadores para comenzar.\\n\\nActualmente: {current} jugador(es)\\nFaltante: {needed} jugador(es)",
-    needPowerOfTwoPlayers: "Los torneos de eliminación requieren exactamente 2, 4 u 8 jugadores.\\n\\nActualmente: {current} jugador(es)\\nSiguiente número válido: {next} jugadores\\n\\nAgrega {toAdd} jugador(es) o elimina algunos para alcanzar 2 o 4."
+    needTwoPlayers: "El torneo necesita al menos 2 jugadores para comenzar. Actualmente: {current} jugador(es), faltante: {needed} jugador(es).",
+    needPowerOfTwoPlayers: "Los torneos de eliminación requieren exactamente 2, 4 u 8 jugadores. Actualmente: {current} jugador(es). Siguiente número válido: {next} jugadores. Agrega {toAdd} jugador(es) o elimina algunos para alcanzar 2 o 4."
   },
   
   blockchainModal: {

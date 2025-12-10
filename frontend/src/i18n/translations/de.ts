@@ -116,7 +116,7 @@ export default {
   messages: {
     profileUpdated: "Profil erfolgreich aktualisiert!",
     passwordChanged: "Passwort erfolgreich geändert!",
-    accountDeleted: "Ihr Konto wurde erfolgreich gelöscht.\\nSie werden zur Startseite weitergeleitet.",
+    accountDeleted: "Ihr Konto wurde erfolgreich gelöscht. Sie werden zur Startseite weitergeleitet.",
     oauth42AccountDeleted: "OAuth2-Konto erfolgreich gelöscht. Hinweis: Dies entfernt nur Ihr Konto von unserer Plattform, nicht von 42.",
 
     confirmDeleteAccount: "Sind Sie absolut sicher, dass Sie Ihr Konto löschen möchten?",
@@ -640,7 +640,7 @@ export default {
     // Confirmations
     confirmStart: "Turnier jetzt starten? Danach können keine weiteren Spieler beitreten.",
     confirmLeave: "Bist du sicher, dass du dieses Turnier verlassen möchtest?",
-    confirmDelete: "⚠️ Bist du sicher, dass du dieses Turnier dauerhaft löschen möchtest?\\n\\nDiese Aktion ist unwiderruflich und löscht:\\n- Das Turnier\\n- Alle Teilnehmer\\n- Alle zugehörigen Matches",
+    confirmDelete: "⚠️ Bist du sicher, dass du dieses Turnier dauerhaft löschen möchtest? Diese Aktion ist unwiderruflich und löscht das Turnier, alle Teilnehmer und alle zugehörigen Matches.",
     confirmReset: "Dein letztes Match zurücksetzen? Dies wird das aktuelle oder kürzliche Spiel abbrechen.",
     
     // Errors
@@ -649,7 +649,7 @@ export default {
     playError: "Fehler beim Starten des Matches",
     startError: "Match kann nicht gestartet werden",
     resetError: "Zurücksetzungsfehler",
-    resetSuccess: "Match erfolgreich zurückgesetzt! (war im Status: {status})\\nDu kannst jetzt ein neues Spiel starten.",
+    resetSuccess: "Match erfolgreich zurückgesetzt! Du kannst jetzt ein neues Spiel starten.",
     resetFailed: "Fehler beim Zurücksetzen des Matches.",
     noResettableMatch: "Kein zurücksetzbares Match gefunden. Das Match ist möglicherweise bereits beendet oder du nimmst nicht daran teil.",
     notParticipant: "Du nimmst nicht an diesem Match teil.",
@@ -661,8 +661,8 @@ export default {
     missingTournamentId: "Fehler: Fehlende Turnier-ID",
     noMatchWaiting: "Kein Match wartet auf dich in diesem Turnier",
     blockedMatchConfirm: "Du hast ein laufendes Match, das blockiert zu sein scheint. Möchtest du es zurücksetzen und neu starten?",
-    needTwoPlayers: "Das Turnier braucht mindestens 2 Spieler zum Starten.\\n\\nAktuell: {current} Spieler\\nFehlt: {needed} Spieler",
-    needPowerOfTwoPlayers: "K.O.-Turniere benötigen genau 2, 4 oder 8 Spieler.\\n\\nAktuell: {current} Spieler\\nNächste gültige Anzahl: {next} Spieler\\n\\nFüge {toAdd} Spieler hinzu oder entferne welche, um 2 oder 4 zu erreichen."
+    needTwoPlayers: "Das Turnier braucht mindestens 2 Spieler zum Starten. Aktuell: {current} Spieler, fehlt: {needed} Spieler.",
+    needPowerOfTwoPlayers: "K.O.-Turniere benötigen genau 2, 4 oder 8 Spieler. Aktuell: {current} Spieler. Nächste gültige Anzahl: {next} Spieler. Füge {toAdd} Spieler hinzu oder entferne welche, um 2 oder 4 zu erreichen."
   },
   
   blockchainModal: {
