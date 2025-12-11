@@ -723,34 +723,53 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
     }
 
     try {
+      // Vérifier le statut du tournoi
+      const tournament = db.prepare('SELECT status FROM tournaments WHERE id = ?').get(tournamentId) as any;
+      
+      if (!tournament) {
+        return reply.status(404).send({ error: 'Tournament not found' });
+      }
+
+      // Interdire le reset si le tournoi est terminé
+      if (tournament.status === 'completed') {
+        return reply.status(400).send({ error: 'Cannot reset matches in a completed tournament' });
+      }
+
       let match;
       
       if (matchId) {
-        // Recherche par matchId spécifique
+        // Recherche par matchId spécifique - SEULEMENT les matchs actifs (pas completed)
         match = db.prepare(`
           SELECT * FROM tournament_matches 
           WHERE tournament_id = ? 
           AND match_id = ?
           AND (player1_id = ? OR player2_id = ?)
-          AND status IN ('active', 'completed')
+          AND status = 'active'
         `).get(tournamentId, matchId, userId, userId) as any;
       } else {
-        // Recherche du dernier match de l'utilisateur (actif ou récemment terminé)
+        // Recherche du dernier match actif de l'utilisateur
         match = db.prepare(`
           SELECT * FROM tournament_matches 
           WHERE tournament_id = ? 
           AND (player1_id = ? OR player2_id = ?)
-          AND status IN ('active', 'completed')
-          ORDER BY CASE WHEN status = 'active' THEN 0 ELSE 1 END, created_at DESC
+          AND status = 'active'
+          ORDER BY created_at DESC
           LIMIT 1
         `).get(tournamentId, userId, userId) as any;
       }
 
       if (!match) {
-        return reply.status(404).send({ error: 'No resettable match found for this user' });
+        return reply.status(404).send({ error: 'No active match found to reset' });
       }
 
-      // Réinitialiser le match
+      // Supprimer la session de jeu côté serveur si elle existe
+      const { gameManager } = await import('../game/GameManager.js');
+      if (gameManager.getGame(match.match_id)) {
+        fastify.log.info(`🗑️ Removing existing game session for match ${match.match_id}`);
+        gameManager.removeGame(match.match_id);
+      }
+
+      // Réinitialiser le match en base de données
       db.prepare(`
         UPDATE tournament_matches 
         SET status = 'pending', start_time = NULL, end_time = NULL, 
