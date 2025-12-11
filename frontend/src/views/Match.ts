@@ -905,45 +905,16 @@ class PongGame {
 // ═══════════════════════════════════════════════════════════════
 
 export default async function View() {
-  // Fonction pour créer le message mobile
-  const createMobileMessage = () => {
-    const mobileMessage = document.createElement("div");
-    mobileMessage.className = "max-w-2xl mx-auto mt-8 p-6 md:p-8";
-    mobileMessage.innerHTML = `
-      <div class="bg-prem rounded-lg shadow-xl p-6 md:p-8 text-center">
-        <div class="text-6xl mb-4">🎮</div>
-        <h1 class="font-display text-2xl md:text-3xl font-bold text-text mb-4">${t('game.desktopOnly') || 'Jeu disponible sur ordinateur'}</h1>
-        <p class="text-text/70 text-base md:text-lg mb-6">
-          ${t('game.desktopOnlyMessage') || 'Le jeu Pong nécessite un écran plus large et un clavier pour une expérience optimale. Veuillez utiliser un ordinateur de bureau ou un ordinateur portable.'}
-        </p>
-        <button 
-          id="btn-back-home"
-          class="bg-sec hover:bg-sec/80 text-white font-bold py-3 px-6 rounded-lg transition"
-        >
-          ${t('nav.home') || 'Retour à l\'accueil'}
-        </button>
-      </div>
-    `;
-    
-    // Ajouter l'event listener après l'insertion dans le DOM
-    setTimeout(() => {
-      const btn = mobileMessage.querySelector('#btn-back-home');
-      if (btn) {
-        btn.addEventListener('click', async () => {
-          const { router } = await import('../router.js');
-          router.navigate('/');
-        });
-      }
-    }, 0);
-    
-    return mobileMessage;
-  };
-
-  // Détection mobile initiale
-  if (window.innerWidth < 1024) {
-    return createMobileMessage();
+  // Check authentication
+  if (!authManager.isAuthenticated()) {
+    router.navigate("/login");
+    return document.createElement("div");
   }
-
+  
+  // ─────────────────────────────────────────────────────────────
+  // Récupération des paramètres URL
+  // ─────────────────────────────────────────────────────────────
+  
   const params = new URLSearchParams(window.location.search);
   let mode = params.get("mode") || "solo";
   const inviteId = params.get("invite");     // Invitation depuis le chat
@@ -1250,141 +1221,135 @@ export default async function View() {
       btnPlayer2Ready.innerHTML = `✅ ${t('game.ready')}`;
     });
   }
-
-	// Bouton Abandon (pendant la partie)
-	btnAbandon.addEventListener("click", () => {
-		game.pause();
-	// Créer un modal personnalisé centré sur le canvas
-	const modal = document.createElement('div');
-	modal.className = 'absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 rounded';
-	modal.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
-	modal.innerHTML = `
-		<div class="bg-prem rounded-xl shadow-2xl p-8 max-w-md mx-4 border-2 border-red-500">
-		<!-- Icône -->
-		<div class="flex justify-center mb-6">
-			<div class="bg-red-500 bg-opacity-20 rounded-full p-4">
-			<svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-			</svg>
-			</div>
-		</div>
-		
-		<!-- Titre -->
-		<h2 class="text-3xl font-bold text-text text-center mb-4">${t('game.abandonGame')}</h2>
-		
-		<!-- Message -->
-		<p class="text-text/70 text-center mb-8">${t('game.abandonMessage')}</p>
-		
-		<!-- Boutons -->
-		<div class="flex gap-4">
-			<button id="modal-cancel" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg">
-			${t('game.continue')}
-			</button>
-			<button id="modal-confirm" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg">
-			${t('game.abandon')}
-			</button>
-		</div>
-		</div>
-	`;
-	
-	// Insérer le modal dans le conteneur du canvas au lieu du body
-	const canvasContainer = canvas.parentElement;
-	if (canvasContainer) {
-		canvasContainer.appendChild(modal);
-	}
-	
-	// Annuler
-	modal.querySelector('#modal-cancel')?.addEventListener('click', () => {
-		modal.remove();
-		game.resume();
-	});
-	
-	// Confirmer
-	modal.querySelector('#modal-confirm')?.addEventListener('click', () => {
-		modal.remove();
-		game.abandon();
-	});
-	
-	// Fermer si clic en dehors
-	modal.addEventListener('click', (e) => {
-		if (e.target === modal) {
-		modal.remove();
-		game.resume();
-		}
-	});
-	});
-
-	// 🆕 Bouton Rejouer (fin de partie)
-	btnReplay.addEventListener("click", async () => {
-	// ✅ Autoriser la navigation
-	game.allowNavigation = true;
-	
-	try {
-		// Créer une nouvelle partie
-		const response = await api("/game/local/create", {
-		method: "POST",
-		body: JSON.stringify({})
-		});
-		
-		if (response.matchId) {
-		// Naviguer vers la page avec le nouveau match
-		const { router } = await import('../router.js');
-		router.navigate(`/match?mode=${mode}`);
-		} else {
-		const { router } = await import('../router.js');
-		router.forceRender();
-		}
-	} catch (error) {
-		const { router } = await import('../router.js');
-		router.forceRender();
-	}
-	});
-
-	// 🆕 Bouton Quitter (fin de partie)
-	btnQuit.addEventListener("click", async () => {
-	// ✅ Autoriser la navigation
-	game.allowNavigation = true;
-	
-	game.destroy();
-	const { router } = await import('../router.js');
-	router.navigate('/partie');
-	});
-
-  // 🆕 Listener resize pour détecter passage en mobile
-  let resizeHandler: (() => void) | null = null;
   
-  const setupResizeListener = () => {
-    resizeHandler = () => {
-      if (window.innerWidth < 1024) {
-        // Passer en mode mobile : détruire le jeu et remplacer le contenu
-        console.log('🔄 Passage en mode mobile détecté, destruction du jeu...');
-        
-        // Détruire le jeu proprement
-        if (game) {
-          game.allowNavigation = true;
-          game.destroy();
-        }
-        
-        // Remplacer tout le contenu par le message mobile
-        const appContainer = document.getElementById('app');
-        if (appContainer) {
-          appContainer.innerHTML = '';
-          appContainer.appendChild(createMobileMessage());
-        }
-        
-        // Nettoyer le listener une fois qu'on a switch
-        if (resizeHandler) {
-          window.removeEventListener('resize', resizeHandler);
-          resizeHandler = null;
-        }
-      }
-    };
+  
+  // ─────────────────────────────────────────────────────────────
+  // Bouton Abandon (pendant la partie)
+  // ─────────────────────────────────────────────────────────────
+  
+  btnAbandon.addEventListener("click", () => {
+    game.pause();
     
-    window.addEventListener('resize', resizeHandler);
+    // Créer un modal personnalisé centré sur le canvas
+    const modal = document.createElement('div');
+    modal.className = 'absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 rounded';
+    modal.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+    modal.innerHTML = `
+      <div class="bg-prem rounded-xl shadow-2xl p-8 max-w-md mx-4 border-2 border-red-500">
+        <!-- Icône -->
+        <div class="flex justify-center mb-6">
+          <div class="bg-red-500 bg-opacity-20 rounded-full p-4">
+            <svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Titre -->
+        <h2 class="text-3xl font-bold text-text text-center mb-4">${t('game.abandonGame')}</h2>
+        
+        <!-- Message -->
+        <p class="text-text/70 text-center mb-8">${t('game.abandonMessage')}</p>
+        
+        <!-- Boutons -->
+        <div class="flex gap-4">
+          <button id="modal-cancel" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg">
+            ${t('game.continue')}
+          </button>
+          <button id="modal-confirm" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg">
+            ${t('game.abandon')}
+          </button>
+        </div>
+      </div>
+    `;
+    
+    // Insérer le modal dans le conteneur du canvas
+    const canvasContainer = canvas.parentElement;
+    if (canvasContainer) {
+      canvasContainer.appendChild(modal);
+    }
+    
+    // Annuler
+    modal.querySelector('#modal-cancel')?.addEventListener('click', () => {
+      modal.remove();
+      game.resume();
+    });
+    
+    // Confirmer
+    modal.querySelector('#modal-confirm')?.addEventListener('click', () => {
+      modal.remove();
+      game.abandon();
+    });
+    
+    // Fermer si clic en dehors
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+        game.resume();
+      }
+    });
+  });
+  
+  
+  // ─────────────────────────────────────────────────────────────
+  // Fonction pour déterminer la redirection selon le contexte
+  // ─────────────────────────────────────────────────────────────
+  
+  const getRedirectPath = () => {
+    // Match de tournoi → retour vers la page du tournoi
+    if (mode === "tournament") {
+      const tournamentId = params.get("tournamentId");
+      if (tournamentId) {
+        return `/tournament/${tournamentId}`;
+      }
+    }
+    
+    // Partie locale lancée depuis le chat → retour vers le chat
+    if (params.get("fromChat") === "true") {
+      return '/chat';
+    }
+    
+    // Invitation depuis le chat (multiplayer avec invite/gameId) → retour vers le chat
+    if (mode === "multiplayer" && (inviteId || gameId)) {
+      return '/chat';
+    }
+    
+    // Invitation depuis le chat (ancien format avec inviteId) → retour vers le chat
+    if (inviteId || gameId) {
+      return '/chat';
+    }
+    
+    // Partie locale, solo ou multiplayer depuis le menu → retour vers le menu jouer
+    return '/partie';
   };
   
-  // Activer le listener
-  setupResizeListener();
-
+  
+  // ─────────────────────────────────────────────────────────────
+  // Bouton Quitter (fin de partie)
+  // ─────────────────────────────────────────────────────────────
+  
+  btnQuit.addEventListener("click", async () => {
+    game.allowNavigation = true;
+    game.destroy();
+    const { router } = await import('../router.js');
+    router.navigate(getRedirectPath());
+  });
+  
+  
+  // ─────────────────────────────────────────────────────────────
+  // Bouton Retour (lien en bas de page)
+  // ─────────────────────────────────────────────────────────────
+  
+  const btnBackToGames = wrap.querySelector("#btn-back-to-games") as HTMLAnchorElement;
+  if (btnBackToGames) {
+    btnBackToGames.addEventListener("click", async (e) => {
+      e.preventDefault();
+      game.allowNavigation = true;
+      game.destroy();
+      const { router } = await import('../router.js');
+      router.navigate(getRedirectPath());
+    });
+  }
+  
   return wrap;
 }

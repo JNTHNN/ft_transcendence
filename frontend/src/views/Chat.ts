@@ -41,17 +41,17 @@ export default async function View() {
   }
 
   const wrap = document.createElement("div");
-  wrap.className = "max-w-6xl mx-auto mt-4 md:mt-8 p-4 md:p-0";
+  wrap.className = "max-w-6xl mx-auto mt-8";
   
   // Variable pour la fonction de mise à jour des utilisateurs en ligne
   let updateOnlineUsersFromWS: ((users: any[]) => void) | null = null;
 
   wrap.innerHTML = `
-    <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-text mb-4 md:mb-8 px-0 md:px-0">${t('chat.title') || 'Chat en direct'}</h1>
+    <h1 class="text-4xl font-bold text-text mb-8">${t('chat.title') || 'Chat en direct'}</h1>
     
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
       <!-- Zone de chat principale -->
-      <div class="lg:col-span-3 bg-prem rounded-lg shadow-xl p-4 md:p-6 flex flex-col" style="height: 500px; max-height: calc(100vh - 250px);">
+      <div class="lg:col-span-3 bg-prem rounded-lg shadow-xl p-6 flex flex-col" style="height: 600px;">
         <div id="messages-container" class="flex-1 overflow-y-auto mb-4 space-y-3 pr-2 pl-1"></div>
         
         <!-- Indicateur de saisie -->
@@ -62,11 +62,11 @@ export default async function View() {
             type="text" 
             id="message-input" 
             placeholder="${t('chat.typeMessage') || 'Tapez votre message...'}" 
-            class="flex-1 px-3 md:px-4 py-2 bg-sec text-text rounded-lg border border-text/20 focus:outline-none focus:border-sec text-sm md:text-base"
+            class="flex-1 px-4 py-2 bg-sec text-text rounded-lg border border-text/20 focus:outline-none focus:border-sec"
           />
           <button 
             id="send-btn" 
-            class="px-4 md:px-6 py-2 bg-sec text-white rounded-lg hover:bg-sec/80 transition-colors font-bold text-sm md:text-base"
+            class="px-6 py-2 bg-sec text-white rounded-lg hover:bg-sec/80 transition-colors font-bold"
           >
             ${t('chat.send') || 'Envoyer'}
           </button>
@@ -74,10 +74,10 @@ export default async function View() {
       </div>
 
       <!-- Sidebar -->
-      <div class="bg-prem rounded-lg shadow-xl p-4 max-h-[500px] overflow-y-auto">
+      <div class="bg-prem rounded-lg shadow-xl p-4">
         <!-- Utilisateurs en ligne -->
         <div class="mb-6">
-          <h3 class="text-base md:text-lg font-bold text-text mb-3 flex items-center gap-2">
+          <h3 class="text-lg font-bold text-text mb-3 flex items-center gap-2">
             <span class="w-2 h-2 bg-green-400 rounded-full"></span>
             ${t('chat.onlineUsers') || 'Utilisateurs en ligne'}
           </h3>

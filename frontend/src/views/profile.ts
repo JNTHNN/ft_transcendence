@@ -33,12 +33,12 @@ export default async function View() {
   }
 
   const container = document.createElement("div");
-  container.className = "max-w-2xl mx-auto mt-4 md:mt-8 p-4 md:p-8";
+  container.className = "max-w-2xl mx-auto mt-8 p-8";
 
   const isOAuth42 = user.accountType === 'oauth42';
 
   const header = document.createElement("div");
-  header.className = "bg-prem rounded-lg shadow-xl p-4 md:p-8 mb-4 md:mb-6";
+  header.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
 
   const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
   const transformAvatarUrl = (avatarUrl: string | undefined) => 
@@ -56,25 +56,25 @@ export default async function View() {
        </div>`;
 
   header.innerHTML = `
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-4">
-      <h1 class="font-display font-black text-2xl md:text-3xl lg:text-4xl text-text">${t('profile.title')}</h1>
-      <div class="flex flex-wrap items-center gap-2"
-        ${isOAuth42 ? `<div class="bg-blue-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-sans font-medium flex items-center space-x-1">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="font-display font-black text-4xl text-text">${t('profile.title')}</h1>
+      <div class="flex items-center space-x-4">
+        ${isOAuth42 ? `<div class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-sans font-medium flex items-center space-x-1">
           <span class="text-blue-200">👤</span>
           <span>${t('profile.oauth42Account')}</span>
         </div>` : ''}
-        <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-3 md:px-4 rounded-lg transition text-sm md:text-base">
+        <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
           ${t('auth.logout')}
         </button>
       </div>
     </div>
-    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+    <div class="flex items-center space-x-4">
       <div class="relative" id="profile-header-avatar">
         ${avatarContent}
       </div>
       <div>
-        <h2 class="font-sans text-xl md:text-2xl font-bold text-text">${user.displayName}</h2>
-        <p class="font-sans text-sm md:text-base text-gray-400">${user.email}</p>
+        <h2 class="font-sans text-2xl font-bold text-text">${user.displayName}</h2>
+        <p class="font-sans text-gray-400">${user.email}</p>
         ${user.oauth42Login ? `<p class="font-sans text-sm text-blue-400">Login 42: ${user.oauth42Login}</p>` : ''}
         <p class="font-sans text-sm text-gray-500">${t('profile.memberSince')} ${formatDate(user.createdAt)}</p>
         ${user.last42Sync ? `<p class="font-sans text-xs text-gray-600">${t('profile.lastSync')} ${formatDate(user.last42Sync)}</p>` : ''}
@@ -83,15 +83,15 @@ export default async function View() {
   `;
 
   const avatarSection = document.createElement("div");
-  avatarSection.className = "bg-prem rounded-lg shadow-xl p-4 md:p-8 mb-4 md:mb-6";
+  avatarSection.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
   
   const avatarUrl = user.avatarUrl;
   const displayImageUrl = transformAvatarUrl(avatarUrl);
 
   avatarSection.innerHTML = `
-    <h3 class="font-display text-xl md:text-2xl font-bold text-text mb-4 md:mb-6">${t('profile.avatar')}</h3>
+    <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.avatar')}</h3>
     
-    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-4 md:mb-6">
+    <div class="flex items-center space-x-6 mb-6">
       <div class="relative" id="avatar-section-image">
         ${avatarUrl ? 
           `<img src="${displayImageUrl}" alt="Avatar" class="w-16 sm:w-20 aspect-square rounded-full object-cover border-2 border-sec flex-shrink-0">` :
@@ -108,16 +108,16 @@ export default async function View() {
         
         <div class="flex flex-wrap gap-2">
           <input type="file" id="avatarInput" class="hidden" accept="image/jpeg,image/png,image/gif,image/webp">
-          <button type="button" id="uploadAvatarBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-3 md:px-4 rounded-lg transition text-sm md:text-base">
+          <button type="button" id="uploadAvatarBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
             ${avatarUrl ? t('profile.changeAvatar') : t('profile.uploadAvatar')}
           </button>
           ${avatarUrl ? 
-            `<button type="button" id="deleteAvatarBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-3 md:px-4 rounded-lg transition text-sm md:text-base">
+            `<button type="button" id="deleteAvatarBtn" class="bg-red-600 hover:bg-red-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
                ${t('profile.deleteAvatar')}
              </button>` : ''
           }
           ${isOAuth42 ? 
-            `<button type="button" id="sync42AvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-sans font-bold py-2 px-3 md:px-4 rounded-lg transition text-sm md:text-base">
+            `<button type="button" id="sync42AvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition">
                ${t('profile.sync42Avatar')}
              </button>` : ''
           }
@@ -125,7 +125,7 @@ export default async function View() {
       </div>
     </div>
     
-    <div id="dropZone" class="border-2 border-dashed border-gray-600 rounded-lg p-4 md:p-8 text-center hover:border-sec transition-colors cursor-pointer">
+    <div id="dropZone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-sec transition-colors cursor-pointer">
       <div class="text-gray-400 mb-2">📷</div>
       <p class="font-sans text-gray-400">${t('profile.dragDropAvatar')}</p>
       <p class="font-sans text-xs text-gray-500 mt-2">JPEG, PNG, GIF, WebP - Max 5MB</p>
@@ -136,16 +136,16 @@ export default async function View() {
   `;
 
   const securitySection = document.createElement("div");
-  securitySection.className = "bg-prem rounded-lg shadow-xl p-4 md:p-8 mb-4 md:mb-6";
+  securitySection.className = "bg-prem rounded-lg shadow-xl p-8 mb-6";
   securitySection.innerHTML = `
-    <h3 class="font-display text-xl md:text-2xl font-bold text-text mb-4 md:mb-6">${t('profile.security')}</h3>
+    <h3 class="font-display text-2xl font-bold text-text mb-6">${t('profile.security')}</h3>
     <div class="space-y-4">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gray-700 rounded-lg">
+      <div class="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
         <div>
           <h4 class="font-sans font-medium text-text">${t('twoFactorAuth')}</h4>
           <p class="text-sm text-gray-400">${t('twoFactorAuthDescription')}</p>
         </div>
-        <a href="/2fa-settings" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-3 md:px-4 rounded-lg transition text-sm md:text-base whitespace-nowrap">
+        <a href="/2fa-settings" class="bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-4 rounded-lg transition">
           ${t('profile.manage2FA')}
         </a>
       </div>

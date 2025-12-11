@@ -10,29 +10,29 @@ export default async function View() {
   }
 
   const container = document.createElement("div");
-  container.className = "max-w-md mx-auto mt-4 md:mt-8 p-4 md:p-0";
+  container.className = "max-w-md mx-auto mt-8";
 
   const form = document.createElement("form");
-  form.className = "p-4 md:p-8 bg-prem rounded-lg shadow-xl";
+  form.className = "p-8 bg-prem rounded-lg shadow-xl";
 
   form.innerHTML = `
-    <h1 class="font-display font-black text-2xl md:text-3xl lg:text-4xl font-bold text-text mb-4 md:mb-6">${t('auth.signup')}</h1>
+    <h1 class="font-display font-black text-4xl font-bold text-text mb-6">${t('auth.signup')}</h1>
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2 text-sm md:text-base">${t('auth.displayName')}</label>
+      <label class="block font-sans text-text mb-2">${t('auth.displayName')}</label>
       <input name="displayName" type="text" placeholder="${t('auth.displayNamePlaceholder')}" required maxlength="25"
-        class="w-full px-3 md:px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans text-sm md:text-base" />
+        class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2 text-sm md:text-base">${t('auth.email')}</label>
+      <label class="block font-sans text-text mb-2">${t('auth.email')}</label>
       <input name="email" type="email" placeholder="${t('auth.emailPlaceholder')}" required
-        class="w-full px-3 md:px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans text-sm md:text-base" />
+        class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
     <div class="mb-4">
-      <label class="block font-sans text-text mb-2 text-sm md:text-base">${t('auth.password')}</label>
+      <label class="block font-sans text-text mb-2">${t('auth.password')}</label>
       <input name="password" type="password" placeholder="••••••••" required minlength="6"
-        class="w-full px-3 md:px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans text-sm md:text-base" />
+        class="w-full px-4 py-2 bg-gray-700 text-text border border-sec rounded-lg focus:outline-none focus:border-text font-sans" />
     </div>
-    <button type="submit" id="signupBtn" class="w-full bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base">
+    <button type="submit" id="signupBtn" class="w-full bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
       ${t('auth.signup')}
     </button>
 
@@ -46,14 +46,14 @@ export default async function View() {
       </div>
     </div>
 
-    <button type="button" id="oauth42Btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2 text-sm md:text-base">
+    <button type="button" id="oauth42Btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2">
       <span class="text-xl">🚀</span>
       <span>${t('auth.signupWith42')}</span>
     </button>` : ''}
 
-    <div id="error" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-xs md:text-sm font-sans hidden"></div>
-    <div id="success" class="mt-4 p-3 bg-green-900 text-green-200 rounded-lg text-xs md:text-sm font-sans hidden"></div>
-    <p class="mt-4 text-center font-sans text-text text-sm md:text-base">
+    <div id="error" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-sm font-sans hidden"></div>
+    <div id="success" class="mt-4 p-3 bg-green-900 text-green-200 rounded-lg text-sm font-sans hidden"></div>
+    <p class="mt-4 text-center font-sans text-text">
       ${t('auth.alreadyHaveAccount')} <a href="/login" class="text-sec hover:underline">${t('auth.login')}</a>
     </p>
   `;

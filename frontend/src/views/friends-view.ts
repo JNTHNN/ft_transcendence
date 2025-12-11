@@ -43,18 +43,18 @@ export async function FriendsView() {
   }
   
   const wrap = document.createElement("div");
-  wrap.className = "max-w-6xl mx-auto mt-4 md:mt-8 p-4 md:p-0";
+  wrap.className = "max-w-6xl mx-auto mt-8";
 
   wrap.innerHTML = `
-    <div class="flex justify-between items-center mb-4 md:mb-6">
-      <h1 class="font-display font-black text-2xl md:text-3xl lg:text-4xl font-bold text-text">${t('friends.title')}</h1>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="font-display font-black text-4xl font-bold text-text">${t('friends.title')}</h1>
     </div>
 
     <div id="friends-content">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Liste des amis -->
-        <div class="bg-prem rounded-lg shadow-xl p-4 md:p-6">
-          <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('friends.myFriends')}</h2>
+        <div class="bg-prem rounded-lg shadow-xl p-6">
+          <h2 class="font-display text-2xl font-bold text-text mb-4">${t('friends.myFriends')}</h2>
           <div id="friends-list" class="space-y-3">
             <div class="flex items-center justify-center py-8">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
@@ -63,8 +63,8 @@ export async function FriendsView() {
         </div>
 
         <!-- Demandes reçues -->
-        <div class="bg-prem rounded-lg shadow-xl p-4 md:p-6">
-          <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('friends.friendRequests')}</h2>
+        <div class="bg-prem rounded-lg shadow-xl p-6">
+          <h2 class="font-display text-2xl font-bold text-text mb-4">${t('friends.friendRequests')}</h2>
           <div id="friend-requests-list" class="space-y-3">
             <div class="flex items-center justify-center py-8">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
@@ -73,8 +73,8 @@ export async function FriendsView() {
         </div>
 
         <!-- Demandes envoyées (en attente) -->
-        <div class="bg-prem rounded-lg shadow-xl p-4 md:p-6">
-          <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('friends.pendingRequests')}</h2>
+        <div class="bg-prem rounded-lg shadow-xl p-6">
+          <h2 class="font-display text-2xl font-bold text-text mb-4">${t('friends.pendingRequests')}</h2>
           <div id="sent-requests-list" class="space-y-3">
             <div class="flex items-center justify-center py-8">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
@@ -84,18 +84,18 @@ export async function FriendsView() {
       </div>
 
       <!-- Recherche d'amis -->
-      <div class="bg-prem rounded-lg shadow-xl p-4 md:p-6 mt-4 md:mt-6">
-        <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('friends.findFriends')}</h2>
-        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+      <div class="bg-prem rounded-lg shadow-xl p-6 mt-6">
+        <h2 class="font-display text-2xl font-bold text-text mb-4">${t('friends.findFriends')}</h2>
+        <div class="flex gap-3 mb-4">
           <input 
             type="text" 
             id="search-input"
             placeholder="${t('friends.searchPlaceholder')}"
-            class="flex-1 px-3 md:px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-text placeholder-gray-400 focus:outline-none focus:border-sec text-sm md:text-base"
+            class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-text placeholder-gray-400 focus:outline-none focus:border-sec"
           >
           <button 
             id="search-button"
-            class="bg-sec hover:bg-opacity-80 text-text px-4 md:px-6 py-2 rounded-lg font-bold transition text-sm md:text-base w-full sm:w-auto"
+            class="bg-sec hover:bg-opacity-80 text-text px-6 py-2 rounded-lg font-bold transition"
           >
             ${t('friends.search')}
           </button>

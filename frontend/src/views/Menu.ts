@@ -69,7 +69,6 @@ export class MenuManager {
     }
     this.updateMenuForAuthState();
     this.setupNavigation();
-    this.setupBottomNavigation();
   }
 
   private updateMenuForAuthState() {
@@ -83,41 +82,41 @@ export class MenuManager {
       : this.fullUser?.avatarUrl;
 
     const menuHTML = `
-      <nav class="font-display text-base md:text-lg lg:text-xl font-black flex flex-col p-3 md:p-4 space-y-1 md:space-y-2 flex-1 overflow-y-auto">
-        <button data-navigate="/" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+      <nav class="font-display text-2xl font-black flex flex-col p-4 space-y-2 flex-1 overflow-y-auto">
+        <button data-navigate="/" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
           ${t('nav.home')}
         </button>
         ${isAuthenticated ? `
-          <button data-navigate="/tournoi" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/tournoi" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.tournaments')}
           </button>
-          <button data-navigate="/partie" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/partie" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.play')}
           </button>
-          <button data-navigate="/dashboard" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/dashboard" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.dashboard')}
           </button>
-          <button data-navigate="/chat" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/chat" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.chat')}
           </button>
-          <button data-navigate="/friends" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/friends" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('friends.title')}
           </button>
-          <button data-navigate="/profile" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/profile" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.profile')}
           </button>
         ` : `
-          <button data-navigate="/login" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/login" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.login')}
           </button>
-          <button data-navigate="/signup" class="menu-link px-3 md:px-4 py-2 md:py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
+          <button data-navigate="/signup" class="menu-link px-4 py-3 text-text hover:bg-sec rounded-lg transition-colors text-left">
             ${t('nav.signup')}
           </button>
         `}
 
         ${isAuthenticated ? `
-          <div class="pt-3 md:pt-4 border-t border-sec mt-3 md:mt-4">
-            <div class="px-3 md:px-4 py-2 text-sm">
+          <div class="pt-4 border-t border-sec mt-4">
+            <div class="px-4 py-2 text-sm">
               <div class="flex items-center space-x-2 mb-2">
                 ${menuAvatarUrl ? `
                   <img src="${menuAvatarUrl}" alt="Avatar" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -130,22 +129,22 @@ export class MenuManager {
                   </div>
                 `}
                 <div class="min-w-0">
-                  <div class="text-text font-bold text-sm md:text-base truncate">${this.fullUser?.displayName || user?.displayName || t('common.user')}</div>
-                  <div class="text-text/70 text-xs truncate max-w-[10rem]">${this.fullUser?.email || user?.email || ''}</div>
+                  <div class="text-text font-bold text-base truncate">${this.fullUser?.displayName || user?.displayName || t('common.user')}</div>
+                  <div class="text-text/70 text-xs truncate max-w-[12rem]">${this.fullUser?.email || user?.email || ''}</div>
                   ${this.fullUser?.accountType === 'oauth42' ? '<div class="text-blue-400 text-xs">👤 42</div>' : ''}
                 </div>
               </div>
             </div>
-            <div class="space-y-1 md:space-y-2">
+            <div class="space-y-2">
               ${createLanguageButton()}
-              <button id="logout-btn" class="w-full px-3 md:px-4 py-2 md:py-3 text-text bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-black text-xs md:text-sm">
+              <button id="logout-btn" class="w-full px-4 py-3 text-text bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-black">
                 🔓 ${t('auth.logout')}
               </button>
             </div>
           </div>
         ` : `
-          <div class="pt-3 md:pt-4 border-t border-sec mt-3 md:mt-4">
-            <div class="space-y-1 md:space-y-2">
+          <div class="pt-4 border-t border-sec mt-4">
+            <div class="space-y-2">
               ${createLanguageButton()}
             </div>
           </div>
@@ -170,40 +169,6 @@ export class MenuManager {
     // 🆕 Navigation interceptée par le router via data-navigate
     // Plus besoin d'event listener ici, le router s'en occupe !
     // Voir router.ts lignes 51-60
-  }
-
-  private setupBottomNavigation() {
-    const bottomNav = document.getElementById('bottom-nav');
-    if (!bottomNav) return;
-
-    bottomNav.addEventListener('click', (e) => {
-      const target = (e.target as HTMLElement).closest('[data-nav]') as HTMLElement;
-      if (target) {
-        const path = target.getAttribute('data-nav');
-        if (path) {
-          router.navigate(path);
-          this.updateBottomNavActive(path);
-        }
-      }
-    });
-
-    // Mettre à jour l'état actif lors du chargement
-    const currentPath = window.location.hash.slice(1) || '/';
-    this.updateBottomNavActive(currentPath);
-  }
-
-  private updateBottomNavActive(path: string) {
-    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
-    bottomNavItems.forEach(item => {
-      const navPath = item.getAttribute('data-nav');
-      if (navPath === path) {
-        item.classList.remove('text-text/70');
-        item.classList.add('text-text', 'font-bold');
-      } else {
-        item.classList.add('text-text/70');
-        item.classList.remove('text-text', 'font-bold');
-      }
-    });
   }
 
   private setupEventHandlers() {

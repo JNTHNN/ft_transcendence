@@ -209,8 +209,6 @@ export default {
     tournamentMatchDesc: "Local 2-player match on the same computer",
     tournamentCompleted: "Tournament completed!",
     tournamentBlockchainInfo: "Each match stored individually on blockchain",
-    desktopOnly: "Game available on desktop",
-    desktopOnlyMessage: "Pong game requires a larger screen and keyboard for optimal experience. Please use a desktop or laptop computer.",
     controls: {
       local: "W/S Player 1 | ↑/↓ Player 2",
       solo: "W/S or ↑/↓ to move your paddle"

@@ -34,33 +34,33 @@ export default async function DashboardView() {
   }
 
   const container = document.createElement("div");
-  container.className = "max-w-7xl mx-auto p-4 md:p-6";
+  container.className = "max-w-7xl mx-auto p-6";
 
   // Header
   const header = document.createElement("div");
-  header.className = "mb-6 md:mb-8";
+  header.className = "mb-8";
   header.innerHTML = `
-    <h1 class="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-text mb-2">${t('dashboard.title')}</h1>
-    <p class="text-text/70 text-base md:text-lg">${t('dashboard.subtitle')}</p>
+    <h1 class="font-display text-4xl font-bold text-text mb-2">${t('dashboard.title')}</h1>
+    <p class="text-text/70 text-lg">${t('dashboard.subtitle')}</p>
   `;
 
   // Main grid layout
   const mainGrid = document.createElement("div");
-  mainGrid.className = "grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6";
+  mainGrid.className = "grid grid-cols-1 lg:grid-cols-3 gap-6";
 
   // Stats Overview (1/3 width)
   const statsOverview = document.createElement("div");
-  statsOverview.className = "lg:col-span-1 space-y-4 md:space-y-6";
+  statsOverview.className = "lg:col-span-1 space-y-6";
   
   // Performance Chart (2/3 width)
   const chartSection = document.createElement("div");
-  chartSection.className = "lg:col-span-2 space-y-4 md:space-y-6";
+  chartSection.className = "lg:col-span-2 space-y-6";
 
   // Stats cards
   const statsCards = document.createElement("div");
-  statsCards.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
+  statsCards.className = "bg-prem rounded-lg p-6 shadow-xl";
   statsCards.innerHTML = `
-      <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4 md:mb-6">${t('dashboard.overview')}</h2>
+      <h2 class="font-display text-2xl font-bold text-text mb-6">${t('dashboard.overview')}</h2>
     <div id="stats-cards" class="space-y-4">
       <div class="flex items-center justify-center py-8">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
@@ -70,10 +70,10 @@ export default async function DashboardView() {
 
   // Performance chart
   const performanceChart = document.createElement("div");
-  performanceChart.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
+  performanceChart.className = "bg-prem rounded-lg p-6 shadow-xl";
   performanceChart.innerHTML = `
-    <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('dashboard.performanceTrends')}</h2>
-    <div id="performance-chart" class="h-64 md:h-80">
+    <h2 class="font-display text-2xl font-bold text-text mb-4">${t('dashboard.performanceTrends')}</h2>
+    <div id="performance-chart" class="h-80">
       <div class="flex items-center justify-center h-full">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
       </div>
@@ -82,10 +82,10 @@ export default async function DashboardView() {
 
   // Win/Loss distribution
   const distributionChart = document.createElement("div");
-  distributionChart.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
+  distributionChart.className = "bg-prem rounded-lg p-6 shadow-xl";
   distributionChart.innerHTML = `
-    <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('dashboard.winLossDistribution')}</h2>
-    <div id="distribution-chart" class="h-48 md:h-64">
+    <h2 class="font-display text-2xl font-bold text-text mb-4">${t('dashboard.winLossDistribution')}</h2>
+    <div id="distribution-chart" class="h-64">
       <div class="flex items-center justify-center h-full">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
       </div>
@@ -94,10 +94,10 @@ export default async function DashboardView() {
 
   // Recent activity
   const recentActivity = document.createElement("div");
-  recentActivity.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
+  recentActivity.className = "bg-prem rounded-lg p-6 shadow-xl";
   recentActivity.innerHTML = `
-    <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('dashboard.recentActivity')}</h2>
-    <div id="recent-matches" class="space-y-3 max-h-64 md:max-h-96 overflow-y-auto">
+    <h2 class="font-display text-2xl font-bold text-text mb-4">${t('dashboard.recentActivity')}</h2>
+    <div id="recent-matches" class="space-y-3 max-h-96 overflow-y-auto">
       <div class="flex items-center justify-center py-8">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
       </div>
@@ -106,9 +106,9 @@ export default async function DashboardView() {
 
   // Game mode stats
   const gameModeStats = document.createElement("div");
-  gameModeStats.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
+  gameModeStats.className = "bg-prem rounded-lg p-6 shadow-xl";
   gameModeStats.innerHTML = `
-    <h2 class="font-display text-xl md:text-2xl font-bold text-text mb-4">${t('dashboard.performanceByGameMode')}</h2>
+    <h2 class="font-display text-2xl font-bold text-text mb-4">${t('dashboard.performanceByGameMode')}</h2>
     <div id="gamemode-stats">
       <div class="flex items-center justify-center py-8">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sec"></div>
@@ -128,7 +128,7 @@ export default async function DashboardView() {
 
   // Full width sections
   const fullWidthSection = document.createElement("div");
-  fullWidthSection.className = "mt-4 md:mt-6";
+  fullWidthSection.className = "mt-6";
   fullWidthSection.appendChild(gameModeStats);
 
   container.appendChild(header);

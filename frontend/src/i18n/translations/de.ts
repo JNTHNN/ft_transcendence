@@ -207,11 +207,9 @@ export default {
     wins: "gewinnt!",
     ai: "KI",
     tournamentMatch: "Turnierspiel",
-    tournamentMatchDesc: "Lokales 2-Spieler-Spiel am selben Computer",
+    tournamentMatchDesc: "Lokales 2-Spieler-Spiel auf demselben Computer",
     tournamentCompleted: "Turnier abgeschlossen!",
-    tournamentBlockchainInfo: "Jedes Spiel einzeln in der Blockchain gespeichert",
-    desktopOnly: "Spiel verfügbar auf Desktop",
-    desktopOnlyMessage: "Das Pong-Spiel erfordert einen größeren Bildschirm und eine Tastatur für ein optimales Erlebnis. Bitte verwenden Sie einen Desktop- oder Laptop-Computer.",
+    tournamentBlockchainInfo: "Jedes Spiel einzeln auf Blockchain gespeichert",
     controls: {
       local: "W/S Spieler 1 | ↑/↓ Spieler 2",
       solo: "W/S oder ↑/↓ um Ihren Schläger zu bewegen"
