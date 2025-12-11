@@ -46,34 +46,34 @@ export async function TournamentDetailView() {
   }
   
   const wrap = document.createElement("div");
-  wrap.className = "max-w-6xl mx-auto mt-8";
+  wrap.className = "max-w-6xl mx-auto mt-4 md:mt-8 p-4 md:p-0";
 
   // Récupérer l'ID du tournoi depuis l'URL
   const tournamentId = window.location.pathname.split('/tournament/')[1];
   
   if (!tournamentId) {
     wrap.innerHTML = `
-      <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-        <p class="text-red-400">❌ ${t('tournamentDetail.missingId')}</p>
-        <a href="/tournois" class="text-sec hover:underline">← ${t('tournamentDetail.backToTournaments')}</a>
+      <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 md:p-6 text-center">
+        <p class="text-red-400 text-sm md:text-base">❌ ${t('tournamentDetail.missingId')}</p>
+        <a href="/tournois" class="text-sec hover:underline text-sm md:text-base">← ${t('tournamentDetail.backToTournaments')}</a>
       </div>
     `;
     return wrap;
   }
 
   wrap.innerHTML = `
-    <div class="mb-6">
-      <a href="/tournois" class="text-sec hover:underline mb-4 inline-block">← ${t('tournamentDetail.backToTournaments')}</a>
-      <div id="tournament-header" class="flex justify-between items-center">
+    <div class="mb-4 md:mb-6">
+      <a href="/tournois" class="text-sec hover:underline mb-4 inline-block text-sm md:text-base">← ${t('tournamentDetail.backToTournaments')}</a>
+      <div id="tournament-header" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 id="tournament-title" class="font-display font-black text-4xl text-text">${t('tournamentDetail.loading')}</h1>
+          <h1 id="tournament-title" class="font-display font-black text-2xl md:text-3xl lg:text-4xl text-text">${t('tournamentDetail.loading')}</h1>
           <div id="tournament-status" class="mt-2"></div>
         </div>
-        <div id="tournament-actions" class="flex gap-3"></div>
+        <div id="tournament-actions" class="flex gap-2 md:gap-3 w-full sm:w-auto"></div>
       </div>
     </div>
 
-    <div id="tournament-content" class="space-y-6">
+    <div id="tournament-content" class="space-y-4 md:space-y-6">
       <div class="text-center py-12">
         <div class="animate-spin w-12 h-12 border-4 border-sec border-t-transparent rounded-full mx-auto mb-4"></div>
         <p class="text-text/70">${t('tournamentDetail.loadingTournament')}</p>

@@ -24,44 +24,44 @@ export async function TournoiView() {
   }
   
   const wrap = document.createElement("div");
-  wrap.className = "max-w-6xl mx-auto mt-8";
+  wrap.className = "max-w-6xl mx-auto mt-4 md:mt-8 p-4 md:p-0";
 
   wrap.innerHTML = `
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="font-display font-black text-4xl font-bold text-text">${t('tournament.title')}</h1>
-      <div class="flex gap-3">
-        <button id="btn-create-tournament" class="bg-sec hover:bg-sec/80 text-text font-bold px-6 py-2 rounded-lg">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-4">
+      <h1 class="font-display font-black text-2xl md:text-3xl lg:text-4xl font-bold text-text">${t('tournament.title')}</h1>
+      <div class="flex gap-2 md:gap-3 w-full sm:w-auto">
+        <button id="btn-create-tournament" class="flex-1 sm:flex-none bg-sec hover:bg-sec/80 text-text font-bold px-4 md:px-6 py-2 rounded-lg text-sm md:text-base">
           ➕ ${t('tournament.createTournament')}
         </button>
       </div>
     </div>
 
-    <div id="tournament-content" class="space-y-6"></div>
+    <div id="tournament-content" class="space-y-4 md:space-y-6"></div>
 
     <!-- Modal pour créer un tournoi -->
-    <div id="create-tournament-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-prem rounded-xl p-6 max-w-md mx-4 w-full relative">
+    <div id="create-tournament-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div class="bg-prem rounded-xl p-4 md:p-6 max-w-md w-full relative max-h-[90vh] overflow-y-auto">
         <button id="btn-close-create-modal" class="absolute top-4 right-4 text-text/60 hover:text-text text-2xl">×</button>
-        <h2 class="text-2xl font-bold text-text mb-4">${t('tournament.createTournament')}</h2>
+        <h2 class="text-xl md:text-2xl font-bold text-text mb-4">${t('tournament.createTournament')}</h2>
         <form id="create-tournament-form" class="space-y-4">
           <div>
-            <label class="block text-text font-medium mb-2">${t('tournament.tournamentName')}</label>
-            <input id="tournament-name" type="text" required class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec" placeholder="Nom du tournoi">
+            <label class="block text-text font-medium mb-2 text-sm md:text-base">${t('tournament.tournamentName')}</label>
+            <input id="tournament-name" type="text" required class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec text-sm md:text-base" placeholder="Nom du tournoi">
           </div>
           <div>
-            <label class="block text-text font-medium mb-2">Description</label>
-            <textarea id="tournament-description" class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec" rows="3" placeholder="Description optionnelle"></textarea>
+            <label class="block text-text font-medium mb-2 text-sm md:text-base">Description</label>
+            <textarea id="tournament-description" class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec text-sm md:text-base" rows="3" placeholder="Description optionnelle"></textarea>
           </div>
           <div>
-            <label class="block text-text font-medium mb-2">Nombre max de joueurs</label>
-            <select id="tournament-max-players" class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec">
+            <label class="block text-text font-medium mb-2 text-sm md:text-base">Nombre max de joueurs</label>
+            <select id="tournament-max-players" class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec text-sm md:text-base">
               <option value="2">2 joueurs</option>
               <option value="4">4 joueurs</option>
               <option value="8" selected>8 joueurs</option>
             </select>
           </div>
           <div class="flex pt-4">
-            <button type="submit" class="w-full bg-sec hover:bg-sec/80 text-text font-bold py-2 px-4 rounded">
+            <button type="submit" class="w-full bg-sec hover:bg-sec/80 text-text font-bold py-2 px-4 rounded text-sm md:text-base">
               Créer
             </button>
           </div>
