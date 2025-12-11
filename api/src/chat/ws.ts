@@ -2,8 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import type { Database } from 'better-sqlite3';
 
 interface ChatMessage {
-  id?: number;
-  type: 'user' | 'system' | 'tournament_notification' | 'game_invite' | 'game_invite_declined' | 'online_users_update';
+  id?: string;
+  type: 'user' | 'system' | 'tournament_notification' | 'tournament_start' | 'tournament_end' | 'game_invite' | 'game_invite_declined' | 'online_users_update' | 'typing_indicator' | 'read_receipt';
   username?: string;
   userId?: number;
   avatarUrl?: string;
@@ -24,12 +24,16 @@ interface ChatMessage {
     gameId: string;
   };
   users?: any[];
+  isTyping?: boolean;
+  messageId?: string;
+  readBy?: number[];
 }
 
 const chatConnections = new Map<number, any>();
+const typingTimeouts = new Map<number, NodeJS.Timeout>();
 
 // Fonction pour sauvegarder un message dans la base de données
-function saveMessage(db: Database, userId: number, username: string, text: string) {
+function saveMessage(db: Database, userId: number, username: string, text: string): string | null {
   try {
     const id = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
@@ -38,8 +42,24 @@ function saveMessage(db: Database, userId: number, username: string, text: strin
       VALUES (?, ?, ?, ?, ?, ?)
     `);
     stmt.run(id, 'message', userId, username, text, now);
+    return id;
   } catch (error) {
     console.error('Error saving chat message:', error);
+    return null;
+  }
+}
+
+// Fonction pour charger les read receipts d'un message
+function getMessageReadReceipts(db: Database, messageId: string): number[] {
+  try {
+    const stmt = db.prepare(`
+      SELECT user_id FROM message_read_receipts WHERE message_id = ?
+    `);
+    const receipts = stmt.all(messageId) as any[];
+    return receipts.map(r => r.user_id);
+  } catch (error) {
+    console.error('Error loading read receipts:', error);
+    return [];
   }
 }
 
@@ -53,7 +73,7 @@ function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
              CAST((julianday(cm.created_at) - 2440587.5) * 86400000 AS INTEGER) as timestamp
       FROM chat_messages cm
       LEFT JOIN users u ON cm.user_id = u.id
-      WHERE cm.type IN ('message', 'tournament_notification')
+      WHERE cm.type IN ('message', 'tournament_notification', 'tournament_start', 'tournament_end')
       ORDER BY cm.created_at DESC
       LIMIT ?
     `);
@@ -69,11 +89,43 @@ function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
           id: msg.id,
           type: 'tournament_notification' as const,
           tournamentNotification: {
-            tournamentId: msg.tournament_id, // Garder comme string
+            tournamentId: msg.tournament_id,
             tournamentName,
-            matchId: 0, // Non utilisé
+            matchId: 0,
             player1: players[0],
             player2: players[1]
+          },
+          timestamp: msg.timestamp
+        };
+      }
+      if (msg.type === 'tournament_start') {
+        const tournamentName = msg.text.replace('TOURNAMENT_START:', '');
+        return {
+          id: msg.id,
+          type: 'tournament_start' as const,
+          tournamentNotification: {
+            tournamentId: msg.tournament_id,
+            tournamentName,
+            matchId: 0,
+            player1: '',
+            player2: ''
+          },
+          timestamp: msg.timestamp
+        };
+      }
+      if (msg.type === 'tournament_end') {
+        const parts = msg.text.replace('TOURNAMENT_END:', '').split(':');
+        const tournamentName = parts[0];
+        const winnerName = parts[1] || '';
+        return {
+          id: msg.id,
+          type: 'tournament_end' as const,
+          tournamentNotification: {
+            tournamentId: msg.tournament_id,
+            tournamentName,
+            matchId: 0,
+            player1: winnerName,
+            player2: ''
           },
           timestamp: msg.timestamp
         };
@@ -85,7 +137,8 @@ function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
         username: msg.username,
         avatarUrl: msg.avatarUrl,
         text: msg.text,
-        timestamp: msg.timestamp
+        timestamp: msg.timestamp,
+        readBy: getMessageReadReceipts(db, msg.id)
       };
     });
   } catch (error) {
@@ -194,6 +247,99 @@ export function broadcastTournamentNotification(
   console.log(`Tournament notification sent: ${tournamentName} - ${player1} vs ${player2}`);
 }
 
+// Fonction pour diffuser le début d'un tournoi
+export function broadcastTournamentStart(
+  db: Database,
+  tournamentId: string,
+  tournamentName: string
+) {
+  const notification: ChatMessage = {
+    type: 'tournament_start',
+    tournamentNotification: {
+      tournamentId: tournamentId,
+      tournamentName,
+      matchId: 0,
+      player1: '',
+      player2: ''
+    },
+    timestamp: Date.now()
+  };
+
+  // Sauvegarder la notification en DB
+  try {
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const stmt = db.prepare(`
+      INSERT INTO chat_messages (id, type, tournament_id, text, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const text = `TOURNAMENT_START:${tournamentName}`;
+    stmt.run(messageId, 'tournament_start', tournamentId, text, new Date().toISOString());
+  } catch (error) {
+    console.error('Error saving tournament start notification to DB:', error);
+  }
+
+  const message = JSON.stringify(notification);
+
+  chatConnections.forEach((connection) => {
+    try {
+      if (connection.socket.readyState === 1) {
+        connection.socket.send(message);
+      }
+    } catch (error) {
+      console.error('Error broadcasting tournament start:', error);
+    }
+  });
+
+  console.log(`Tournament start notification sent: ${tournamentName}`);
+}
+
+// Fonction pour diffuser la fin d'un tournoi
+export function broadcastTournamentEnd(
+  db: Database,
+  tournamentId: string,
+  tournamentName: string,
+  winnerName: string
+) {
+  const notification: ChatMessage = {
+    type: 'tournament_end',
+    tournamentNotification: {
+      tournamentId: tournamentId,
+      tournamentName,
+      matchId: 0,
+      player1: winnerName,
+      player2: ''
+    },
+    timestamp: Date.now()
+  };
+
+  // Sauvegarder la notification en DB
+  try {
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const stmt = db.prepare(`
+      INSERT INTO chat_messages (id, type, tournament_id, text, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const text = `TOURNAMENT_END:${tournamentName}:${winnerName}`;
+    stmt.run(messageId, 'tournament_end', tournamentId, text, new Date().toISOString());
+  } catch (error) {
+    console.error('Error saving tournament end notification to DB:', error);
+  }
+
+  const message = JSON.stringify(notification);
+
+  chatConnections.forEach((connection) => {
+    try {
+      if (connection.socket.readyState === 1) {
+        connection.socket.send(message);
+      }
+    } catch (error) {
+      console.error('Error broadcasting tournament end:', error);
+    }
+  });
+
+  console.log(`Tournament end notification sent: ${tournamentName} - Winner: ${winnerName}`);
+}
+
 export async function registerChatWS(app: FastifyInstance, db: Database) {
   app.get('/ws/chat', { websocket: true }, (connection, req: any) => {
     const { socket } = connection;
@@ -230,6 +376,51 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
       username = user.display_name;
       chatConnections.set(userId, { socket, username });
 
+      // Marquer tous les messages existants comme lus (sauf ceux de l'utilisateur et des utilisateurs qu'on a bloqués)
+      try {
+        const markReadStmt = db.prepare(`
+          INSERT OR IGNORE INTO message_read_receipts (message_id, user_id, read_at)
+          SELECT cm.id, ?, CURRENT_TIMESTAMP
+          FROM chat_messages cm
+          WHERE cm.type = 'message' 
+            AND cm.user_id != ?
+            AND cm.user_id NOT IN (
+              SELECT blocked_id FROM user_blocks WHERE blocker_id = ?
+            )
+        `);
+        markReadStmt.run(userId, userId, userId);
+        
+        // Charger tous les messages avec leurs read receipts et les envoyer au client
+        const messages = loadRecentMessages(db);
+        socket.send(JSON.stringify({
+          type: 'history',
+          messages: messages
+        }));
+        
+        // Notifier tous les autres utilisateurs que ces messages ont été lus
+        const readMessages = db.prepare(`
+          SELECT DISTINCT message_id FROM message_read_receipts WHERE user_id = ?
+        `).all(userId) as any[];
+        
+        readMessages.forEach((row) => {
+          const readReceiptMessage: ChatMessage = {
+            type: 'read_receipt',
+            userId: userId,
+            username: username || '',
+            messageId: row.message_id,
+            timestamp: Date.now()
+          };
+          
+          chatConnections.forEach((conn) => {
+            if (conn.socket.readyState === 1) {
+              conn.socket.send(JSON.stringify(readReceiptMessage));
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+
       // Diffuser la liste mise à jour des utilisateurs en ligne
       broadcastOnlineUsers(db);
 
@@ -262,7 +453,11 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
             console.error('Error getting user avatar:', error);
           }
 
+          // Sauvegarder dans la base de données et récupérer l'ID
+          const messageId = saveMessage(db, userId, username, message.text);
+
           const chatMessage: ChatMessage = {
+            id: messageId || undefined,
             type: 'user',
             userId: userId,
             username: username,
@@ -270,9 +465,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
             text: message.text,
             timestamp: Date.now()
           };
-
-          // Sauvegarder dans la base de données
-          saveMessage(db, userId, username, message.text);
 
           // Récupérer la liste des utilisateurs bloqués
           const blockedByUsers = db.prepare(`
@@ -332,6 +524,109 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
           }
         }
 
+        // Typing indicator
+        if (message.type === 'typing_indicator') {
+          const typingMessage: ChatMessage = {
+            type: 'typing_indicator',
+            userId: userId,
+            username: username,
+            isTyping: message.isTyping,
+            timestamp: Date.now()
+          };
+
+          // Récupérer la liste des utilisateurs bloqués
+          const blockedByUsers = db.prepare(`
+            SELECT blocker_id FROM user_blocks WHERE blocked_id = ?
+          `).all(userId) as any[];
+          const blockedByIds = new Set(blockedByUsers.map(b => b.blocker_id));
+
+          // Broadcast à tous sauf ceux qui ont bloqué cet utilisateur
+          chatConnections.forEach((conn, connUserId) => {
+            if (connUserId !== userId && !blockedByIds.has(connUserId) && conn.socket.readyState === 1) {
+              conn.socket.send(JSON.stringify(typingMessage));
+            }
+          });
+
+          // Gérer le timeout automatique après 3 secondes
+          if (message.isTyping) {
+            const existingTimeout = typingTimeouts.get(userId);
+            if (existingTimeout) {
+              clearTimeout(existingTimeout);
+            }
+            
+            const timeout = setTimeout(() => {
+              const stopTypingMessage: ChatMessage = {
+                type: 'typing_indicator',
+                userId: userId,
+                username: username,
+                isTyping: false,
+                timestamp: Date.now()
+              };
+              
+              chatConnections.forEach((conn, connUserId) => {
+                if (connUserId !== userId && !blockedByIds.has(connUserId) && conn.socket.readyState === 1) {
+                  conn.socket.send(JSON.stringify(stopTypingMessage));
+                }
+              });
+              
+              typingTimeouts.delete(userId);
+            }, 3000);
+            
+            typingTimeouts.set(userId, timeout);
+          } else {
+            const existingTimeout = typingTimeouts.get(userId);
+            if (existingTimeout) {
+              clearTimeout(existingTimeout);
+              typingTimeouts.delete(userId);
+            }
+          }
+        }
+
+        // Read receipt
+        if (message.type === 'read_receipt' && message.messageId) {
+          // Vérifier que l'utilisateur n'a pas bloqué l'auteur du message
+          try {
+            const messageAuthor = db.prepare(`
+              SELECT user_id FROM chat_messages WHERE id = ?
+            `).get(message.messageId) as any;
+            
+            if (messageAuthor) {
+              // Vérifier si l'utilisateur actuel a bloqué l'auteur du message
+              const isBlocked = db.prepare(`
+                SELECT 1 FROM user_blocks 
+                WHERE blocker_id = ? AND blocked_id = ?
+              `).get(userId, messageAuthor.user_id);
+              
+              // Ne pas enregistrer le read receipt si l'auteur est bloqué
+              if (!isBlocked) {
+                // Sauvegarder le read receipt en DB
+                const stmt = db.prepare(`
+                  INSERT OR IGNORE INTO message_read_receipts (message_id, user_id, read_at)
+                  VALUES (?, ?, CURRENT_TIMESTAMP)
+                `);
+                stmt.run(message.messageId, userId);
+                
+                const readReceiptMessage: ChatMessage = {
+                  type: 'read_receipt',
+                  userId: userId,
+                  username: username,
+                  messageId: message.messageId,
+                  timestamp: Date.now()
+                };
+
+                // Broadcast à tous les utilisateurs connectés
+                chatConnections.forEach((conn) => {
+                  if (conn.socket.readyState === 1) {
+                    conn.socket.send(JSON.stringify(readReceiptMessage));
+                  }
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error saving read receipt:', error);
+          }
+        }
+
       } catch (error) {
         console.error('Error handling chat message:', error);
       }
@@ -340,6 +635,14 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
     socket.on('close', () => {
       if (userId !== undefined && username) {
         const userIdValue = userId; // Garantir que c'est un number
+        
+        // Nettoyer le timeout de typing si existant
+        const existingTimeout = typingTimeouts.get(userIdValue);
+        if (existingTimeout) {
+          clearTimeout(existingTimeout);
+          typingTimeouts.delete(userIdValue);
+        }
+        
         chatConnections.delete(userIdValue);
 
         // Diffuser la liste mise à jour des utilisateurs en ligne

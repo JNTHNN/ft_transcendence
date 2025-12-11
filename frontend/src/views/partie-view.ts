@@ -1,8 +1,14 @@
-import { api } from "../api-client";
+import { authManager } from "../auth";
 import { router } from "../router";
 import { t } from "../i18n/index.js";
 
 export async function PartieView() {
+  // Check authentication
+  if (!authManager.isAuthenticated()) {
+    router.navigate("/login");
+    return document.createElement("div");
+  }
+  
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-8";
 
@@ -14,11 +20,7 @@ export async function PartieView() {
 
   const content = wrap.querySelector("#game-content") as HTMLDivElement;
 
-  try {
-    // Vérifie si l'utilisateur est connecté
-    await api("/auth/me");
-    
-    content.innerHTML = `
+  content.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- SOLO VS IA -->
         <div class="bg-prem rounded-lg shadow-xl p-6 flex flex-col justify-between">
@@ -78,18 +80,6 @@ export async function PartieView() {
     btnLocal.onclick = () => {
       router.navigate("/match?mode=local");
     };
-
-  } catch (error) {
-    // Si non connecté, affiche le message de login
-    content.innerHTML = `
-      <div class="bg-prem rounded-lg shadow-xl p-6 text-center">
-        <p class="font-sans text-text mb-4">${t('auth.loginRequired')}</p>
-        <a href="/login" class="inline-block bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-6 rounded-lg transition">
-          ${t('auth.login')}
-        </a>
-      </div>
-    `;
-  }
 
   return wrap;
 }

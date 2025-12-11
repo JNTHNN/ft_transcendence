@@ -116,7 +116,7 @@ export default {
   messages: {
     profileUpdated: "¡Perfil actualizado con éxito!",
     passwordChanged: "¡Contraseña cambiada con éxito!",
-    accountDeleted: "Tu cuenta ha sido eliminada con éxito.\\nSerás redirigido a la página de inicio.",
+    accountDeleted: "Tu cuenta ha sido eliminada con éxito. Serás redirigido a la página de inicio.",
     oauth42AccountDeleted: "Cuenta OAuth2 eliminada con éxito. Nota: Esto solo elimina tu cuenta de nuestra plataforma, no de 42.",
 
     confirmDeleteAccount: "¿Estás absolutamente seguro de que quieres eliminar tu cuenta?",
@@ -299,7 +299,14 @@ export default {
     errorLoadingBlockedUsers: "Error al cargar usuarios bloqueados",
     joinGame: "Unirse a la partida",
     hasDeclinedInvite: "ha rechazado tu invitación",
-    inviteDeclined: "Invitación rechazada"
+    inviteDeclined: "Invitación rechazada",
+    isTyping: "está escribiendo...",
+    and: "y",
+    areTyping: "están escribiendo...",
+    peopleTyping: "personas escribiendo...",
+    noOnlineUsers: "No hay usuarios en línea",
+    tournamentStarted: "¡El torneo {{name}} ha comenzado!",
+    tournamentEnded: "¡El torneo {{name}} ha terminado! 🏆 Ganador: {{winner}}"
   },
 
   common: {
@@ -635,7 +642,7 @@ export default {
     // Confirmations
     confirmStart: "¿Iniciar el torneo ahora? Ningún otro jugador podrá unirse después.",
     confirmLeave: "¿Estás seguro de que quieres salir de este torneo?",
-    confirmDelete: "⚠️ ¿Estás seguro de que quieres eliminar permanentemente este torneo?\\n\\nEsta acción es irreversible y eliminará:\\n- El torneo\\n- Todos los participantes\\n- Todos los partidos asociados",
+    confirmDelete: "⚠️ ¿Estás seguro de que quieres eliminar permanentemente este torneo? Esta acción es irreversible y eliminará el torneo, todos los participantes y todos los partidos asociados.",
     confirmReset: "¿Reiniciar tu último partido? Esto cancelará la partida actual o reciente.",
     
     // Errors
@@ -644,7 +651,7 @@ export default {
     playError: "Error al lanzar partido",
     startError: "No se puede iniciar el partido",
     resetError: "Error de reinicio",
-    resetSuccess: "¡Partido reiniciado con éxito! (estaba en estado: {status})\\nAhora puedes iniciar una nueva partida.",
+    resetSuccess: "¡Partido reiniciado con éxito! Ahora puedes iniciar una nueva partida.",
     resetFailed: "Error al reiniciar el partido.",
     noResettableMatch: "No se encontró ningún partido reiniciable. El partido puede estar ya terminado o no estás participando en él.",
     notParticipant: "No estás participando en este partido.",
@@ -656,8 +663,8 @@ export default {
     missingTournamentId: "Error: ID de torneo faltante",
     noMatchWaiting: "No hay ningún partido esperándote en este torneo",
     blockedMatchConfirm: "Tienes un partido en curso que parece bloqueado. ¿Quieres reiniciarlo y volver a empezar?",
-    needTwoPlayers: "El torneo necesita al menos 2 jugadores para comenzar.\\n\\nActualmente: {current} jugador(es)\\nFaltante: {needed} jugador(es)",
-    needPowerOfTwoPlayers: "Los torneos de eliminación requieren exactamente 2, 4 u 8 jugadores.\\n\\nActualmente: {current} jugador(es)\\nSiguiente número válido: {next} jugadores\\n\\nAgrega {toAdd} jugador(es) o elimina algunos para alcanzar 2 o 4."
+    needTwoPlayers: "El torneo necesita al menos 2 jugadores para comenzar. Actualmente: {current} jugador(es), faltante: {needed} jugador(es).",
+    needPowerOfTwoPlayers: "Los torneos de eliminación requieren exactamente 2, 4 u 8 jugadores. Actualmente: {current} jugador(es). Siguiente número válido: {next} jugadores. Agrega {toAdd} jugador(es) o elimina algunos para alcanzar 2 o 4."
   },
   
   blockchainModal: {
@@ -692,5 +699,144 @@ export default {
     includedDataText: "Puntuaciones de jugadores, índice del ganador, ronda, marca de tiempo del partido",
     rawJsonData: "Datos JSON Sin Procesar",
     rawDataModalTitle: "Datos Blockchain Sin Procesar - Partido"
+  },
+
+  footer: {
+    allRightsReserved: 'Todos los derechos reservados',
+    privacyPolicy: 'Política de privacidad',
+    termsOfService: 'Términos de servicio'
+  },
+  
+  privacy: {
+    title: 'Política de privacidad',
+    lastUpdated: 'Última actualización',
+    section1: {
+      title: 'Información que recopilamos',
+      intro: 'Cuando utilizas ft_transcendence, recopilamos la siguiente información:',
+      item1: 'Información de cuenta (nombre de usuario, correo electrónico, contraseña - cifrada)',
+      item2: 'Información de perfil (nombre para mostrar, avatar)',
+      item3: 'Estadísticas de juego e historial de partidas',
+      item4: 'Listas de amigos e interacciones sociales',
+      item5: 'Mensajes de chat (almacenados temporalmente durante sesiones activas)'
+    },
+    section2: {
+      title: 'Cómo usamos tu información',
+      intro: 'Tu información se utiliza para:',
+      item1: 'Proporcionar y mantener el servicio de juego',
+      item2: 'Habilitar funcionalidades multijugador y emparejamiento',
+      item3: 'Seguir tu progreso y estadísticas de juego',
+      item4: 'Facilitar características sociales (amigos, chat)',
+      item5: 'Mejorar nuestros servicios y experiencia de usuario'
+    },
+    section3: {
+      title: 'Almacenamiento y seguridad de datos',
+      intro: 'Implementamos medidas de seguridad estándar:',
+      item1: 'Las contraseñas se cifran con bcrypt antes del almacenamiento',
+      item2: 'Todas las conexiones usan cifrado HTTPS',
+      item3: 'Las conexiones WebSocket están protegidas (wss://)',
+      item4: 'El acceso a la base de datos está restringido y monitoreado',
+      item5: 'Se realizan auditorías de seguridad regulares'
+    },
+    section4: {
+      title: 'Retención de datos',
+      intro: 'Retenemos tus datos de la siguiente manera:',
+      item1: 'Datos de cuenta: Hasta la eliminación de la cuenta',
+      item2: 'Historial de juego: Indefinidamente (para estadísticas)',
+      item3: 'Mensajes de chat: Solo durante la sesión activa',
+      item4: 'Registros: 30 días máximo'
+    },
+    section5: {
+      title: 'Tus derechos',
+      intro: 'Tienes derecho a:',
+      item1: 'Acceder a tus datos personales',
+      item2: 'Solicitar corrección de datos inexactos',
+      item3: 'Solicitar eliminación de tu cuenta',
+      item4: 'Exportar tus estadísticas de juego',
+      item5: 'Rechazar la recopilación de datos no esenciales'
+    },
+    section6: {
+      title: 'Servicios de terceros',
+      content: 'Esta aplicación no comparte tus datos con terceros, excepto cuando lo requiera la ley, para proteger nuestros derechos o seguridad, o con tu consentimiento explícito.'
+    },
+    section7: {
+      title: 'Cookies y seguimiento',
+      content: 'Utilizamos cookies y tecnologías similares para autenticación (tokens JWT), gestión de sesiones y preferencias de usuario (idioma, tema).'
+    },
+    section8: {
+      title: 'Privacidad de menores',
+      content: 'Este servicio no está destinado a usuarios menores de 13 años. No recopilamos intencionalmente información personal de niños.'
+    },
+    contact: {
+      title: 'Contáctanos',
+      content: 'Para preguntas relacionadas con la privacidad, contáctanos en:',
+      email: 'Correo electrónico',
+      project: 'Este es un proyecto estudiantil en 42 School.'
+    }
+  },
+  
+  terms: {
+    title: 'Términos de servicio',
+    lastUpdated: 'Última actualización',
+    section1: {
+      title: 'Aceptación de términos',
+      content1: 'Al acceder y usar ft_transcendence ("el Servicio"), aceptas estar sujeto a estos Términos de Servicio. Si no aceptas estos términos, por favor no uses el Servicio.',
+      content2: 'Este es un proyecto educativo desarrollado como parte del plan de estudios de 42 School. El Servicio se proporciona "tal cual" con fines educativos y de entretenimiento.'
+    },
+    section2: {
+      title: 'Cuentas de usuario',
+      intro: 'Creación de cuenta:',
+      item1: 'Debes proporcionar información precisa y completa',
+      item2: 'Eres responsable de mantener la seguridad de tu cuenta',
+      item3: 'No debes compartir tus credenciales de cuenta',
+      item4: 'Debes tener al menos 13 años para crear una cuenta',
+      item5: 'Una persona solo puede crear una cuenta'
+    },
+    section3: {
+      title: 'Uso aceptable',
+      intro: 'Aceptas NO:',
+      item1: 'Usar nombres de usuario ofensivos, inapropiados o discriminatorios',
+      item2: 'Acosar, abusar o dañar a otros usuarios',
+      item3: 'Intentar hacer trampa o explotar mecánicas del juego',
+      item4: 'Usar bots, scripts o herramientas automatizadas',
+      item5: 'Realizar ingeniería inversa o descompilar la aplicación',
+      item6: 'Intentar obtener acceso no autorizado a sistemas',
+      item7: 'Enviar spam o contenido malicioso a través del chat',
+      item8: 'Hacerse pasar por otros usuarios o administradores'
+    },
+    section4: {
+      title: 'Reglas del juego',
+      intro: 'Torneo y jugabilidad:',
+      item1: 'Seguir todas las reglas del juego y directrices de juego limpio',
+      item2: 'No desconectarse intencionalmente para evitar derrotas',
+      item3: 'Respetar los cuadros y horarios de torneos',
+      item4: 'Reportar errores y exploits a los administradores',
+      item5: 'Aceptar los resultados de las partidas como finales'
+    },
+    section5: {
+      title: 'Propiedad intelectual',
+      content: 'El Servicio, incluido su contenido original, características y funcionalidad, es propiedad del equipo de desarrollo ft_transcendence y está protegido por leyes internacionales de derechos de autor, marcas registradas y otras leyes de propiedad intelectual. El concepto del juego Pong clásico es de dominio público. Esta implementación es un trabajo original creado con fines educativos.'
+    },
+    section6: {
+      title: 'Disponibilidad del servicio',
+      content: 'Nos esforzamos por proporcionar un servicio confiable, pero el servicio puede interrumpirse por mantenimiento. No garantizamos un tiempo de actividad del 100%. Las características pueden agregarse, modificarse o eliminarse. El Servicio puede discontinuarse en cualquier momento.'
+    },
+    section7: {
+      title: 'Descargo de garantías',
+      content: 'EL SERVICIO SE PROPORCIONA "TAL CUAL" SIN GARANTÍAS DE NINGÚN TIPO, EXPRESAS O IMPLÍCITAS. Este es un proyecto educativo y puede contener errores, fallos o limitaciones.'
+    },
+    section8: {
+      title: 'Limitación de responsabilidad',
+      content: 'Los desarrolladores no serán responsables de ningún daño indirecto, incidental, especial, consecuente o punitivo resultante de tu uso o incapacidad para usar el Servicio.'
+    },
+    section9: {
+      title: 'Cambios en los términos',
+      content: 'Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios significativos se anunciarán a través de la aplicación. El uso continuo después de los cambios constituye la aceptación de los nuevos términos.'
+    },
+    contact: {
+      title: 'Información de contacto',
+      content: 'Para preguntas sobre estos Términos de Servicio:',
+      email: 'Correo electrónico',
+      project: 'Este es un proyecto estudiantil en 42 School.'
+    }
   }
 };

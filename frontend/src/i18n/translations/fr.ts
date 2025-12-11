@@ -116,7 +116,7 @@ export default {
   messages: {
     profileUpdated: "Profil mis à jour avec succès !",
     passwordChanged: "Mot de passe changé avec succès !",
-    accountDeleted: "Votre compte a été supprimé avec succès.\nVous allez être redirigé vers la page d'accueil.",
+    accountDeleted: "Votre compte a été supprimé avec succès. Vous allez être redirigé vers la page d'accueil.",
     oauth42AccountDeleted: "Compte OAuth2 supprimé avec succès. Note: Cela ne supprime que votre compte de notre plateforme, pas de 42.",
     deletingAccount: "Suppression en cours...",
     confirmDeleteAccount: "Êtes-vous absolument certain de vouloir supprimer votre compte ?",
@@ -298,7 +298,14 @@ export default {
     errorLoadingBlockedUsers: "Erreur lors du chargement des utilisateurs bloqués",
     joinGame: "Rejoindre la partie",
     hasDeclinedInvite: "a refusé votre invitation",
-    inviteDeclined: "Invitation refusée"
+    inviteDeclined: "Invitation refusée",
+    isTyping: "est en train d'écrire...",
+    and: "et",
+    areTyping: "sont en train d'écrire...",
+    peopleTyping: "personnes écrivent...",
+    noOnlineUsers: "Aucun utilisateur en ligne",
+    tournamentStarted: "Le tournoi {{name}} a commencé !",
+    tournamentEnded: "Le tournoi {{name}} est terminé ! 🏆 Gagnant : {{winner}}"
   },
 
   common: {
@@ -637,7 +644,7 @@ export default {
     // Confirmations
     confirmStart: "Démarrer le tournoi maintenant ? Aucun autre joueur ne pourra rejoindre après.",
     confirmLeave: "Êtes-vous sûr de vouloir quitter ce tournoi ?",
-    confirmDelete: "⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce tournoi ?\\n\\nCette action est irréversible et supprimera :\\n- Le tournoi\\n- Tous les participants\\n- Tous les matchs associés",
+    confirmDelete: "⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce tournoi ? Cette action est irréversible et supprimera le tournoi, tous les participants et tous les matchs associés.",
     confirmReset: "Réinitialiser votre dernier match ? Ceci annulera la partie en cours ou récente.",
     
     // Errors
@@ -646,7 +653,7 @@ export default {
     playError: "Erreur lors du lancement du match",
     startError: "Impossible de démarrer le match",
     resetError: "Erreur lors de la réinitialisation",
-    resetSuccess: "Match réinitialisé avec succès ! (était en statut: {status})\\nVous pouvez maintenant relancer une partie.",
+    resetSuccess: "Match réinitialisé avec succès ! Vous pouvez maintenant relancer une partie.",
     resetFailed: "Erreur lors de la réinitialisation du match.",
     noResettableMatch: "Aucun match à réinitialiser trouvé. Le match est peut-être déjà terminé ou vous n'y participez pas.",
     notParticipant: "Vous ne participez pas à ce match.",
@@ -658,8 +665,8 @@ export default {
     missingTournamentId: "Erreur: ID du tournoi manquant",
     noMatchWaiting: "Aucun match en attente pour vous dans ce tournoi",
     blockedMatchConfirm: "Vous avez un match en cours qui semble bloqué. Voulez-vous le réinitialiser et recommencer ?",
-    needTwoPlayers: "Le tournoi a besoin d'au moins 2 joueurs pour commencer.\\n\\nActuellement: {current} joueur(s)\\nManquant: {needed} joueur(s)",
-    needPowerOfTwoPlayers: "Les tournois d'élimination nécessitent exactement 2, 4 ou 8 joueurs.\\n\\nActuellement: {current} joueur(s)\\nProchain nombre valide: {next} joueurs\\n\\nAjoutez {toAdd} joueur(s) ou supprimez-en pour atteindre 2 ou 4."
+    needTwoPlayers: "Le tournoi a besoin d'au moins 2 joueurs pour commencer. Actuellement: {current} joueur(s), manquant: {needed} joueur(s).",
+    needPowerOfTwoPlayers: "Les tournois d'élimination nécessitent exactement 2, 4 ou 8 joueurs. Actuellement: {current} joueur(s). Prochain nombre valide: {next} joueurs. Ajoutez {toAdd} joueur(s) ou supprimez-en pour atteindre 2 ou 4."
   },
 
   blockchainModal: {
@@ -694,5 +701,144 @@ export default {
     includedDataText: "Scores des joueurs, index du gagnant, round, timestamp du match",
     rawJsonData: "Données Brutes JSON",
     rawDataModalTitle: "Données Blockchain Brutes - Match"
+  },
+
+  footer: {
+    allRightsReserved: 'Tous droits réservés',
+    privacyPolicy: 'Politique de confidentialité',
+    termsOfService: 'Conditions d\'utilisation'
+  },
+  
+  privacy: {
+    title: 'Politique de confidentialité',
+    lastUpdated: 'Dernière mise à jour',
+    section1: {
+      title: 'Informations collectées',
+      intro: 'Lorsque vous utilisez ft_transcendence, nous collectons les informations suivantes :',
+      item1: 'Informations de compte (nom d\'utilisateur, email, mot de passe - haché)',
+      item2: 'Informations de profil (nom d\'affichage, avatar)',
+      item3: 'Statistiques de jeu et historique des matchs',
+      item4: 'Listes d\'amis et interactions sociales',
+      item5: 'Messages de chat (stockés temporairement pour les sessions actives)'
+    },
+    section2: {
+      title: 'Utilisation de vos informations',
+      intro: 'Vos informations sont utilisées pour :',
+      item1: 'Fournir et maintenir le service de jeu',
+      item2: 'Activer les fonctionnalités multijoueur et le matchmaking',
+      item3: 'Suivre votre progression et vos statistiques de jeu',
+      item4: 'Faciliter les fonctionnalités sociales (amis, chat)',
+      item5: 'Améliorer nos services et l\'expérience utilisateur'
+    },
+    section3: {
+      title: 'Stockage et sécurité des données',
+      intro: 'Nous mettons en œuvre des mesures de sécurité standard :',
+      item1: 'Les mots de passe sont hachés avec bcrypt avant le stockage',
+      item2: 'Toutes les connexions utilisent le chiffrement HTTPS',
+      item3: 'Les connexions WebSocket sont sécurisées (wss://)',
+      item4: 'L\'accès à la base de données est restreint et surveillé',
+      item5: 'Des audits de sécurité réguliers sont effectués'
+    },
+    section4: {
+      title: 'Conservation des données',
+      intro: 'Nous conservons vos données comme suit :',
+      item1: 'Données de compte : Jusqu\'à la suppression du compte',
+      item2: 'Historique de jeu : Indéfiniment (pour les statistiques)',
+      item3: 'Messages de chat : Pendant la session active uniquement',
+      item4: 'Journaux : 30 jours maximum'
+    },
+    section5: {
+      title: 'Vos droits',
+      intro: 'Vous avez le droit de :',
+      item1: 'Accéder à vos données personnelles',
+      item2: 'Demander la correction de données inexactes',
+      item3: 'Demander la suppression de votre compte',
+      item4: 'Exporter vos statistiques de jeu',
+      item5: 'Refuser la collecte de données non essentielles'
+    },
+    section6: {
+      title: 'Services tiers',
+      content: 'Cette application ne partage pas vos données avec des tiers, sauf si la loi l\'exige, pour protéger nos droits ou notre sécurité, ou avec votre consentement explicite.'
+    },
+    section7: {
+      title: 'Cookies et suivi',
+      content: 'Nous utilisons des cookies et technologies similaires pour l\'authentification (jetons JWT), la gestion de session et les préférences utilisateur (langue, thème).'
+    },
+    section8: {
+      title: 'Confidentialité des enfants',
+      content: 'Ce service n\'est pas destiné aux utilisateurs de moins de 13 ans. Nous ne collectons pas sciemment d\'informations personnelles auprès d\'enfants.'
+    },
+    contact: {
+      title: 'Nous contacter',
+      content: 'Pour toute question relative à la confidentialité, veuillez nous contacter à :',
+      email: 'Email',
+      project: 'Il s\'agit d\'un projet étudiant à l\'école 42.'
+    }
+  },
+  
+  terms: {
+    title: 'Conditions d\'utilisation',
+    lastUpdated: 'Dernière mise à jour',
+    section1: {
+      title: 'Acceptation des conditions',
+      content1: 'En accédant et en utilisant ft_transcendence ("le Service"), vous acceptez d\'être lié par ces Conditions d\'utilisation. Si vous n\'acceptez pas ces conditions, veuillez ne pas utiliser le Service.',
+      content2: 'Il s\'agit d\'un projet éducatif développé dans le cadre du cursus de l\'école 42. Le Service est fourni "tel quel" à des fins éducatives et de divertissement.'
+    },
+    section2: {
+      title: 'Comptes utilisateur',
+      intro: 'Création de compte :',
+      item1: 'Vous devez fournir des informations exactes et complètes',
+      item2: 'Vous êtes responsable de la sécurité de votre compte',
+      item3: 'Vous ne devez pas partager vos identifiants de compte',
+      item4: 'Vous devez avoir au moins 13 ans pour créer un compte',
+      item5: 'Une personne ne peut créer qu\'un seul compte'
+    },
+    section3: {
+      title: 'Utilisation acceptable',
+      intro: 'Vous acceptez de NE PAS :',
+      item1: 'Utiliser des noms d\'utilisateur offensants, inappropriés ou discriminatoires',
+      item2: 'Harceler, abuser ou nuire à d\'autres utilisateurs',
+      item3: 'Tenter de tricher ou d\'exploiter les mécanismes du jeu',
+      item4: 'Utiliser des bots, scripts ou outils automatisés',
+      item5: 'Faire de l\'ingénierie inverse ou décompiler l\'application',
+      item6: 'Tenter d\'obtenir un accès non autorisé aux systèmes',
+      item7: 'Envoyer du spam ou du contenu malveillant via le chat',
+      item8: 'Usurper l\'identité d\'autres utilisateurs ou administrateurs'
+    },
+    section4: {
+      title: 'Règles du jeu',
+      intro: 'Tournoi et gameplay :',
+      item1: 'Suivre toutes les règles du jeu et les directives de fair-play',
+      item2: 'Ne pas se déconnecter intentionnellement pour éviter les défaites',
+      item3: 'Respecter les brackets et horaires des tournois',
+      item4: 'Signaler les bugs et exploits aux administrateurs',
+      item5: 'Accepter les résultats des matchs comme définitifs'
+    },
+    section5: {
+      title: 'Propriété intellectuelle',
+      content: 'Le Service, y compris son contenu original, ses fonctionnalités et ses fonctions, appartient à l\'équipe de développement ft_transcendence et est protégé par les lois internationales sur le droit d\'auteur, les marques et autres propriétés intellectuelles. Le concept du jeu Pong classique est dans le domaine public. Cette implémentation est un travail original créé à des fins éducatives.'
+    },
+    section6: {
+      title: 'Disponibilité du service',
+      content: 'Nous nous efforçons de fournir un service fiable, mais le service peut être interrompu pour maintenance. Nous ne garantissons pas une disponibilité à 100%. Les fonctionnalités peuvent être ajoutées, modifiées ou supprimées. Le Service peut être interrompu à tout moment.'
+    },
+    section7: {
+      title: 'Clause de non-garantie',
+      content: 'LE SERVICE EST FOURNI "TEL QUEL" SANS GARANTIE D\'AUCUNE SORTE, EXPRESSE OU IMPLICITE. Il s\'agit d\'un projet éducatif qui peut contenir des bugs, des erreurs ou des limitations.'
+    },
+    section8: {
+      title: 'Limitation de responsabilité',
+      content: 'Les développeurs ne seront pas responsables des dommages indirects, accessoires, spéciaux, consécutifs ou punitifs résultant de votre utilisation ou de votre incapacité à utiliser le Service.'
+    },
+    section9: {
+      title: 'Modifications des conditions',
+      content: 'Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications importantes seront annoncées via l\'application. L\'utilisation continue après les modifications constitue l\'acceptation des nouvelles conditions.'
+    },
+    contact: {
+      title: 'Informations de contact',
+      content: 'Pour toute question concernant ces Conditions d\'utilisation :',
+      email: 'Email',
+      project: 'Il s\'agit d\'un projet étudiant à l\'école 42.'
+    }
   }
 };

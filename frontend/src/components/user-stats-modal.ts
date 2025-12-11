@@ -62,6 +62,12 @@ export async function createUserStatsModal(userId: number, userName: string, ava
   modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4';
   modal.id = 'user-stats-modal';
 
+  // Formater l'avatar avec l'API base URL pour les uploads locaux
+  const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
+  if (avatarUrl && avatarUrl.startsWith('/uploads/')) {
+    avatarUrl = `${apiBaseUrl}${avatarUrl}`;
+  }
+
   const avatarHtml = avatarUrl 
     ? `<img src="${avatarUrl}" alt="${userName}" class="w-16 h-16 rounded-full object-cover ring-2 ring-sec/50" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
        <div class="w-16 h-16 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-2 ring-sec/50" style="display:none">
