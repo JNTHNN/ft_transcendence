@@ -2,7 +2,7 @@ import type { Vec2, Ball, Paddle } from './types.js';
 import { GAME_CONFIG as CFG } from './constants.js';
 
 /**
- * Déplace la balle selon sa vélocité (ligne droite simple)
+ * Déplace la balle selon sa vélocité ( ligne droite simple)
  * (Comme en C++ : position += velocity * dt)
  */
 export function moveBall(ball: Ball, dt: number): Ball {
@@ -23,7 +23,7 @@ export function checkWallCollision(ball: Ball): Vec2 {
   const { y } = ball.position;
   const { radius } = ball;
   let { x: vx, y: vy } = ball.velocity;
-  
+
   // Mur du haut
   if (y - radius <= 0) {
     vy = Math.abs(vy);  // Force vers le bas
@@ -32,7 +32,7 @@ export function checkWallCollision(ball: Ball): Vec2 {
   else if (y + radius >= CFG.COURT_HEIGHT) {
     vy = -Math.abs(vy);  // Force vers le haut
   }
-  
+
   return { x: vx, y: vy };
 }
 
@@ -61,16 +61,6 @@ export function checkPaddleCollision(
   const paddleRight = paddleX + CFG.PADDLE_WIDTH / 2;
   const paddleTop = paddleY - paddle.height / 2;
   const paddleBottom = paddleY + paddle.height / 2;
-  
-  if (side === 'left') {
-    // Paddle gauche : balle doit venir de la DROITE (vx < 0)
-    if (ball.velocity.x >= 0) return false;
-    if (x < paddleX) return false;
-  } else {
-    // Paddle droit : balle doit venir de la GAUCHE (vx > 0)
-    if (ball.velocity.x <= 0) return false;
-    if (x > paddleX) return false;
-  }
   
   // Vérifier si la balle touche le paddle
   return (

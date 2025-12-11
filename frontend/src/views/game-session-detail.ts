@@ -391,7 +391,7 @@ export async function GameSessionDetailView() {
 
   function formatDuration(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.round(seconds % 60);
+    const remainingSeconds = seconds % 60;
     
     if (minutes > 0) {
       return `${minutes}m ${remainingSeconds}s`;

@@ -1,6 +1,4 @@
 import { api } from "../api-client";
-import { authManager } from "../auth";
-import { router } from "../router";
 import { t } from "../i18n/index.js";
 
 interface Tournament {
@@ -17,12 +15,6 @@ interface Tournament {
 }
 
 export async function TournoiView() {
-  // Check authentication
-  if (!authManager.isAuthenticated()) {
-    router.navigate("/login");
-    return document.createElement("div");
-  }
-  
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-4 md:mt-8 p-4 md:p-0";
 
@@ -265,6 +257,7 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
       createForm.reset();
       
     } catch (error) {
+      console.error('Tournament creation error:', error);
       alert("Erreur lors de la création du tournoi: " + (error as Error).message);
     } finally {
       // Réactiver le bouton

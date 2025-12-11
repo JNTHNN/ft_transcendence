@@ -24,9 +24,7 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/tournois": async () => (await import("./views/tournoi-view")).TournoiView(),
   "/friends": async () => (await import("./views/friends-view")).FriendsView(),
   "/amis": async () => (await import("./views/friends-view")).FriendsView(),
-  "/auth/oauth42/callback": async () => (await import("./views/oauth42-callback")).default(),
-  "/privacy": async () => (await import("./views/privacy")).default(),
-  "/terms": async () => (await import("./views/terms")).default()
+  "/auth/oauth42/callback": async () => (await import("./views/oauth42-callback")).default()
 };
 
 // Route dynamique pour les détails de tournoi et sessions de jeu

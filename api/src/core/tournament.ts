@@ -408,7 +408,7 @@ export class TournamentService {
     // Note: Tournament notifications are sent when matches become available, not when they start
   }
 
-  static completeMatch(matchId: string, winnerId: number, player1Score: number, player2Score: number, duration: number, fastify?: any): void {
+  static completeMatch(matchId: string, winnerId: number, player1Score: number, player2Score: number, fastify?: any): void {
     const match = db.prepare('SELECT * FROM tournament_matches WHERE match_id = ?').get(matchId) as TournamentMatch;
     
     if (!match) {
@@ -431,13 +431,13 @@ export class TournamentService {
 
     const now = new Date().toISOString();
 
-    // Update match avec durée réelle
+    // Update match
     db.prepare(`
       UPDATE tournament_matches 
       SET winner_id = ?, player1_score = ?, player2_score = ?, 
-          status = ?, end_time = ?, duration = ?
+          status = ?, end_time = ?
       WHERE match_id = ?
-    `).run(winnerId, player1Score, player2Score, 'completed', now, duration, matchId);
+    `).run(winnerId, player1Score, player2Score, 'completed', now, matchId);
 
     // Advance winner to next round first (creates next match if needed)
     this.advanceWinner(match.tournament_id, winnerId, match.round_number, match.match_order, fastify);

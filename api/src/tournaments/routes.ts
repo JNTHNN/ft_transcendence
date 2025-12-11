@@ -131,12 +131,10 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       const tournament = db.prepare(`
         SELECT t.*, 
                u.display_name as creator_username,
-               w.display_name as winner_username,
                COUNT(tp.user_id) as player_count,
                COUNT(tp.user_id) as current_players
         FROM tournaments t
         LEFT JOIN users u ON t.creator_id = u.id
-        LEFT JOIN users w ON t.winner_id = w.id
         LEFT JOIN tournament_participants tp ON t.id = tp.tournament_id
         WHERE t.id = ?
         GROUP BY t.id
@@ -159,9 +157,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       const matches = db.prepare(`
         SELECT m.*, 
                p1.display_name as player1_username,
-               p1.avatar_url as player1_avatar_url,
-               p2.display_name as player2_username,
-               p2.avatar_url as player2_avatar_url
+               p2.display_name as player2_username
         FROM tournament_matches m
         LEFT JOIN users p1 ON m.player1_id = p1.id
         LEFT JOIN users p2 ON m.player2_id = p2.id
@@ -445,10 +441,6 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
       fastify.log.info(`🚀 Starting tournament ${tournamentId} with ${playerCount.count} players. Participants: ${JSON.stringify(participants)}`);
       
       try {
-        // 📢 Broadcast tournament start notification BEFORE creating matches
-        const { broadcastTournamentStart } = await import('../chat/ws.js');
-        broadcastTournamentStart(db, tournamentId, (tournament as any).name);
-        
         const startedTournament = TournamentService.startTournament(tournamentId, userId, fastify);
         
         // Verify matches were created
@@ -594,20 +586,7 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
 
       // Utiliser la méthode TournamentManager pour compléter le match (avec validation automatique)
       try {
-        // Récupérer la vraie durée du match depuis match_history
-        const matchHistory = db.prepare('SELECT duration FROM match_history WHERE player1_id = ? AND player2_id = ? AND player1_score = ? AND player2_score = ? ORDER BY id DESC LIMIT 1')
-          .get(activeMatch.player1_id, activeMatch.player2_id, score.left, score.right);
-        let realDuration = 0;
-        if (
-          matchHistory &&
-          typeof matchHistory === 'object' &&
-          matchHistory !== null &&
-          'duration' in matchHistory &&
-          typeof (matchHistory as any).duration === 'number'
-        ) {
-          realDuration = (matchHistory as any).duration;
-        }
-        TournamentService.completeMatch(activeMatch.match_id, winnerId, score.left, score.right, realDuration, fastify);
+        TournamentService.completeMatch(activeMatch.match_id, winnerId, score.left, score.right, fastify);
       } catch (error) {
         fastify.log.error(`Error completing tournament match: ${error}`);
         const errorMessage = error instanceof Error ? error.message : 'Failed to complete tournament match';
@@ -660,15 +639,6 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         // Vérifier si le tournoi est maintenant terminé
         const finalTournament = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(tournamentId) as any;
         const tournamentComplete = finalTournament?.status === 'completed';
-        
-        // 📢 Broadcast tournament end notification si terminé
-        if (tournamentComplete && finalTournament?.winner_id) {
-          const winnerUser = db.prepare('SELECT display_name FROM users WHERE id = ?').get(finalTournament.winner_id) as any;
-          if (winnerUser) {
-            const { broadcastTournamentEnd } = await import('../chat/ws.js');
-            broadcastTournamentEnd(db, tournamentId, finalTournament.name, winnerUser.display_name);
-          }
-        }
         
         return { 
           success: true, 
@@ -723,53 +693,34 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      // Vérifier le statut du tournoi
-      const tournament = db.prepare('SELECT status FROM tournaments WHERE id = ?').get(tournamentId) as any;
-      
-      if (!tournament) {
-        return reply.status(404).send({ error: 'Tournament not found' });
-      }
-
-      // Interdire le reset si le tournoi est terminé
-      if (tournament.status === 'completed') {
-        return reply.status(400).send({ error: 'Cannot reset matches in a completed tournament' });
-      }
-
       let match;
       
       if (matchId) {
-        // Recherche par matchId spécifique - SEULEMENT les matchs actifs (pas completed)
+        // Recherche par matchId spécifique
         match = db.prepare(`
           SELECT * FROM tournament_matches 
           WHERE tournament_id = ? 
           AND match_id = ?
           AND (player1_id = ? OR player2_id = ?)
-          AND status = 'active'
+          AND status IN ('active', 'completed')
         `).get(tournamentId, matchId, userId, userId) as any;
       } else {
-        // Recherche du dernier match actif de l'utilisateur
+        // Recherche du dernier match de l'utilisateur (actif ou récemment terminé)
         match = db.prepare(`
           SELECT * FROM tournament_matches 
           WHERE tournament_id = ? 
           AND (player1_id = ? OR player2_id = ?)
-          AND status = 'active'
-          ORDER BY created_at DESC
+          AND status IN ('active', 'completed')
+          ORDER BY CASE WHEN status = 'active' THEN 0 ELSE 1 END, created_at DESC
           LIMIT 1
         `).get(tournamentId, userId, userId) as any;
       }
 
       if (!match) {
-        return reply.status(404).send({ error: 'No active match found to reset' });
+        return reply.status(404).send({ error: 'No resettable match found for this user' });
       }
 
-      // Supprimer la session de jeu côté serveur si elle existe
-      const { gameManager } = await import('../game/GameManager.js');
-      if (gameManager.getGame(match.match_id)) {
-        fastify.log.info(`🗑️ Removing existing game session for match ${match.match_id}`);
-        gameManager.removeGame(match.match_id);
-      }
-
-      // Réinitialiser le match en base de données
+      // Réinitialiser le match
       db.prepare(`
         UPDATE tournament_matches 
         SET status = 'pending', start_time = NULL, end_time = NULL, 

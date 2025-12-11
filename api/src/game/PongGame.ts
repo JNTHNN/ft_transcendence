@@ -15,7 +15,7 @@ export class PongGame {
   private isRunning = false;
   private startedAt: Date | null = null;
   private db: Database.Database | null = null;
-  
+
   constructor(matchId: string, mode: GameMode, db?: Database.Database) {
     this.id = matchId;
     this.mode = mode;
@@ -23,29 +23,27 @@ export class PongGame {
     this.players = new Map();
     this.inputs = new Map();
     
-    this.state = {
-      matchId,
-      mode,
-      status: 'waiting',
-      ball: Physics.resetBall(),
-      paddles: {
-        left: this.createPaddle(),
-        right: this.createPaddle(),
-      },
-      score: { left: 0, right: 0 },
-      timestamp: Date.now(),
-    };
+	this.state = {
+	matchId,
+	mode,
+	status: 'waiting',
+	ball: Physics.resetBall(),
+	paddles: {
+		left: this.createPaddle(),
+		right: this.createPaddle(),
+	},
+	score: { left: 0, right: 0 },
+	timestamp: Date.now(),
+};
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Ajoute un joueur/IA à la partie
-  // ═══════════════════════════════════════════════════════════════
-  
+
+  /**
+   * Ajoute un joueur/IA Ã  la partie
+   */
   public addPlayer(config: PlayerConfig): boolean {
     if (this.players.size >= 2) {
-      return false;
-    }
+		return false;
+	}
     
     this.players.set(config.id, config);
     this.inputs.set(config.id, { up: false, down: false });
@@ -55,32 +53,21 @@ export class PongGame {
     
     return true;
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Démarre le game loop (60 FPS)
-  // ═══════════════════════════════════════════════════════════════
-  
+
   public start(): void {
     if (this.isRunning) return;
-    
     this.isRunning = true;
     this.startedAt = new Date();
-    this.state.status = 'playing';
-    
+	this.state.status = 'playing';
+
     this.gameLoop = setInterval(() => {
       this.update(DT);
       this.broadcastState();
     }, 1000 / CFG.TICK_RATE);
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Update : Appelé 60 fois par seconde
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private update(dt: number): void {
-    // 1. Mettre à jour les inputs IA
+    // 1. Mettre Ã  jour les inputs IA
     this.updateAIInputs();
     
     // 2. Update paddles
@@ -108,12 +95,10 @@ export class PongGame {
     
     this.state.timestamp = Date.now();
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Appelle les IA pour obtenir leurs inputs
-  // ═══════════════════════════════════════════════════════════════
-  
+
+  /**
+   * ðŸ¤– Appelle les IA pour obtenir leurs inputs
+   */
   private updateAIInputs(): void {
     for (const [playerId, player] of this.players) {
       if (player.controllerType === 'ai' && player.aiController) {
@@ -122,12 +107,7 @@ export class PongGame {
       }
     }
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Update paddles : Applique les inputs (AI + humains)
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private updatePaddles(dt: number): void {
     for (const [playerId, player] of this.players) {
       const input = this.inputs.get(playerId)!;
@@ -135,6 +115,7 @@ export class PongGame {
         ? this.state.paddles.left 
         : this.state.paddles.right;
       
+	  
       if (input.up) {
         paddle.y = Math.max(0, paddle.y - (paddle.speed * dt) / CFG.COURT_HEIGHT);
       }
@@ -143,12 +124,7 @@ export class PongGame {
       }
     }
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Gère un point marqué
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private handleGoal(winner: 'left' | 'right'): void {
     if (winner === 'left') {
       this.state.score.right++;
@@ -162,12 +138,7 @@ export class PongGame {
       this.end();
     }
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Broadcast state : Envoie l'état à tous les joueurs (60 FPS)
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private broadcastState(): void {
     const message = JSON.stringify({
       type: 'game/state',
@@ -180,26 +151,19 @@ export class PongGame {
       }
     }
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Met à jour les inputs d'un joueur humain
-  // (appelé depuis WebSocket ou clavier local)
-  // ═══════════════════════════════════════════════════════════════
-  
+
+  /**
+   * Met Ã  jour les inputs d'un joueur humain
+   * (appelÃ© depuis WebSocket ou clavier local)
+   */
   public setPlayerInput(playerId: string, input: Partial<PlayerInput>): void {
     const current = this.inputs.get(playerId);
-    
     if (current) {
       this.inputs.set(playerId, { ...current, ...input });
+	  } else {
     }
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Arrête le game loop
-  // ═══════════════════════════════════════════════════════════════
-  
+
   public stop(): void {
     if (this.gameLoop) {
       clearInterval(this.gameLoop);
@@ -207,26 +171,20 @@ export class PongGame {
     }
     this.isRunning = false;
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Termine la partie (appelé quand score max atteint)
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private end(): void {
     this.stop();
     
-    this.state.status = 'finished';
-    
+	this.state.status = 'finished';
+	
     const winner = this.state.score.left > this.state.score.right ? 'left' : 'right';
     console.log(`🏆 Game end - Score: ${this.state.score.left}-${this.state.score.right}, Winner: ${winner}`);
     
-    const endedAt = new Date();
+	const endedAt = new Date();
     const duration = this.startedAt 
       ? (endedAt.getTime() - this.startedAt.getTime()) / 1000 
       : 0;
-    
-    const playerIds = Array.from(this.players.values());
+	const playerIds = Array.from(this.players.values());
     const leftPlayer = playerIds.find(p => p.side === 'left');
     const rightPlayer = playerIds.find(p => p.side === 'right');
     
@@ -256,10 +214,10 @@ export class PongGame {
         },
       };
       
-      // Sauvegarder
+      // ðŸ†• Sauvegarder
       gameManager.saveMatchResult(result);
     }
-    
+
     const message = JSON.stringify({
       type: 'game/end',
       data: { winner, score: this.state.score },
@@ -270,17 +228,13 @@ export class PongGame {
         player.socket.send(message);
       }
     }
-    
-    setTimeout(() => {
+
+	setTimeout(() => {
       gameManager.removeGame(this.id);
-    }, 5000); // 5 secondes pour laisser le temps d'afficher le résultat
+  	}, 5000); // 5 secondes pour laisser le temps d'afficher le rÃ©sultat
+
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Retourne l'état enrichi avec infos joueurs
-  // ═══════════════════════════════════════════════════════════════
-  
+
   public getState(): GameState {
     // Enrichir l'état avec les informations sur les joueurs
     const playerArray = Array.from(this.players.values());
@@ -303,12 +257,7 @@ export class PongGame {
       }
     };
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Récupère le nom d'un joueur depuis la DB
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private getPlayerName(playerId: string): string {
     // Récupérer le vrai nom depuis la base de données
     if (this.db && playerId.startsWith('user-')) {
@@ -331,21 +280,11 @@ export class PongGame {
     }
     return playerId === 'player-1' ? 'Joueur 1' : 'Joueur 2';
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Vérifie si le jeu est actif
-  // ═══════════════════════════════════════════════════════════════
-  
+
   public isActive(): boolean {
     return this.isRunning;
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Crée un paddle avec valeurs par défaut
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private createPaddle(): Paddle {
     return {
       y: 0.5,

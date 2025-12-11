@@ -6,8 +6,8 @@ import { t } from "../i18n/index.js";
 import "../components/user-stats-modal";
 
 interface ChatMessage {
-  id?: string;
-  type: 'user' | 'system' | 'tournament_notification' | 'tournament_start' | 'tournament_end' | 'game_invite' | 'game_invite_declined' | 'online_users_update' | 'typing_indicator' | 'read_receipt' | 'history';
+  id?: number;
+  type: 'user' | 'system' | 'tournament_notification' | 'game_invite' | 'game_invite_declined' | 'online_users_update';
   username?: string;
   userId?: number;
   avatarUrl?: string;
@@ -28,10 +28,6 @@ interface ChatMessage {
     gameId: string;
   };
   users?: any[];
-  isTyping?: boolean;
-  messageId?: string;
-  readBy?: number[];
-  messages?: ChatMessage[];
 }
 
 export default async function View() {
@@ -53,9 +49,6 @@ export default async function View() {
       <!-- Zone de chat principale -->
       <div class="lg:col-span-3 bg-prem rounded-lg shadow-xl p-4 md:p-6 flex flex-col" style="height: 500px; max-height: calc(100vh - 250px);">
         <div id="messages-container" class="flex-1 overflow-y-auto mb-4 space-y-3 pr-2 pl-1"></div>
-        
-        <!-- Indicateur de saisie -->
-        <div id="typing-indicator" class="mb-2 text-sm text-text/60 italic h-5"></div>
         
         <div class="flex gap-2">
           <input 
@@ -110,13 +103,9 @@ export default async function View() {
   const blockedUsersContainer = wrap.querySelector("#blocked-users-container") as HTMLDivElement;
   const userModal = wrap.querySelector("#user-modal") as HTMLDivElement;
   const modalContent = wrap.querySelector("#modal-content") as HTMLDivElement;
-  const typingIndicator = wrap.querySelector("#typing-indicator") as HTMLDivElement;
 
   let chatSocket: WebSocket | null = null;
   let blockedUsers: Set<number> = new Set();
-  let typingUsers: Map<number, string> = new Map();
-  let typingTimeout: NodeJS.Timeout | null = null;
-  const readReceipts: Map<string, Set<number>> = new Map();
 
   // Formater la date et l'heure comme : 06/12/2025 · 13:18
   const formatDateTime = (timestamp: number) => {
@@ -131,43 +120,6 @@ export default async function View() {
       minute: '2-digit'
     });
     return `${dateStr} · ${timeStr}`;
-  };
-
-  // Mettre à jour l'indicateur de saisie
-  const updateTypingIndicator = () => {
-    if (typingUsers.size === 0) {
-      typingIndicator.textContent = '';
-      return;
-    }
-
-    const names = Array.from(typingUsers.values());
-    if (names.length === 1) {
-      typingIndicator.textContent = `${names[0]} ${t('chat.isTyping') || 'est en train d\'écrire...'}`;
-    } else if (names.length === 2) {
-      typingIndicator.textContent = `${names[0]} ${t('chat.and') || 'et'} ${names[1]} ${t('chat.areTyping') || 'sont en train d\'écrire...'}`;
-    } else {
-      typingIndicator.textContent = `${names.length} ${t('chat.peopleTyping') || 'personnes écrivent...'}`;
-    }
-  };
-
-  // Envoyer un indicateur de saisie
-  const sendTypingIndicator = (isTyping: boolean) => {
-    if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-      chatSocket.send(JSON.stringify({
-        type: 'typing_indicator',
-        isTyping: isTyping
-      }));
-    }
-  };
-
-  // Envoyer un accusé de lecture
-  const sendReadReceipt = (messageId: string) => {
-    if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-      chatSocket.send(JSON.stringify({
-        type: 'read_receipt',
-        messageId: messageId
-      }));
-    }
   };
 
   const createMessageElement = (msg: ChatMessage): HTMLElement => {
@@ -199,51 +151,6 @@ export default async function View() {
               <a 
                 href="/tournament/${msg.tournamentNotification.tournamentId}"
                 class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
-              >
-                ${t('chat.viewTournament') || 'Voir le tournoi'} →
-              </a>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-    else if (msg.type === 'tournament_start' && msg.tournamentNotification) {
-      const translatedText = t('chat.tournamentStarted', { name: msg.tournamentNotification.tournamentName });
-      messageDiv.innerHTML = `
-        <div class="bg-green-600/20 border-l-4 border-green-500 p-4 rounded-r-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-3xl">🚀</div>
-            <div class="flex-1">
-              <div class="text-sm text-text/90 mb-2">
-                ${translatedText}
-              </div>
-              <a 
-                href="/tournament/${msg.tournamentNotification.tournamentId}"
-                class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
-              >
-                ${t('chat.viewTournament') || 'Voir le tournoi'} →
-              </a>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-    else if (msg.type === 'tournament_end' && msg.tournamentNotification) {
-      const translatedText = t('chat.tournamentEnded', { 
-        name: msg.tournamentNotification.tournamentName, 
-        winner: msg.tournamentNotification.player1 
-      });
-      messageDiv.innerHTML = `
-        <div class="bg-purple-600/20 border-l-4 border-purple-500 p-4 rounded-r-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-3xl">🏆</div>
-            <div class="flex-1">
-              <div class="text-sm text-text/90 mb-2">
-                ${translatedText}
-              </div>
-              <a 
-                href="/tournament/${msg.tournamentNotification.tournamentId}"
-                class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
               >
                 ${t('chat.viewTournament') || 'Voir le tournoi'} →
               </a>
@@ -293,7 +200,7 @@ export default async function View() {
                 </div>
                 <div class="flex gap-2">
                   <a 
-                    href="/match?mode=local&fromChat=true"
+                    href="/match?mode=local"
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors"
                   >
                     ${t('chat.accept')} ✓
@@ -328,25 +235,11 @@ export default async function View() {
       }
     }
     else {
-      const currentUserId = authManager.getState().user?.id;
-      const isMyMessage = msg.userId === currentUserId;
-      const messageId = msg.id || `msg_${msg.timestamp}`;
-      
-      // Déterminer l'état de lecture
-      const readers = readReceipts.get(messageId);
-      const readCount = readers ? readers.size : 0;
-      const hasReadBy = msg.readBy && msg.readBy.length > 0;
-      const isRead = readCount > 0 || hasReadBy;
-      
-      // ✓ gris si non lu, ✓✓ vert si lu (seulement pour mes messages)
-      const readIndicator = isMyMessage 
-        ? isRead 
-          ? `<span class="text-xs text-green-400" title="${readCount || msg.readBy?.length || 0} personne(s) ont lu">✓✓</span>`
-          : `<span class="text-xs text-gray-400">✓</span>`
-        : '';
+      const currentUsername = authManager.getState().user?.displayName;
+      const isMyMessage = msg.username === currentUsername;
       
       messageDiv.innerHTML = `
-        <div class="flex ${isMyMessage ? 'justify-end' : 'justify-start'} gap-2" data-message-id="${messageId}">
+        <div class="flex ${isMyMessage ? 'justify-end' : 'justify-start'} gap-2">
           ${!isMyMessage ? `
             <div class="flex-shrink-0 cursor-pointer relative z-10" onclick="showUserProfile(${msg.userId}, '${msg.username}', '${msg.avatarUrl || ''}')">
               ${msg.avatarUrl 
@@ -366,7 +259,6 @@ export default async function View() {
             <div class="${isMyMessage ? 'bg-sec text-white border-2 border-sec/50' : 'bg-prem border-2 border-text/20 text-text'} px-4 py-2 rounded-lg shadow-md inline-block">
               ${msg.text}
             </div>
-            ${readIndicator}
           </div>
           ${isMyMessage ? `
             <div class="flex-shrink-0">
@@ -388,19 +280,7 @@ export default async function View() {
     return messageDiv;
   };
 
-  const addMessage = (msg: ChatMessage, sendReceipt: boolean = false) => {
-    // Initialiser les readReceipts depuis le message si disponible (seulement pour MES messages)
-    const currentUserId = authManager.getState().user?.id;
-    if (msg.id && msg.readBy && msg.userId === currentUserId) {
-      const messageId = msg.id;
-      if (!readReceipts.has(messageId)) {
-        readReceipts.set(messageId, new Set());
-      }
-      msg.readBy.forEach(userId => {
-        readReceipts.get(messageId)!.add(userId);
-      });
-    }
-    
+  const addMessage = (msg: ChatMessage) => {
     const messageElement = createMessageElement(msg);
     // Ne pas ajouter d'éléments vides pour les messages système
     if (msg.type === 'online_users_update') {
@@ -408,13 +288,6 @@ export default async function View() {
     }
     messagesContainer.appendChild(messageElement);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    
-    // Envoyer un read receipt pour les messages des autres (seulement si demandé)
-    if (sendReceipt) {
-      if (msg.type === 'user' && msg.userId !== currentUserId && msg.id) {
-        sendReadReceipt(msg.id);
-      }
-    }
   };
 
   // Fonctions globales pour les boutons
@@ -605,14 +478,6 @@ export default async function View() {
   updateOnlineUsersFromWS = (users: any[]) => {
     const currentUserId = authManager.getState().user?.id;
     
-    // Formater les avatars avec l'API base URL pour les uploads locaux
-    const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
-    users.forEach(user => {
-      if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
-        user.avatarUrl = `${apiBaseUrl}${user.avatarUrl}`;
-      }
-    });
-    
     // Filtrer les utilisateurs bloqués
     const filteredUsers = users.filter((user: any) => !blockedUsers.has(user.userId));
     
@@ -655,14 +520,6 @@ export default async function View() {
       
       // Gérer à la fois {users: []} et [] comme format de réponse
       const onlineUsers = Array.isArray(response) ? response : (response.users || []);
-      
-      // Formater les avatars avec l'API base URL pour les uploads locaux
-      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
-      onlineUsers.forEach((user: any) => {
-        if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
-          user.avatarUrl = `${apiBaseUrl}${user.avatarUrl}`;
-        }
-      });
       
       // Filtrer les utilisateurs bloqués
       const filteredUsers = onlineUsers.filter((user: any) => !blockedUsers.has(user.userId));
@@ -709,14 +566,6 @@ export default async function View() {
       const blocked = await api('/chat/blocked');
       blockedUsers = new Set(blocked.map((b: any) => b.blockedUserId));
       
-      // Formater les avatars avec l'API base URL pour les uploads locaux
-      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
-      blocked.forEach((user: any) => {
-        if (user.blockedUserAvatar && user.blockedUserAvatar.startsWith('/uploads/')) {
-          user.blockedUserAvatar = `${apiBaseUrl}${user.blockedUserAvatar}`;
-        }
-      });
-      
       if (blocked.length === 0) {
         blockedUsersContainer.innerHTML = `<p class="text-text/50 text-sm text-center py-4">${t('chat.noBlockedUsers') || 'Aucun utilisateur bloqué'}</p>`;
         return;
@@ -756,7 +605,15 @@ export default async function View() {
       // Charger les utilisateurs bloqués en premier
       await updateBlockedUsers();
       
-      // Les messages seront chargés automatiquement via le WebSocket (type 'history')
+      // Charger les messages récents et filtrer les utilisateurs bloqués
+      const messages = await api('/chat/messages');
+      messages.forEach((msg: ChatMessage) => {
+        // Filtrer les messages des utilisateurs bloqués
+        if (msg.type === 'user' && msg.userId && blockedUsers.has(msg.userId)) {
+          return;
+        }
+        addMessage(msg);
+      });
       
       // Charger les utilisateurs en ligne (charge initiale uniquement)
       await updateOnlineUsers();
@@ -772,77 +629,12 @@ export default async function View() {
 
   // Connexion WebSocket avec authentification
   chatSocket = connectWS('/ws/chat', (msg: any) => {
-    // Gérer l'historique initial
-    if (msg.type === 'history' && msg.messages) {
-      messagesContainer.innerHTML = '';
-      
-      // Formater les avatars avec l'API base URL pour les uploads locaux
-      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
-      msg.messages.forEach((historyMsg: ChatMessage) => {
-        if (historyMsg.avatarUrl && historyMsg.avatarUrl.startsWith('/uploads/')) {
-          historyMsg.avatarUrl = `${apiBaseUrl}${historyMsg.avatarUrl}`;
-        }
-      });
-      
-      msg.messages.forEach((historyMsg: ChatMessage) => {
-        // Filtrer les messages des utilisateurs bloqués
-        if (historyMsg.type === 'user' && historyMsg.userId && blockedUsers.has(historyMsg.userId)) {
-          return;
-        }
-        addMessage(historyMsg);
-      });
-      return;
-    }
-    
-    if (msg.type === 'typing_indicator') {
-      // Gérer l'indicateur de saisie
-      if (msg.isTyping) {
-        typingUsers.set(msg.userId, msg.username);
-      } else {
-        typingUsers.delete(msg.userId);
-      }
-      updateTypingIndicator();
-    } else if (msg.type === 'read_receipt' && msg.messageId) {
-      // Gérer l'accusé de lecture - seulement pour mes messages
-      const messageElement = messagesContainer.querySelector(`[data-message-id="${msg.messageId}"]`);
-      if (messageElement) {
-        // Vérifier si c'est mon message en regardant si l'élément contient un indicateur de lecture
-        const hasReadIndicator = messageElement.querySelector('.text-green-400, .text-gray-400');
-        if (hasReadIndicator) {
-          // C'est mon message, mettre à jour le read receipt
-          if (!readReceipts.has(msg.messageId)) {
-            readReceipts.set(msg.messageId, new Set());
-          }
-          readReceipts.get(msg.messageId)!.add(msg.userId);
-          
-          const readers = readReceipts.get(msg.messageId);
-          const readCount = readers ? readers.size : 0;
-          
-          // Mettre à jour l'indicateur de lecture (✓ gris vers ✓✓ vert)
-          let existingIndicator = messageElement.querySelector('.text-green-400, .text-gray-400');
-          if (existingIndicator) {
-            existingIndicator.className = 'text-xs text-green-400';
-            existingIndicator.textContent = '✓✓';
-            existingIndicator.setAttribute('title', `${readCount} personne(s) ont lu`);
-          }
-        }
-      }
-    } else if (msg.type === 'user' || msg.type === 'system' || msg.type === 'tournament_notification' || msg.type === 'tournament_start' || msg.type === 'tournament_end' || msg.type === 'game_invite' || msg.type === 'game_invite_declined' || msg.type === 'online_users_update') {
+    if (msg.type === 'user' || msg.type === 'system' || msg.type === 'tournament_notification' || msg.type === 'game_invite' || msg.type === 'game_invite_declined' || msg.type === 'online_users_update') {
       // Filtrer les messages des utilisateurs bloqués
       if (msg.type === 'user' && msg.userId && blockedUsers.has(msg.userId)) {
         return;
       }
-      
-      // Formater l'avatar avec l'API base URL pour les uploads locaux
-      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
-      if (msg.avatarUrl && msg.avatarUrl.startsWith('/uploads/')) {
-        msg.avatarUrl = `${apiBaseUrl}${msg.avatarUrl}`;
-      }
-      
-      // Ajouter le message et envoyer un read receipt pour les messages des autres utilisateurs
-      const currentUserId = authManager.getState().user?.id;
-      const shouldSendReceipt = msg.type === 'user' && msg.userId !== currentUserId && msg.id;
-      addMessage(msg, shouldSendReceipt);
+      addMessage(msg);
     }
   }, true); // 🔧 Passer needsAuth=true pour envoyer le token
 
@@ -857,44 +649,11 @@ export default async function View() {
     }));
 
     messageInput.value = "";
-    
-    // Arrêter l'indicateur de saisie
-    sendTypingIndicator(false);
   };
 
   sendBtn.addEventListener("click", sendMessage);
-  
   messageInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  });
-
-  // Gérer l'indicateur de saisie
-  messageInput.addEventListener("input", () => {
-    const hasText = messageInput.value.trim().length > 0;
-    
-    if (hasText) {
-      // Envoyer typing = true
-      sendTypingIndicator(true);
-      
-      // Réinitialiser le timeout
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
-      }
-      
-      // Arrêter automatiquement après 3 secondes d'inactivité
-      typingTimeout = setTimeout(() => {
-        sendTypingIndicator(false);
-      }, 3000);
-    } else {
-      // Arrêter l'indicateur si le champ est vide
-      sendTypingIndicator(false);
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
-        typingTimeout = null;
-      }
-    }
+    if (e.key === "Enter") sendMessage();
   });
 
   // Fermer le modal en cliquant à l'extérieur
@@ -906,44 +665,6 @@ export default async function View() {
 
   // Charger les données initiales
   await loadInitialData();
-
-  // Cleanup quand on quitte la vue
-  const cleanup = () => {
-    if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-      chatSocket.close();
-    }
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
-    }
-  };
-
-  // Nettoyer lors de la navigation ou fermeture de la page
-  window.addEventListener('beforeunload', cleanup);
-  
-  // Observer quand l'élément est retiré du DOM (navigation)
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.removedNodes.forEach((node) => {
-        if (node === wrap || (node as HTMLElement).contains?.(wrap)) {
-          cleanup();
-          observer.disconnect();
-          window.removeEventListener('beforeunload', cleanup);
-        }
-      });
-    });
-  });
-  
-  // Observer le parent du wrap
-  if (wrap.parentElement) {
-    observer.observe(wrap.parentElement, { childList: true });
-  } else {
-    // Si pas encore dans le DOM, observer après insertion
-    setTimeout(() => {
-      if (wrap.parentElement) {
-        observer.observe(wrap.parentElement, { childList: true });
-      }
-    }, 0);
-  }
 
   return wrap;
 }
