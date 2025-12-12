@@ -221,7 +221,7 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
       const userParticipant = participants.find(p => p.id === userMe.id);
       if (userParticipant) {
         actionsHtml += `
-          <button onclick="playTournamentMatch('${tournament.id}')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2 rounded-lg">
+          <button onclick="playTournamentMatch('${tournament.id}')" class="hidden lg:inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2 rounded-lg">
             🎮 ${t('tournamentDetail.playMatch')}
           </button>
           <button onclick="resetStaleMatch('${tournament.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded-lg" title="${t('tournamentDetail.resetMatch')}">
