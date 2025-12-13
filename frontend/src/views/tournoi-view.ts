@@ -95,6 +95,25 @@ export async function TournoiView() {
   return wrap;
 }
 
+// Cache pour stocker les noms des joueurs
+const playerNameCache = new Map<number, string>();
+
+async function getPlayerName(userId: number): Promise<string> {
+  if (playerNameCache.has(userId)) {
+    return playerNameCache.get(userId)!;
+  }
+  
+  try {
+    const user = await api(`/users/${userId}`);
+    const name = user.displayName || `Joueur #${userId}`;
+    playerNameCache.set(userId, name);
+    return name;
+  } catch (error) {
+    console.warn(`Failed to fetch player ${userId}:`, error);
+    return `Joueur #${userId}`;
+  }
+}
+
 async function loadTournaments(content: HTMLDivElement) {
   try {
     const [tournamentsResponse, userTournamentsResponse] = await Promise.all([
@@ -174,22 +193,44 @@ async function loadTournaments(content: HTMLDivElement) {
       <div class="bg-prem rounded-lg shadow-xl p-6">
         <h2 class="font-display font-black text-2xl text-text mb-4">🏅 ${t('tournament.completedTournaments')}</h2>
         <div id="completed-tournaments" class="space-y-3">
-          ${tournamentsResponse.tournaments.filter((t: Tournament) => t.status === 'completed').map((tournament: Tournament) => `
-            <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-green-500/50 transition cursor-pointer" onclick="viewTournament('${tournament.id}')">
-              <div class="flex justify-between items-start mb-2">
-                <h3 class="font-bold text-text">${tournament.name}</h3>
-                <div class="flex items-center gap-2">
-                  <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">${t('tournament.completed').toUpperCase()}</span>
-                </div>
-              </div>
-              <div class="text-text/70 text-sm">
-                ${tournament.winner_id ? `🏆 ${t('tournamentDetail.winner')}: ${t('tournamentDetail.playerNumber')}${tournament.winner_id}` : t('tournament.noWinner')}
-              </div>
-            </div>
-          `).join('')}
+          <!-- Will be populated with winner names -->
         </div>
       </div>
     `;
+    
+    // Populate completed tournaments with winner names
+    const completedTournamentsDiv = content.querySelector('#completed-tournaments') as HTMLDivElement;
+    const completedTournaments = tournamentsResponse.tournaments.filter((t: Tournament) => t.status === 'completed');
+    
+    if (completedTournaments.length === 0) {
+      completedTournamentsDiv.innerHTML = '<p class="text-text/50 text-sm">Aucun tournoi terminé</p>';
+    } else {
+      // Fetch winner names for all completed tournaments
+      const tournamentHTMLPromises = completedTournaments.map(async (tournament: Tournament) => {
+        let winnerText = t('tournament.noWinner');
+        if (tournament.winner_id) {
+          const winnerName = await getPlayerName(tournament.winner_id);
+          winnerText = `🏆 ${t('tournamentDetail.winner')}: ${winnerName}`;
+        }
+        
+        return `
+          <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-green-500/50 transition cursor-pointer" onclick="viewTournament('${tournament.id}')">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-bold text-text">${tournament.name}</h3>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">${t('tournament.completed').toUpperCase()}</span>
+              </div>
+            </div>
+            <div class="text-text/70 text-sm">
+              ${winnerText}
+            </div>
+          </div>
+        `;
+      });
+      
+      const tournamentHTMLs = await Promise.all(tournamentHTMLPromises);
+      completedTournamentsDiv.innerHTML = tournamentHTMLs.join('');
+    }
 
   } catch (error) {
     content.innerHTML = `
