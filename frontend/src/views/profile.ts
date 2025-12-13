@@ -58,7 +58,7 @@ export default async function View() {
   header.innerHTML = `
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-4">
       <h1 class="font-display font-black text-2xl md:text-3xl lg:text-4xl text-text">${t('profile.title')}</h1>
-      <div class="flex flex-wrap items-center gap-2"
+      <div class="flex flex-wrap items-center gap-2">
         ${isOAuth42 ? `<div class="bg-blue-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-sans font-medium flex items-center space-x-1">
           <span class="text-blue-200">👤</span>
           <span>${t('profile.oauth42Account')}</span>

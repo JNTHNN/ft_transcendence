@@ -76,9 +76,25 @@ export class GameManager {
       throw new Error(`Game ${matchId} not found`);
     }
     
-    // Vérifier que le joueur n'est pas déjà dans une autre partie
-    if (this.playerToGame.has(playerConfig.id)) {
-      throw new Error(`Player ${playerConfig.id} is already in a game`);
+    // Vérifier que le joueur n'est pas déjà dans une autre partie active
+    const existingMatchId = this.playerToGame.get(playerConfig.id);
+    if (existingMatchId && existingMatchId !== matchId) {
+      const existingGame = this.games.get(existingMatchId);
+      
+      // Si l'ancienne partie existe et est terminée, nettoyer le mapping
+      if (existingGame) {
+        const state = existingGame.getState();
+        if (state.status === 'finished') {
+          console.log(`🧹 Cleaning up finished game ${existingMatchId} for player ${playerConfig.id}`);
+          this.playerToGame.delete(playerConfig.id);
+        } else {
+          throw new Error(`Player ${playerConfig.id} is already in an active game`);
+        }
+      } else {
+        // L'ancienne partie n'existe plus, nettoyer le mapping orphelin
+        console.log(`🧹 Cleaning up orphaned mapping for player ${playerConfig.id}`);
+        this.playerToGame.delete(playerConfig.id);
+      }
     }
     
     const added = game.addPlayer(playerConfig);
@@ -203,12 +219,22 @@ export class GameManager {
           VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
         
-        const player1Id = result.players.left.type === 'human' 
-          ? parseInt(result.players.left.id.replace('user-', '')) 
-          : null;
-        const player2Id = result.players.right.type === 'human' 
-          ? parseInt(result.players.right.id.replace('user-', '')) 
-          : null;
+        // Extraire les IDs utilisateurs
+        let player1Id: number | null = null;
+        let player2Id: number | null = null;
+        
+        // Player 1 (gauche)
+        if (result.players.left.type === 'human' && result.players.left.id.startsWith('user-')) {
+          const id = parseInt(result.players.left.id.replace('user-', ''));
+          if (!isNaN(id)) player1Id = id;
+        }
+        
+        // Player 2 (droite)
+        if (result.players.right.type === 'human' && result.players.right.id.startsWith('user-')) {
+          const id = parseInt(result.players.right.id.replace('user-', ''));
+          if (!isNaN(id)) player2Id = id;
+        }
+        // Si c'est l'IA, player2Id reste null
         
         let winnerId = null;
         if (result.winner === 'left' && player1Id) winnerId = player1Id;
@@ -219,10 +245,10 @@ export class GameManager {
                          result.mode === 'online-2p' ? 'online' :
                          result.mode === 'tournament' ? 'tournament' : 'solo';
         
-        if (player1Id || player2Id) { // Au moins un joueur humain
+        if (player1Id) { // Au moins le joueur 1 doit être humain
           stmt.run(
-            player1Id || 0, // 0 pour l'IA
-            player2Id || 0,
+            player1Id,
+            player2Id, // peut être null pour l'IA
             result.finalScore.left,
             result.finalScore.right,
             winnerId,
