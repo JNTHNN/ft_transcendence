@@ -1477,7 +1477,9 @@ export default async function View() {
   
   const setupResizeListener = () => {
     resizeHandler = () => {
-      if (window.innerWidth < 1024) {
+      // Vérifier qu'on est toujours sur la page Match avant de remplacer le contenu
+      const currentPath = window.location.pathname;
+      if (window.innerWidth < 1024 && currentPath === '/match') {
         // Passer en mode mobile : détruire le jeu et remplacer le contenu
         console.log('🔄 Passage en mode mobile détecté, destruction du jeu...');
         
