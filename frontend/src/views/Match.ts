@@ -207,13 +207,42 @@ class PongGame {
       }
       
       // ───────────────────────────────────────────────────────────
-      // MODES LOCAL/SOLO : Générer IDs uniques
+      // MODE LOCAL DEPUIS LE CHAT : IDs des deux joueurs
+      // ───────────────────────────────────────────────────────────
+      
+      else if (this.mode === "local") {
+        const params = new URLSearchParams(window.location.search);
+        const fromChat = params.get("fromChat");
+        const rawPlayer1Id = params.get("player1");
+        const rawPlayer2Id = params.get("player2");
+        
+        // Si c'est depuis le chat avec les IDs des deux joueurs
+        if (fromChat === "true" && rawPlayer1Id && rawPlayer2Id) {
+          player1Id = rawPlayer1Id.startsWith('user-') ? rawPlayer1Id : `user-${rawPlayer1Id}`;
+          player2Id = rawPlayer2Id.startsWith('user-') ? rawPlayer2Id : `user-${rawPlayer2Id}`;
+        } else {
+          // Mode local normal : joueur unique
+          const currentUser = authManager.getState().user;
+          if (!currentUser?.id) {
+            throw new Error("User not authenticated");
+          }
+          player1Id = `user-${currentUser.id}`;
+          player2Id = `local-player2-${Date.now()}`;
+        }
+      }
+      
+      // ───────────────────────────────────────────────────────────
+      // MODE SOLO : Utiliser l'ID de l'utilisateur connecté
       // ───────────────────────────────────────────────────────────
       
       else {
-        const uniqueId = () => `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        player1Id = uniqueId();
-        player2Id = uniqueId();
+        const currentUser = authManager.getState().user;
+        if (!currentUser?.id) {
+          throw new Error("User not authenticated");
+        }
+        
+        player1Id = `user-${currentUser.id}`;
+        player2Id = `ai-${Date.now()}`;
       }
       
       // Stocke les IDs pour les utiliser plus tard
@@ -751,14 +780,14 @@ class PongGame {
       
       let winner: string;
       
-      if (this.mode === 'tournament' && this.playerNameElements) {
-        // En mode tournoi, récupérer les noms depuis les éléments HTML
+      if (this.playerNameElements && this.playerNameElements.length >= 2) {
+        // Récupérer les noms depuis les éléments HTML (tous les modes)
         const leftPlayerName = this.playerNameElements[0]?.textContent || t('game.player1');
         const rightPlayerName = this.playerNameElements[1]?.textContent || t('game.player2');
         
         winner = data.winner === 'left' ? leftPlayerName : rightPlayerName;
       } else {
-        // Pour les autres modes, utiliser les traductions génériques
+        // Fallback si les éléments ne sont pas disponibles
         winner = data.winner === 'left' ? t('game.player1') : 
                   this.mode === 'solo' ? t('game.ai') : t('game.player2');
       }
@@ -1039,6 +1068,12 @@ export default async function View() {
   
   else if (mode === "solo") {
     titleText += `${t('game.quickGame')} vs ${t('game.ai')}`;
+    
+    // Récupérer le nom de l'utilisateur connecté
+    const currentUser = authManager.getState().user;
+    if (currentUser?.displayName) {
+      player1Label = currentUser.displayName;
+    }
     player2Label = t('game.ai');
   }
   
@@ -1048,7 +1083,39 @@ export default async function View() {
   // ─────────────────────────────────────────────────────────────
   
   else if (mode === "local") {
-    titleText += t('game.localGame');
+    const fromChat = params.get("fromChat");
+    const rawPlayer1Id = params.get("player1");
+    const rawPlayer2Id = params.get("player2");
+    
+    // Si c'est depuis le chat, récupérer les pseudos des deux joueurs
+    if (fromChat === "true" && rawPlayer1Id && rawPlayer2Id) {
+      titleText += `${t('game.localGame')} - ${t('chat.fromInvitation') || 'Depuis une invitation'}`;
+      
+      try {
+        const player1Id = rawPlayer1Id.startsWith('user-') ? rawPlayer1Id.replace('user-', '') : rawPlayer1Id;
+        const player2Id = rawPlayer2Id.startsWith('user-') ? rawPlayer2Id.replace('user-', '') : rawPlayer2Id;
+        
+        const [player1Response, player2Response] = await Promise.all([
+          api(`/users/${player1Id}`).catch(() => null),
+          api(`/users/${player2Id}`).catch(() => null)
+        ]);
+        
+        if (player1Response?.displayName) player1Label = player1Response.displayName;
+        if (player2Response?.displayName) player2Label = player2Response.displayName;
+      } catch (error) {
+        console.warn("Impossible de récupérer les noms des joueurs:", error);
+      }
+    } else {
+      // Mode local normal
+      titleText += t('game.localGame');
+      
+      // Joueur 1 = utilisateur connecté, Joueur 2 = label générique
+      const currentUser = authManager.getState().user;
+      if (currentUser?.displayName) {
+        player1Label = currentUser.displayName;
+      }
+      player2Label = t('game.player2');
+    }
   }
   
   
@@ -1213,6 +1280,17 @@ export default async function View() {
   // ─────────────────────────────────────────────────────────────
   // Créer et démarrer le jeu
   // ─────────────────────────────────────────────────────────────
+  
+  // Détruire l'ancienne instance si elle existe
+  if ((window as any).currentGameInstance) {
+    console.log("🧹 Destruction de l'ancienne instance de jeu...");
+    try {
+      (window as any).currentGameInstance.destroy();
+    } catch (error) {
+      console.warn("⚠️ Erreur lors de la destruction de l'ancienne instance:", error);
+    }
+    (window as any).currentGameInstance = null;
+  }
   
   const game = new PongGame(canvas, mode, scoreLeft, scoreRight);
   game.setPlayerNameElements(player1NameElement, player2NameElement);

@@ -76,21 +76,27 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
           m.created_at,
           p1.display_name as player1Name,
           p1.avatar_url as player1Avatar,
-          p2.display_name as player2Name,
+          CASE 
+            WHEN m.player2_id IS NULL AND m.match_type = 'local' THEN 'Joueur 2'
+            ELSE COALESCE(p2.display_name, 'AI')
+          END as player2Name,
           p2.avatar_url as player2Avatar,
           CASE 
-            WHEN m.winner_id = ? THEN 'win' 
-            WHEN m.winner_id IS NULL THEN 'draw'
+            WHEN m.winner_id = ? THEN 'win'
+            WHEN m.winner_id IS NULL AND m.match_type IN ('solo', 'local') AND m.player2_id IS NULL AND m.player1_score < m.player2_score THEN 'loss'
+            WHEN m.winner_id IS NULL AND m.match_type = 'local' AND m.player2_id IS NOT NULL AND m.player1_id = ? AND m.player1_score < m.player2_score THEN 'loss'
+            WHEN m.winner_id IS NULL AND m.match_type = 'local' AND m.player2_id IS NOT NULL AND m.player2_id = ? AND m.player2_score < m.player1_score THEN 'loss'
+            WHEN m.winner_id IS NULL AND m.player1_score = m.player2_score THEN 'draw'
             WHEN (m.player1_id = ? OR m.player2_id = ?) AND m.winner_id != ? THEN 'loss'
             ELSE 'unknown'
           END as result
         FROM match_history m
         JOIN users p1 ON p1.id = m.player1_id
-        JOIN users p2 ON p2.id = m.player2_id
+        LEFT JOIN users p2 ON p2.id = m.player2_id
         WHERE m.player1_id = ? OR m.player2_id = ?
         ORDER BY m.created_at DESC
         LIMIT 50
-      `).all(targetUserId, targetUserId, targetUserId, targetUserId, targetUserId, targetUserId);
+      `).all(targetUserId, targetUserId, targetUserId, targetUserId, targetUserId, targetUserId, targetUserId, targetUserId);
 
       return res.send({ matches });
     } catch (e) {
@@ -794,23 +800,27 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
           m.created_at,
           p1.display_name as player1Name,
           p1.avatar_url as player1Avatar,
-          p2.display_name as player2Name,
-          p2.avatar_url as player2Avatar,
-          tm.match_id as tournament_match_id,
           CASE 
-            WHEN m.winner_id = ? THEN 'win' 
-            WHEN m.winner_id IS NULL THEN 'draw'
+            WHEN m.player2_id IS NULL AND m.match_type = 'local' THEN 'Joueur 2'
+            ELSE COALESCE(p2.display_name, 'AI')
+          END as player2Name,
+          p2.avatar_url as player2Avatar,
+          CASE 
+            WHEN m.winner_id = ? THEN 'win'
+            WHEN m.winner_id IS NULL AND m.match_type IN ('solo', 'local') AND m.player2_id IS NULL AND m.player1_score < m.player2_score THEN 'loss'
+            WHEN m.winner_id IS NULL AND m.match_type = 'local' AND m.player2_id IS NOT NULL AND m.player1_id = ? AND m.player1_score < m.player2_score THEN 'loss'
+            WHEN m.winner_id IS NULL AND m.match_type = 'local' AND m.player2_id IS NOT NULL AND m.player2_id = ? AND m.player2_score < m.player1_score THEN 'loss'
+            WHEN m.winner_id IS NULL AND m.player1_score = m.player2_score THEN 'draw'
             WHEN (m.player1_id = ? OR m.player2_id = ?) AND m.winner_id != ? THEN 'loss'
             ELSE 'unknown'
           END as result
         FROM match_history m
         JOIN users p1 ON p1.id = m.player1_id
-        JOIN users p2 ON p2.id = m.player2_id
-        LEFT JOIN tournament_matches tm ON m.id = tm.id
+        LEFT JOIN users p2 ON p2.id = m.player2_id
         WHERE m.player1_id = ? OR m.player2_id = ?
         ORDER BY m.created_at DESC
         LIMIT 50
-      `).all(uid, uid, uid, uid, uid, uid);
+      `).all(uid, uid, uid, uid, uid, uid, uid, uid);
 
       return res.send({ matches });
     } catch (e) {

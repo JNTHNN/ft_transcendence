@@ -282,6 +282,7 @@ export default {
     gameInviteReceived: "Invitation de jeu reçue",
     invitesYouToPlay: "vous invite à jouer",
     gameInviteNotification: "{{inviter}} a invité {{target}} à jouer",
+    fromInvitation: "Depuis une invitation",
     accept: "Accepter",
     decline: "Refuser",
     viewFullProfile: "Voir le profil complet",

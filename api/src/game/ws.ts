@@ -328,11 +328,9 @@ export async function registerGameWS(app: FastifyInstance) {
           game.stop();
           gameManager.removeGame(matchId);
         } else {
-          // Si terminée, attendre 5s avant de supprimer
-          console.log(`🔌 Player ${playerId} disconnected from finished game ${matchId}`);
-          setTimeout(() => {
-            gameManager.removeGame(matchId);
-          }, 5000);
+          // Si terminée, supprimer immédiatement pour permettre de relancer une nouvelle partie
+          console.log(`🔌 Player ${playerId} disconnected from finished game ${matchId}, removing immediately`);
+          gameManager.removeGame(matchId);
         }
       }
       
