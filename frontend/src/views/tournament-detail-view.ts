@@ -55,7 +55,7 @@ export async function TournamentDetailView() {
     wrap.innerHTML = `
       <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 md:p-6 text-center">
         <p class="text-red-400 text-sm md:text-base">❌ ${t('tournamentDetail.missingId')}</p>
-        <a href="/tournois" class="text-sec hover:underline text-sm md:text-base">← ${t('tournamentDetail.backToTournaments')}</a>
+        <a href="/tournois" class="text-text hover:text-sec transition-colors text-sm md:text-base">← ${t('tournamentDetail.backToTournaments')}</a>
       </div>
     `;
     return wrap;
@@ -63,7 +63,7 @@ export async function TournamentDetailView() {
 
   wrap.innerHTML = `
     <div class="mb-4 md:mb-6">
-      <a href="/tournois" class="text-sec hover:underline mb-4 inline-block text-sm md:text-base">← ${t('tournamentDetail.backToTournaments')}</a>
+      <a href="/tournois" class="text-text hover:text-sec transition-colors mb-4 inline-block text-sm md:text-base">← ${t('tournamentDetail.backToTournaments')}</a>
       <div id="tournament-header" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 id="tournament-title" class="font-display font-black text-2xl md:text-3xl lg:text-4xl text-text">${t('tournamentDetail.loading')}</h1>

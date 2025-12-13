@@ -54,7 +54,7 @@ export default async function View() {
     <div id="error" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-xs md:text-sm font-sans hidden"></div>
     <div id="success" class="mt-4 p-3 bg-green-900 text-green-200 rounded-lg text-xs md:text-sm font-sans hidden"></div>
     <p class="mt-4 text-center font-sans text-text text-sm md:text-base">
-      ${t('auth.alreadyHaveAccount')} <a href="/login" class="text-sec hover:underline">${t('auth.login')}</a>
+      ${t('auth.alreadyHaveAccount')} <a href="/login" class="text-text hover:text-sec transition-colors font-bold">${t('auth.login')}</a>
     </p>
   `;
 

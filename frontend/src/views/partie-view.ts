@@ -21,7 +21,7 @@ export async function PartieView() {
   const content = wrap.querySelector("#game-content") as HTMLDivElement;
 
   content.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- SOLO VS IA -->
         <div class="bg-prem rounded-lg shadow-xl p-6 flex flex-col justify-between">
           <div>
@@ -30,17 +30,6 @@ export async function PartieView() {
           </div>
           <button id="btn-solo" class="w-full bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-4 rounded-lg transition">
             ${t('game.play')} vs IA
-          </button>
-        </div>
-
-        <!-- MULTIJOUEUR EN LIGNE -->
-        <div class="bg-prem rounded-lg shadow-xl p-6 flex flex-col justify-between">
-          <div>
-            <h2 class="font-display font-black text-2xl font-black text-text mb-4">${t('game.multiplayer')}</h2>
-            <p class="font-sans text-text mb-4">${t('game.multiplayerDesc')}</p>
-          </div>
-          <button id="btn-online" class="w-full bg-sec hover:bg-opacity-80 text-text font-sans font-bold py-2 px-4 rounded-lg transition">
-            ${t('game.findOpponent')}
           </button>
         </div>
 
@@ -57,23 +46,17 @@ export async function PartieView() {
       </div>
 
       <div class="mt-6 text-center">
-        <a href="/" class="font-sans text-sec hover:underline">← ${t('common.back')}</a>
+        <a href="/" class="font-sans text-text hover:text-sec transition-colors">← ${t('common.back')}</a>
       </div>
     `;
 
     // 🎯 ÉVÉNEMENTS DES BOUTONS
     const btnSolo = content.querySelector("#btn-solo") as HTMLButtonElement;
-    const btnOnline = content.querySelector("#btn-online") as HTMLButtonElement;
     const btnLocal = content.querySelector("#btn-local") as HTMLButtonElement;
 
     // Solo vs IA
     btnSolo.onclick = () => {
       router.navigate("/match?mode=solo");
-    };
-
-    // En ligne (Remote)
-    btnOnline.onclick = () => {
-      router.navigate("/match?mode=online");
     };
 
     // Local 2 joueurs

@@ -1252,7 +1252,7 @@ export default async function View() {
     </div>
     
     <p class="mt-4 text-center">
-      <a href="#" id="btn-back-to-games" class="text-sec hover:underline">← ${t('common.back')}</a>
+      <a href="#" id="btn-back-to-games" class="text-text hover:text-sec transition-colors">← ${t('common.back')}</a>
     </p>
   `;
   

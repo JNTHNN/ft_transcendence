@@ -29,7 +29,7 @@ export async function MenuView() {
 
     <div class="mt-6">
       <p class="text-center font-sans">
-        <a href="/match" class="text-sec hover:underline">${t('common.viewDemoMatch')} →</a>
+        <a href="/match" class="text-text hover:text-sec transition-colors">${t('common.viewDemoMatch')} →</a>
       </p>
     </div>
   `;
