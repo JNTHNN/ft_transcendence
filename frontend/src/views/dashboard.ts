@@ -155,7 +155,7 @@ export default async function DashboardView() {
       
       renderPerformanceChart(matches);
       renderDistributionChart(stats);
-      renderRecentActivity(matches.slice(0, 8));
+      renderRecentActivity(matches);
       renderGameModeStats(matches);
       
     } catch (error) {
