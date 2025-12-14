@@ -29,7 +29,7 @@ rebuild: down build up
 clean:
 	docker compose down -v
 
-t
+
 fclean:
 	docker compose down -v
 	docker system prune -af
