@@ -187,6 +187,10 @@ export default async function tournamentRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'Name and max_players are required' });
       }
 
+      if (name.length < 2 || name.length > 20) {
+        return reply.status(400).send({ error: 'Tournament name must be between 2 and 20 characters' });
+      }
+
       if (max_players > 8) {
         return reply.status(400).send({ error: 'Maximum 8 players allowed per tournament' });
       }

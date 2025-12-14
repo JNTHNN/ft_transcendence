@@ -45,7 +45,7 @@ export async function TournoiView() {
         <form id="create-tournament-form" class="space-y-4">
           <div>
             <label class="block text-text font-medium mb-2 text-sm md:text-base">${t('tournament.tournamentName')}</label>
-            <input id="tournament-name" type="text" required class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec text-sm md:text-base" placeholder="Nom du tournoi">
+            <input id="tournament-name" type="text" required minlength="2" maxlength="20" class="w-full bg-gray-700 text-text px-3 py-2 rounded border border-gray-600 focus:border-sec text-sm md:text-base" placeholder="Nom du tournoi">
           </div>
           <div>
             <label class="block text-text font-medium mb-2 text-sm md:text-base">Description</label>
@@ -264,6 +264,11 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
 
     if (!name.trim()) {
       alert("Le nom du tournoi est requis");
+      return;
+    }
+
+    if (name.trim().length < 2 || name.trim().length > 20) {
+      alert("Le nom du tournoi doit contenir entre 2 et 20 caractères");
       return;
     }
 

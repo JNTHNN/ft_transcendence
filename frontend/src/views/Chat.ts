@@ -351,10 +351,10 @@ export default async function View() {
               }
             </div>
           ` : ''}
-          <div class="flex flex-col ${isMyMessage ? 'items-end' : 'items-start'} max-w-[70%]">
+          <div class="flex flex-col ${isMyMessage ? 'items-end' : 'items-start'} max-w-[70%] min-w-0">
             <span class="text-xs text-white font-semibold cursor-pointer hover:underline mb-1" onclick="${!isMyMessage ? `showUserProfile(${msg.userId}, '${msg.username}', '${msg.avatarUrl || ''}')` : ''}">${msg.username}</span>
             <span class="text-xs text-text/50 mb-2">${formatDateTime(msg.timestamp || Date.now())}</span>
-            <div class="${isMyMessage ? 'bg-sec text-white border-2 border-sec/50' : 'bg-prem border-2 border-text/20 text-text'} px-4 py-2 rounded-lg shadow-md inline-block">
+            <div class="${isMyMessage ? 'bg-sec text-white border-2 border-sec/50' : 'bg-prem border-2 border-text/20 text-text'} px-4 py-2 rounded-lg shadow-md inline-block break-words overflow-wrap-anywhere max-w-full">
               ${msg.text}
             </div>
             ${readIndicator}
