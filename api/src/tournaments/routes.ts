@@ -4,7 +4,6 @@ import { blockchainService } from '../core/blockchain.js';
 import { TournamentService } from '../core/tournament.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-// Extend Fastify types
 declare module 'fastify' {
   interface FastifyInstance {
     db: Database;

@@ -7,6 +7,39 @@ import { connectWS } from './ws-client.js';
 import { WEBSOCKET_PATHS } from './constants.js';
 import { renderFooter } from './views/footer';
 
+let globalFriendsWebSocket: WebSocket | null = null;
+
+function startGlobalFriendsWebSocket() {
+  console.log('Démarrage du WebSocket friends global...');
+  globalFriendsWebSocket = connectWS(WEBSOCKET_PATHS.FRIENDS, (message) => {
+    console.log('Message WebSocket friends reçu:', message);
+    const event = new CustomEvent('friendsWebSocketMessage', {
+      detail: message
+    });
+    window.dispatchEvent(event);
+    
+    if (message.type === 'friend_status_changed') {
+      console.log('Événement friend_status_changed détecté:', message.data);
+      const statusEvent = new CustomEvent('friendStatusChanged', {
+        detail: {
+          userId: message.data.userId,
+          isOnline: message.data.isOnline,
+          timestamp: message.data.timestamp
+        }
+      });
+      window.dispatchEvent(statusEvent);
+    }
+  }, true);
+}
+
+function stopGlobalFriendsWebSocket() {
+  if (globalFriendsWebSocket) {
+    console.log('Fermeture du WebSocket friends global...');
+    globalFriendsWebSocket.close();
+    globalFriendsWebSocket = null;
+  }
+}
+
 const initApp = async () => {
   i18n.initialize().then(() => {
     window.dispatchEvent(new CustomEvent('i18nReady'));
@@ -50,45 +83,23 @@ function addFooterToPage() {
   }
 }
 
+function translateStaticElements() {
+  document.querySelectorAll('[data-i18n]').forEach((element) => {
+    const key = element.getAttribute('data-i18n');
+    if (key) {
+      element.textContent = t(key);
+    }
+  });
+}
+
 window.addEventListener('languageChanged', () => {
   addFooterToPage();
+  translateStaticElements();
 });
 
-
-
-let globalFriendsWebSocket: WebSocket | null = null;
-
-function startGlobalFriendsWebSocket() {
-  
-  globalFriendsWebSocket = connectWS(WEBSOCKET_PATHS.FRIENDS, (message) => {
-    
-    
-    const event = new CustomEvent('friendsWebSocketMessage', {
-      detail: message
-    });
-    window.dispatchEvent(event);
-    
-    
-    if (message.type === 'friend_status_changed') {
-      const statusEvent = new CustomEvent('friendStatusChanged', {
-        detail: {
-          userId: message.data.userId,
-          isOnline: message.data.isOnline,
-          timestamp: message.data.timestamp
-        }
-      });
-      window.dispatchEvent(statusEvent);
-    }
-  }, true);
-}
-
-function stopGlobalFriendsWebSocket() {
-  if (globalFriendsWebSocket) {
-    globalFriendsWebSocket.close();
-    globalFriendsWebSocket = null;
-  }
-}
-
+window.addEventListener('i18nReady', () => {
+  translateStaticElements();
+});
 
 window.addEventListener('authChanged', (event: any) => {
   if (event.detail.isAuthenticated) {

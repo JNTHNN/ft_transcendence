@@ -122,7 +122,7 @@ export class GameManager {
     
     for (const [matchId, game] of this.games.entries()) {
       const state = game.getState();
-      const inactive = !game.isActive() && (now - state.timestamp > 60000); // 1 minute
+      const inactive = !game.isActive() && (now - state.timestamp > 60000);
       
       if (inactive) {
         this.removeGame(matchId);

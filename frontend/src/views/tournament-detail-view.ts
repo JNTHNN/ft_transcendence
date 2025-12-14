@@ -734,7 +734,6 @@ function getStatusText(status: string): string {
       alert(t('tournamentDetail.resetFailed'));
     }
   } catch (error: any) {
-    // Messages d'erreur plus utiles
     let errorMessage = t('tournamentDetail.resetError');
     if (error.message.includes("No resettable match found")) {
       errorMessage = t('tournamentDetail.noResettableMatch');

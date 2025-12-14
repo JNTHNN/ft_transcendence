@@ -7,7 +7,14 @@ export default {
     profile: "PROFIL",
     dashboard: "DASHBOARD",
     login: "ANMELDEN",
-    signup: "REGISTRIEREN"
+    signup: "REGISTRIEREN",
+    // Mobiles Menü
+    mobileHome: "Startseite",
+    mobileStats: "Statistiken",
+    mobileTournaments: "Turniere",
+    mobileFriends: "Freunde",
+    mobileChat: "Chat",
+    mobileProfile: "Profil"
   },
 
   auth: {
@@ -70,6 +77,7 @@ export default {
     lastSync: "Letzte 42-Synchronisation:",
     accountType: "Kontotyp:",
     account42: "42-Konto",
+    preferences: "Einstellungen",
     avatar: "Avatar",
     uploadAvatar: "Avatar hochladen",
     deleteAvatar: "Avatar löschen",
@@ -142,7 +150,9 @@ export default {
   language: {
     title: "Sprache",
     selectLanguage: "Sprache auswählen",
-    currentLanguage: "Aktuelle Sprache"
+    currentLanguage: "Aktuelle Sprache",
+    language: "Sprache",
+    changeLanguage: "Schnittstellensprache ändern"
   },
 
   errors: {

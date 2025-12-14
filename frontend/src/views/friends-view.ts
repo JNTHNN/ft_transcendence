@@ -152,8 +152,8 @@ export async function FriendsView() {
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-text truncate">${friend.displayName}</p>
               <div class="flex items-center space-x-1 mt-1">
-                <div class="w-2 h-2 rounded-full flex-shrink-0 ${friend.status === 'online' ? 'bg-green-400' : 'bg-gray-500'}"></div>
-                <span class="text-xs ${friend.status === 'online' ? 'text-green-400' : 'text-gray-500'}">${friend.status === 'online' ? t('chat.online') : t('chat.offline')}</span>
+                <div class="w-2 h-2 rounded-full flex-shrink-0 status-dot ${friend.status === 'online' ? 'bg-green-400' : 'bg-gray-500'}"></div>
+                <span class="text-xs status-text ${friend.status === 'online' ? 'text-green-400' : 'text-gray-500'}">${friend.status === 'online' ? t('chat.online') : t('chat.offline')}</span>
               </div>
               <p class="text-xs text-gray-400 mt-1">${t('friends.friendsSince')} ${new Date(friend.friendsSince).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
             </div>
@@ -495,6 +495,10 @@ export async function FriendsView() {
           break;
           
         case 'friend_status_changed':
+          if (message.data?.userId && typeof message.data?.isOnline === 'boolean') {
+            console.log('Notification friend_status_changed reçue:', message.data);
+            updateFriendStatus(message.data.userId, message.data.isOnline);
+          }
           break;
           
         default:
@@ -618,23 +622,22 @@ export async function FriendsView() {
   }
 
   function updateFriendStatus(userId: number, isOnline: boolean) {
-    
     const friendElement = friendsList.querySelector(`[data-friend-id="${userId}"]`);
     
     if (friendElement) {
       const statusDot = friendElement.querySelector('.status-dot');
       const statusText = friendElement.querySelector('.status-text');
       
-      
       if (statusDot && statusText) {
-        statusDot.className = `w-2 h-2 rounded-full status-dot ${isOnline ? 'bg-green-400' : 'bg-gray-500'}`;
-        statusText.className = `ml-1 text-xs status-text ${isOnline ? 'text-green-400' : 'text-gray-500'}`;
+        statusDot.className = `w-2 h-2 rounded-full flex-shrink-0 status-dot ${isOnline ? 'bg-green-400' : 'bg-gray-500'}`;
+        statusText.className = `text-xs status-text ${isOnline ? 'text-green-400' : 'text-gray-500'}`;
         statusText.textContent = isOnline ? t('chat.online') : t('chat.offline');
+        console.log(`Statut mis à jour pour userId ${userId}: ${isOnline ? 'online' : 'offline'}`);
       } else {
-
+        console.warn(`Éléments de statut introuvables pour userId ${userId}`);
       }
     } else {
-
+      console.log(`Ami avec userId ${userId} non trouvé dans la liste (peut-être pas encore chargé)`);
     }
   }
 

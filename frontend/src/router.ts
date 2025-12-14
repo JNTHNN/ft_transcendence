@@ -1,4 +1,3 @@
-// 🔧 TYPES GLOBAUX
 declare global {
   interface Window {
     currentGameInstance?: {
