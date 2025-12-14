@@ -542,7 +542,7 @@ export default {
   tournamentDetail: {
     // Navigation
     missingId: "Missing tournament ID",
-    backToTournaments: "← Back to Tournaments",
+    backToTournaments: "Back to Tournaments",
     loading: "Loading tournament...",
     
     // Actions

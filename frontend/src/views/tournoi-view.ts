@@ -126,9 +126,9 @@ async function loadTournaments(content: HTMLDivElement) {
           <div id="available-tournaments" class="space-y-3">
             ${tournamentsResponse.tournaments.filter((t: Tournament) => t.status === 'waiting').map((tournament: Tournament) => `
               <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-sec transition">
-                <div class="flex justify-between items-start mb-2">
-                  <h3 class="font-bold text-text">${tournament.name}</h3>
-                  <span class="px-2 py-1 ${getStatusColor(tournament.status)} text-white text-xs rounded">${getStatusText(tournament.status)}</span>
+                <div class="flex justify-between items-start mb-2 gap-2">
+                  <h3 class="font-bold text-text truncate flex-1 min-w-0">${tournament.name}</h3>
+                  <span class="px-2 py-1 ${getStatusColor(tournament.status)} text-white text-xs rounded flex-shrink-0">${getStatusText(tournament.status)}</span>
                 </div>
                 <p class="text-text/70 text-sm mb-3">${tournament.description || t('tournament.noDescription')}</p>
                 <div class="flex justify-between items-center">
@@ -150,9 +150,9 @@ async function loadTournaments(content: HTMLDivElement) {
               .sort((a: Tournament, b: Tournament) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .map((tournament: Tournament) => `
               <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-sec transition cursor-pointer" onclick="viewTournament('${tournament.id}')">
-                <div class="flex justify-between items-start mb-2">
-                  <h3 class="font-bold text-text">${tournament.name}</h3>
-                  <div class="flex items-center gap-2">
+                <div class="flex justify-between items-start mb-2 gap-2">
+                  <h3 class="font-bold text-text truncate flex-1 min-w-0">${tournament.name}</h3>
+                  <div class="flex items-center gap-2 flex-shrink-0">
 
                     <span class="px-2 py-1 ${getStatusColor(tournament.status)} text-white text-xs rounded">${getStatusText(tournament.status)}</span>
                   </div>
@@ -173,9 +173,9 @@ async function loadTournaments(content: HTMLDivElement) {
         <div id="active-tournaments" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           ${tournamentsResponse.tournaments.filter((t: Tournament) => t.status === 'active').map((tournament: Tournament) => `
             <div class="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-4 cursor-pointer hover:border-yellow-500/50 transition" onclick="viewTournament('${tournament.id}')">
-              <div class="flex justify-between items-start mb-3">
-                <h3 class="font-bold text-text">${tournament.name}</h3>
-                <span class="px-2 py-1 bg-yellow-500 text-black text-xs rounded font-bold">${t('tournament.active').toUpperCase()}</span>
+              <div class="flex justify-between items-start mb-3 gap-2">
+                <h3 class="font-bold text-text truncate flex-1 min-w-0">${tournament.name}</h3>
+                <span class="px-2 py-1 bg-yellow-500 text-black text-xs rounded font-bold flex-shrink-0">${t('tournament.active').toUpperCase()}</span>
               </div>
               <div class="text-text/70 text-sm">
                 <p>👥 ${tournament.current_players} participants</p>
@@ -210,13 +210,13 @@ async function loadTournaments(content: HTMLDivElement) {
         
         return `
           <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-green-500/50 transition cursor-pointer" onclick="viewTournament('${tournament.id}')">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="font-bold text-text">${tournament.name}</h3>
-              <div class="flex items-center gap-2">
+            <div class="flex justify-between items-start mb-2 gap-2">
+              <h3 class="font-bold text-text truncate flex-1 min-w-0">${tournament.name}</h3>
+              <div class="flex items-center gap-2 flex-shrink-0">
                 <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">${t('tournament.completed').toUpperCase()}</span>
               </div>
             </div>
-            <div class="text-text/70 text-sm">
+            <div class="text-text/70 text-sm truncate">
               ${winnerText}
             </div>
           </div>

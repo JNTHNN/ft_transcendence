@@ -65,8 +65,8 @@ export async function TournamentDetailView() {
     <div class="mb-4 md:mb-6">
       <a href="/tournois" class="text-text hover:text-sec transition-colors mb-4 inline-block text-sm md:text-base">← ${t('tournamentDetail.backToTournaments')}</a>
       <div id="tournament-header" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 id="tournament-title" class="font-display font-black text-2xl md:text-3xl lg:text-4xl text-text">${t('tournamentDetail.loading')}</h1>
+        <div class="min-w-0 flex-1">
+          <h1 id="tournament-title" class="font-display font-black text-2xl md:text-3xl lg:text-4xl text-text truncate">${t('tournamentDetail.loading')}</h1>
           <div id="tournament-status" class="mt-2"></div>
         </div>
         <div id="tournament-actions" class="flex gap-2 md:gap-3 w-full sm:w-auto"></div>
@@ -270,7 +270,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
           
           ${tournament.winner_id ? `
             <p class="text-text/70 mt-4 mb-2">${t('tournamentDetail.winner')}:</p>
-            <p class="text-green-400 font-bold">🏆 ${(tournament as any).winner_username || t('tournamentDetail.playerNumber') + tournament.winner_id}</p>
+            <p class="text-green-400 font-bold truncate">🏆 ${(tournament as any).winner_username || t('tournamentDetail.playerNumber') + tournament.winner_id}</p>
           ` : ''}
         </div>
       </div>
@@ -291,7 +291,7 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
                   : `<span class="text-text font-bold">${participant.username.charAt(0).toUpperCase()}</span>`
                 }
               </div>
-              <p class="text-text font-medium">${participant.username}</p>
+              <p class="text-text font-medium truncate">${participant.username}</p>
               ${participant.eliminated_at ? `<p class="text-red-400 text-sm">❌ ${t('tournamentDetail.eliminated')}</p>` : ''}
             </div>
           </div>
@@ -356,7 +356,7 @@ function generateBracket(tournament: Tournament, participants: any[], matches: T
     }
 
     bracketHtml += `
-      <div class="flex flex-col justify-center min-w-[200px]">
+      <div class="flex flex-col justify-center min-w-[200px] max-w-[250px] w-[250px]">
         <h3 class="text-center font-bold text-text mb-4">${roundName}</h3>
         <div class="space-y-4">
     `;
@@ -417,13 +417,13 @@ function generateMatchCard(match: TournamentMatch): string {
   
   return `
     <div class="space-y-2">
-      <div class="flex justify-between items-center gap-3 p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player1_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
-        <span class="text-text truncate flex-1">${player1}</span>
-        <span class="text-text font-mono whitespace-nowrap">${match.player1_score}</span>
+      <div class="flex justify-between items-center gap-3 p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player1_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded min-w-0">
+        <span class="text-text truncate flex-1 min-w-0">${player1}</span>
+        <span class="text-text font-mono whitespace-nowrap flex-shrink-0">${match.player1_score}</span>
       </div>
-      <div class="flex justify-between items-center gap-3 p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player2_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded">
-        <span class="text-text truncate flex-1">${player2}</span>
-        <span class="text-text font-mono whitespace-nowrap">${match.player2_score}</span>
+      <div class="flex justify-between items-center gap-3 p-2 ${!isIncompleteMatch && isMatchCompleted && match.winner_id === match.player2_id ? 'bg-green-600/20 border-l-2 border-green-500' : 'bg-gray-700'} rounded min-w-0">
+        <span class="text-text truncate flex-1 min-w-0">${player2}</span>
+        <span class="text-text font-mono whitespace-nowrap flex-shrink-0">${match.player2_score}</span>
       </div>
       ${statusHtml}
     </div>
@@ -514,22 +514,23 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
 
       historyHtml += `
         <div class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:border-sec/50 transition-colors">
-          <div class="flex justify-between items-start mb-3">
-            <div class="flex-1">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+            <div class="flex-1 min-w-0">
               <h3 class="text-text font-semibold mb-1">
                 ${t('tournamentDetail.round')} ${match.round_number} - ${t('tournamentDetail.match')} ${match.match_order}
               </h3>
               ${matchDateHtml}
             </div>
-            <div class="text-right flex items-center gap-2">
-              <span class="${statusClass} px-3 py-1 rounded-full text-sm font-medium border">
+            <div class="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+              <span class="${statusClass} px-3 py-1 rounded-full text-xs sm:text-sm font-medium border whitespace-nowrap">
                 ${statusIcon} ${statusText}
               </span>
               ${match.status === 'completed' && match.blockchain_tx_hash ? `
                 <button onclick="viewMatchBlockchainProof('${match.match_id}')" 
-                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded-lg transition-colors"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1"
                         title="${t('tournamentDetail.viewBlockchainProof')}">
-                  ⛓️ Blockchain
+                  <span>⛓️</span>
+                  <span>Blockchain</span>
                 </button>
               ` : ''}
             </div>
@@ -538,9 +539,9 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
           <div class="bg-gray-900 rounded-lg p-4">
             <div class="grid grid-cols-3 items-center gap-4">
               <!-- Joueur 1 -->
-              <div class="text-center">
+              <div class="text-center min-w-0">
                 <div class="flex flex-col items-center">
-                  <span class="text-text font-medium mb-2">${player1}</span>
+                  <span class="text-text font-medium mb-2 truncate max-w-full px-2">${player1}</span>
                   ${(match as any).player1_avatar_url ? `
                     <img src="${(match as any).player1_avatar_url}" alt="${player1}" class="w-12 h-12 rounded-full object-cover ${match.status === 'completed' && match.winner_id === match.player1_id ? 'ring-2 ring-green-500' : ''}" />
                   ` : `
@@ -561,9 +562,9 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
               </div>
 
               <!-- Joueur 2 -->
-              <div class="text-center">
+              <div class="text-center min-w-0">
                 <div class="flex flex-col items-center">
-                  <span class="text-text font-medium mb-2">${player2}</span>
+                  <span class="text-text font-medium mb-2 truncate max-w-full px-2">${player2}</span>
                   ${(match as any).player2_avatar_url ? `
                     <img src="${(match as any).player2_avatar_url}" alt="${player2}" class="w-12 h-12 rounded-full object-cover ${match.status === 'completed' && match.winner_id === match.player2_id ? 'ring-2 ring-green-500' : ''}" />
                   ` : `
@@ -579,7 +580,7 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
 
           ${match.status === 'completed' && winnerName ? `
             <div class="mt-3 text-center">
-              <p class="text-text/70 text-sm">
+              <p class="text-text/70 text-sm truncate px-2">
                 🎉 <span class="text-green-400 font-semibold">${winnerName}</span> ${t('tournamentDetail.wins')} ${scoreDisplay}
               </p>
             </div>

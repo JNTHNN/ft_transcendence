@@ -543,7 +543,7 @@ export default {
   tournamentDetail: {
     // Navigation
     missingId: "Fehlende Turnier-ID",
-    backToTournaments: "← Zurück zu Turnieren",
+    backToTournaments: "Zurück zu Turnieren",
     loading: "Turnier wird geladen...",
     
     // Actions

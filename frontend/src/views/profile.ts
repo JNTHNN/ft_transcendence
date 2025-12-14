@@ -69,13 +69,13 @@ export default async function View() {
         </button>
       </div>
     </div>
-    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-      <div class="relative" id="profile-header-avatar">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
+      <div class="relative flex-shrink-0" id="profile-header-avatar">
         ${avatarContent}
       </div>
-      <div>
-        <h2 class="font-sans text-xl md:text-2xl font-bold text-text">${user.displayName}</h2>
-        <p class="font-sans text-sm md:text-base text-gray-400">${user.email}</p>
+      <div class="min-w-0 flex-1 overflow-hidden w-full">
+        <h2 class="font-sans text-xl md:text-2xl font-bold text-text truncate w-full">${user.displayName}</h2>
+        <p class="font-sans text-sm md:text-base text-gray-400 truncate w-full">${user.email}</p>
         ${user.oauth42Login ? `<p class="font-sans text-sm text-blue-400">Login 42: ${user.oauth42Login}</p>` : ''}
         <p class="font-sans text-sm text-gray-500">${t('profile.memberSince')} ${formatDate(user.createdAt)}</p>
         ${user.last42Sync ? `<p class="font-sans text-xs text-gray-600">${t('profile.lastSync')} ${formatDate(user.last42Sync)}</p>` : ''}

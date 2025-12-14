@@ -353,11 +353,11 @@ export default async function DashboardView() {
     }
 
     container.innerHTML = matches.map(match => `
-      <div class="flex items-center justify-between p-3 bg-sec/10 rounded-lg hover:bg-sec/20 transition-colors cursor-pointer" onclick="router.navigate('/game-session/${match.id}')">
-        <div class="flex items-center space-x-3">
-          <div class="w-3 h-3 rounded-full ${match.result === 'win' ? 'bg-green-500' : 'bg-red-500'}"></div>
-          <div>
-            <p class="font-semibold text-text text-sm">
+      <div class="flex items-center justify-between p-3 bg-sec/10 rounded-lg hover:bg-sec/20 transition-colors cursor-pointer gap-3" onclick="router.navigate('/game-session/${match.id}')">
+        <div class="flex items-center space-x-3 flex-1 min-w-0">
+          <div class="w-3 h-3 rounded-full flex-shrink-0 ${match.result === 'win' ? 'bg-green-500' : 'bg-red-500'}"></div>
+          <div class="min-w-0 flex-1">
+            <p class="font-semibold text-text text-sm truncate">
               ${match.player1Name} vs ${match.player2Name}
             </p>
             <p class="text-xs text-text/60">
@@ -365,7 +365,7 @@ export default async function DashboardView() {
             </p>
           </div>
         </div>
-        <div class="text-right">
+        <div class="text-right flex-shrink-0">
           <p class="font-bold text-text text-sm">${match.player1_score}-${match.player2_score}</p>
           <p class="text-xs ${match.result === 'win' ? 'text-green-400' : 'text-red-400'}">
             ${match.result === 'win' ? t('dashboard.wins') : t('dashboard.losses')}

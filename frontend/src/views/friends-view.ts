@@ -346,17 +346,17 @@ export async function FriendsView() {
       }
 
       searchResults.innerHTML = users.map(user => `
-        <div class="flex items-center justify-between p-3 bg-sec bg-opacity-20 rounded-lg">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full border-2 border-sec overflow-hidden bg-gray-600 flex items-center justify-center">
+        <div class="flex items-center justify-between p-3 bg-sec bg-opacity-20 rounded-lg gap-3">
+          <div class="flex items-center space-x-3 flex-1 min-w-0">
+            <div class="w-10 h-10 rounded-full border-2 border-sec overflow-hidden bg-gray-600 flex items-center justify-center flex-shrink-0">
               ${user.avatarUrl 
                 ? `<img class="w-full h-full object-cover" src="${user.avatarUrl}" alt="${user.displayName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                    <div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold" style="display:none">${user.displayName[0].toUpperCase()}</div>`
                 : `<div class="w-full h-full bg-sec flex items-center justify-center text-text font-bold">${user.displayName[0].toUpperCase()}</div>`
               }
             </div>
-            <div>
-              <p class="font-semibold text-text">${user.displayName}</p>
+            <div class="min-w-0 flex-1">
+              <p class="font-semibold text-text truncate">${user.displayName}</p>
               <p class="text-sm text-gray-400">
                 ${user.friendshipStatus === 'accepted' ? t('friends.alreadyFriends') :
                   user.friendshipStatus === 'pending' ? t('friends.requestPending') :
@@ -364,7 +364,7 @@ export async function FriendsView() {
               </p>
             </div>
           </div>
-          <div>
+          <div class="flex-shrink-0">
             ${user.friendshipStatus === 'none' ? `
               <button 
                 onclick="sendFriendRequest(${user.id})"

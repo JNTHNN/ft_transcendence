@@ -624,13 +624,13 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
       
       if (!user) {
 
-        let displayName = userData.displayname || userData.login;
+        let displayName = (userData.displayname || userData.login).substring(0, 25);
         let counter = 0;
         let uniqueDisplayName = displayName;
         
         while (db.prepare('SELECT id FROM users WHERE display_name = ?').get(uniqueDisplayName)) {
           counter++;
-          uniqueDisplayName = `${displayName}_${counter}`;
+          uniqueDisplayName = `${displayName}_${counter}`.substring(0, 25);
         }
         
         const result = db.prepare(`
@@ -670,9 +670,9 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
               display_name = ?, avatar_url = ?, oauth42_data = ?,
               last_42_sync = datetime('now'), updated_at = datetime('now')
             WHERE id = ?
-          `).run(userData.displayname || userData.login, oauth42Avatar, oauth42Data, user.id);
+          `).run((userData.displayname || userData.login).substring(0, 25), oauth42Avatar, oauth42Data, user.id);
           
-          user.display_name = userData.displayname || userData.login;
+          user.display_name = (userData.displayname || userData.login).substring(0, 25);
           user.avatar_url = oauth42Avatar;
         } else {
 
@@ -681,9 +681,9 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
               display_name = ?, oauth42_data = ?,
               last_42_sync = datetime('now'), updated_at = datetime('now')
             WHERE id = ?
-          `).run(userData.displayname || userData.login, oauth42Data, user.id);
+          `).run((userData.displayname || userData.login).substring(0, 25), oauth42Data, user.id);
           
-          user.display_name = userData.displayname || userData.login;
+          user.display_name = (userData.displayname || userData.login).substring(0, 25);
 
         }
       }

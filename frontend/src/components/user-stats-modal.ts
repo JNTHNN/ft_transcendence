@@ -76,9 +76,9 @@ export async function createUserStatsModal(userId: number, userName: string, ava
       <div class="p-6">
         <!-- En-tête -->
         <div class="flex items-center justify-between mb-6">
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 min-w-0 flex-1">
             ${avatarHtml}
-            <h2 class="font-display text-3xl font-bold text-text">${t('stats.title')} - ${userName}</h2>
+            <h2 class="font-display text-3xl font-bold text-text truncate">${t('stats.title')} - ${userName}</h2>
           </div>
           <button id="close-stats-modal" class="text-text/70 hover:text-text">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

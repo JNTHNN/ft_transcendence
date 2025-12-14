@@ -36,7 +36,7 @@ export class PredictiveAI implements AIController {
     
     const myPaddle = side === 'left' ? paddles.left : paddles.right;
     const paddleY = myPaddle.y * CFG.COURT_HEIGHT;
-    const deadZone = 12; // Tolérance en pixels
+    const deadZone = 12;
     
     if (predictedY > paddleY + deadZone) {
       return { up: false, down: true };

@@ -248,7 +248,7 @@ export async function GameSessionDetailView() {
                 </div>
               `}
             </div>
-            <h4 class="font-bold text-text text-xl mb-2">${match.player1Name}</h4>
+            <h4 class="font-bold text-text text-xl mb-2 truncate px-2">${match.player1Name}</h4>
             <div class="text-4xl font-bold ${match.winner_id === match.player1_id ? 'text-green-400' : 'text-text'} mb-2">
               ${match.player1_score}
             </div>
@@ -275,7 +275,7 @@ export async function GameSessionDetailView() {
                 </div>
               `}
             </div>
-            <h4 class="font-bold text-text text-xl mb-2">${match.player2Name}</h4>
+            <h4 class="font-bold text-text text-xl mb-2 truncate px-2">${match.player2Name}</h4>
             <div class="text-4xl font-bold ${match.winner_id === match.player2_id ? 'text-green-400' : 'text-text'} mb-2">
               ${match.player2_score}
             </div>
