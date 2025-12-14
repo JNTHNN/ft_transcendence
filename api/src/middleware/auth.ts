@@ -27,7 +27,6 @@ declare module 'fastify' {
   }
 }
 
-// Middleware pour l'authentification
 export async function authMiddleware(req: any, reply: any) {
   try {
     await req.jwtVerify();

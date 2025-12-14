@@ -127,7 +127,7 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
 
       if (row.totp_enabled) {
         const tempToken = crypto.randomBytes(32).toString('base64url');
-        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
         
         db.prepare(`
           INSERT OR REPLACE INTO temp_login_tokens (user_id, token, expires_at)
@@ -260,11 +260,9 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
           const decoded: any = app.jwt.verify(token);
           if (decoded?.uid) {
             markUserOffline(decoded.uid, token);
-            // Déconnecter l'utilisateur du chat
             disconnectUserFromChat(decoded.uid, db);
           }
         } catch (e) {
-          // Ignorer les erreurs de décodage du token
         }
       }
       
@@ -692,7 +690,7 @@ export async function registerAuthRoutes(app: FastifyInstance, db: Database.Data
 
       if (user.totp_enabled) {
         const tempToken = crypto.randomBytes(32).toString('hex');
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
         
         db.prepare(`
           INSERT INTO temp_login_tokens (token, user_id, expires_at) 

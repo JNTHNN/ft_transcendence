@@ -36,7 +36,6 @@ interface SentRequest {
 }
 
 export async function FriendsView() {
-  // Check authentication
   if (!authManager.isAuthenticated()) {
     router.navigate("/login");
     return document.createElement("div");
@@ -113,20 +112,17 @@ export async function FriendsView() {
   const searchButton = wrap.querySelector("#search-button") as HTMLButtonElement;
   const searchResults = wrap.querySelector("#search-results") as HTMLDivElement;
 
-  // Variables pour gérer le délai de recherche 
   let searchTimeout: ReturnType<typeof setTimeout>;
   let isRefreshing = false;
   let lastSearchQuery = '';
   let globalStatusListener: ((event: Event) => void) | null = null;
   let globalFriendsListener: ((event: Event) => void) | null = null;
 
-  // Fonction pour charger la liste des amis
   async function loadFriends() {
     try {
       const response = await api("/users/friends");
       const friends: Friend[] = response.friends;
 
-      // Formater les avatars avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       friends.forEach(friend => {
         if (friend.avatarUrl && friend.avatarUrl.startsWith('/uploads/')) {
@@ -187,13 +183,11 @@ export async function FriendsView() {
     }
   }
 
-  // Fonction pour charger les demandes d'amis
   async function loadFriendRequests() {
     try {
       const response = await api("/users/friend-requests");
       const requests: FriendRequest[] = response.requests;
 
-      // Formater les avatars avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       requests.forEach(request => {
         if (request.avatarUrl && request.avatarUrl.startsWith('/uploads/')) {
@@ -256,13 +250,11 @@ export async function FriendsView() {
     }
   }
 
-  // Fonction pour charger les demandes envoyées
   async function loadSentRequests() {
     try {
       const response = await api("/users/sent-requests");
       const sentRequests: SentRequest[] = response.sentRequests;
 
-      // Formater les avatars avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       sentRequests.forEach(request => {
         if (request.avatarUrl && request.avatarUrl.startsWith('/uploads/')) {
@@ -319,7 +311,6 @@ export async function FriendsView() {
     }
   }
 
-  // Fonction de recherche
   async function searchUsers() {
     const query = searchInput.value.trim();
     if (query.length < 2) {
@@ -328,17 +319,16 @@ export async function FriendsView() {
           <p class="text-gray-400">${t('friends.searchTooShort')}</p>
         </div>
       `;
-      lastSearchQuery = ''; // Réinitialiser la dernière recherche
+      lastSearchQuery = ''; 
       return;
     }
 
-    lastSearchQuery = query; // Sauvegarder la requête de recherche
+    lastSearchQuery = query; 
 
     try {
       const response = await api(`/users/search?q=${encodeURIComponent(query)}`);
       const users: SearchUser[] = response.users;
 
-      // Formater les avatars avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       users.forEach(user => {
         if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
@@ -399,10 +389,8 @@ export async function FriendsView() {
     }
   }
 
-  // Event listeners
   searchButton.addEventListener('click', searchUsers);
   
-  // Recherche en temps réel
   searchInput.addEventListener('input', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
@@ -412,7 +400,7 @@ export async function FriendsView() {
       } else if (query.length === 0) {
         searchResults.innerHTML = '';
       }
-    }, 300); // Délai de 300ms pour éviter trop de requêtes
+    }, 300); 
   });
 
   searchInput.addEventListener('keypress', (e) => {
@@ -422,7 +410,6 @@ export async function FriendsView() {
     }
   });
 
-  // Fonction pour refaire la dernière recherche si elle existe
   async function refreshSearchResults() {
     if (lastSearchQuery && lastSearchQuery.length >= 2) {
 
@@ -430,9 +417,7 @@ export async function FriendsView() {
     }
   }
 
-  // Fonction pour recharger toutes les listes
   async function refreshAllLists() {
-    // Éviter les appels multiples simultanés
     if (isRefreshing) {
 
       return;
@@ -446,22 +431,18 @@ export async function FriendsView() {
         loadFriendRequests(),
         loadSentRequests()
       ]);
-      // Rafraîchir aussi les résultats de recherche s'il y en a
       await refreshSearchResults();
 
     } catch (error) {
 
-      // Continuez même en cas d'erreur pour éviter de bloquer l'interface
     } finally {
       isRefreshing = false;
     }
   }
 
-  // Fonction pour écouter les événements WebSocket globaux
   function startGlobalListeners() {
 
     
-    // Écouter les changements de statut
     globalStatusListener = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { userId, isOnline } = customEvent.detail || {};
@@ -474,7 +455,6 @@ export async function FriendsView() {
       }
     };
     
-    // Écouter tous les messages WebSocket friends
     globalFriendsListener = (event: Event) => {
       const customEvent = event as CustomEvent;
       const message = customEvent.detail;
@@ -515,7 +495,6 @@ export async function FriendsView() {
           break;
           
         case 'friend_status_changed':
-          // Déjà géré par globalStatusListener
           break;
           
         default:
@@ -527,7 +506,6 @@ export async function FriendsView() {
     window.addEventListener('friendsWebSocketMessage', globalFriendsListener);
   }
 
-  // Fonction pour arrêter l'écoute globale
   function stopGlobalListeners() {
     if (globalStatusListener) {
       window.removeEventListener('friendStatusChanged', globalStatusListener);
@@ -540,7 +518,6 @@ export async function FriendsView() {
 
   }
 
-  // Fonctions globales pour les boutons
   (window as any).sendFriendRequest = async (userId: number) => {
     try {
       const response = await api(`/users/${userId}/friend-request`, { 
@@ -548,10 +525,9 @@ export async function FriendsView() {
         body: JSON.stringify({})
       });
 
-      // Le WebSocket se chargera du refresh automatique
       
       if (response.autoAccepted) {
-        showNotification(`🎉 ${t('friends.mutualRequestAccepted')}`, 'success');
+        showNotification(` ${t('friends.mutualRequestAccepted')}`, 'success');
       } else {
         showNotification(t('friends.requestSent'), 'success');
       }
@@ -568,7 +544,6 @@ export async function FriendsView() {
         body: JSON.stringify({})
       });
 
-      // Le WebSocket se chargera du refresh automatique
       showNotification(t('friends.requestAccepted'), 'success');
     } catch (error) {
 
@@ -584,7 +559,6 @@ export async function FriendsView() {
         body: JSON.stringify({})
       });
 
-      // Le WebSocket se chargera du refresh automatique
       showNotification(t('friends.requestDeclined'), 'success');
     } catch (error) {
 
@@ -600,7 +574,6 @@ export async function FriendsView() {
         method: 'DELETE',
         body: JSON.stringify({})
       });
-      // Le WebSocket se chargera du refresh automatique
       showNotification(t('friends.friendRemoved'), 'success');
     } catch (error) {
       showNotification(t('friends.removeError'), 'error');
@@ -608,7 +581,6 @@ export async function FriendsView() {
   };
 
   (window as any).viewProfile = async (userId: number, userName: string, avatarUrl?: string) => {
-    // Utiliser la fonction globale définie dans user-stats-modal.ts
     if ((window as any).viewUserStats) {
       (window as any).viewUserStats(userId, userName, avatarUrl);
     }
@@ -624,7 +596,6 @@ export async function FriendsView() {
         body: JSON.stringify({})
       });
 
-      // Le WebSocket se chargera du refresh automatique
       showNotification(t('friends.requestCanceled'), 'success');
     } catch (error) {
 
@@ -632,9 +603,7 @@ export async function FriendsView() {
     }
   };
 
-  // Fonction pour afficher les notifications
   function showNotification(message: string, type: 'success' | 'error' | 'info') {
-    // Implémentation simple de notification (peut être améliorée)
     const notification = document.createElement('div');
     notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${
       type === 'success' ? 'bg-green-500' : 
@@ -648,7 +617,6 @@ export async function FriendsView() {
     }, 3000);
   }
 
-  // Fonction pour mettre à jour le statut d'un ami spécifique (temps réel)
   function updateFriendStatus(userId: number, isOnline: boolean) {
     
     const friendElement = friendsList.querySelector(`[data-friend-id="${userId}"]`);
@@ -670,9 +638,7 @@ export async function FriendsView() {
     }
   }
 
-  // Fonction pour mettre à jour le statut en ligne (fallback polling seulement)
   async function updateOnlineStatus() {
-    // Ne faire le fallback que si le WebSocket n'est pas actif
     try {
       const friends = await api('/users/friends');
       const friendIds = friends.friends.map((f: any) => f.id);
@@ -686,7 +652,6 @@ export async function FriendsView() {
           }
         });
 
-        // Utiliser la fonction existante updateFriendStatus pour éviter la duplication
         Object.entries(statusResponse.status).forEach(([friendId, isOnline]) => {
           updateFriendStatus(parseInt(friendId), isOnline as boolean);
         });
@@ -696,16 +661,13 @@ export async function FriendsView() {
     }
   }
 
-  // Charger les données initiales
   try {
     await api("/auth/me");
-    await refreshAllLists(); // Charger toutes les listes au démarrage
-    startGlobalListeners(); // Écouter les événements WebSocket globaux
+    await refreshAllLists();
+    startGlobalListeners();
     
-    // Fallback pour le statut en ligne (réduit car WebSocket est prioritaire)
     const statusUpdateInterval = setInterval(updateOnlineStatus, 60000);
     
-    // Cleanup function centralisée
     const cleanup = () => {
       stopGlobalListeners();
       clearInterval(statusUpdateInterval);
@@ -713,10 +675,8 @@ export async function FriendsView() {
 
     };
     
-    // Arrêter l'écoute quand l'utilisateur quitte la page ou change de vue
     window.addEventListener('beforeunload', cleanup);
     
-    // Observer pour nettoyer si l'élément est supprimé du DOM
     const observer = new MutationObserver(() => {
       if (!document.contains(wrap)) {
         cleanup();

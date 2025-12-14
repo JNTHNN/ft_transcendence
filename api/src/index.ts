@@ -50,7 +50,7 @@ await app.register(websocket);
 await app.register(cookie);
 await app.register(multipart, {
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max
+    fileSize: 5 * 1024 * 1024
   }
 });
 await app.register(authPlugin);
@@ -58,17 +58,14 @@ await app.register(authPlugin);
 try {
   await migrate();
   
-  // Initialiser le service de présence
   initPresenceService(db);
   
-  // Injecter la base de données dans GameManager
   gameManager.setDatabase(db);
   
-  // Décorer l'app avec la base de données pour les plugins
   app.decorate('db', db);
 
 } catch (e) {
-  app.log.error(e, '❌ Migration failed');
+  app.log.error(e, 'Migration failed');
   process.exit(1);
 }
 
@@ -92,7 +89,6 @@ await app.register(tournamentRoutes);
 
 await registerChatWS(app, db);
 
-// Ajouter les fonctions de notification de tournoi à Fastify
 app.decorate('sendTournamentNotification', (tournamentId: string, tournamentName: string, matchId: string, player1: string, player2: string) => {
   broadcastTournamentNotification(db, tournamentId, tournamentName, matchId, player1, player2);
 });
@@ -142,13 +138,12 @@ app.get('/uploads/:filename', async (req: FastifyRequest<{Params: {filename: str
 });
 
 
-// Cleanup stale matches on startup
 TournamentService.cleanupStaleMatches();
 
 const port = Number(process.env.PORT || 3000);
 app.listen({ port, host: '0.0.0.0' })
   .then(() => {
-    console.log(`🚀 Server ready at port ${port}`);
+    console.log(` Server ready at port ${port}`);
   })
   .catch((e: any) => { 
     app.log.error(e); 

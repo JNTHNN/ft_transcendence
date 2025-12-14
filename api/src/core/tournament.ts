@@ -46,9 +46,7 @@ export interface TournamentMatch {
 }
 
 export class TournamentService {
-  /**
-   * Cleanup stale active matches (called on startup)
-   */
+
   static cleanupStaleMatches(): void {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     
@@ -60,13 +58,10 @@ export class TournamentService {
     `).run(oneHourAgo);
 
     if (result.changes > 0) {
-      console.log(`🧹 Cleaned up ${result.changes} stale active matches older than 1 hour`);
+      console.log(` Cleaned up ${result.changes} stale active matches older than 1 hour`);
     }
   }
 
-  /**
-   * Create a new tournament
-   */
   static createTournament(params: {
     name: string;
     description?: string;
@@ -120,9 +115,7 @@ export class TournamentService {
     } as Tournament;
   }
 
-  /**
-   * Join a tournament
-   */
+
   static joinTournament(tournamentId: string, userId: number, displayName: string): boolean {
     const tournament = this.getTournament(tournamentId);
     if (!tournament) {
@@ -137,7 +130,6 @@ export class TournamentService {
       throw new Error('Tournament is full');
     }
 
-    // Check if already joined
     const existing = db.prepare(
       'SELECT id FROM tournament_participants WHERE tournament_id = ? AND user_id = ?'
     ).get(tournamentId, userId);
@@ -146,7 +138,6 @@ export class TournamentService {
       throw new Error('Already joined this tournament');
     }
 
-    // Add participant
     const stmt = db.prepare(`
       INSERT INTO tournament_participants (tournament_id, user_id, display_name, created_at)
       VALUES (?, ?, ?, ?)
@@ -154,16 +145,12 @@ export class TournamentService {
 
     stmt.run(tournamentId, userId, displayName, new Date().toISOString());
 
-    // Update player count
     db.prepare('UPDATE tournaments SET current_players = current_players + 1, updated_at = ? WHERE id = ?')
       .run(new Date().toISOString(), tournamentId);
 
     return true;
   }
 
-  /**
-   * Get tournament by ID
-   */
   static getTournament(id: string): Tournament | null {
     const stmt = db.prepare('SELECT * FROM tournaments WHERE id = ?');
     const result = stmt.get(id) as any;
@@ -175,9 +162,6 @@ export class TournamentService {
     };
   }
 
-  /**
-   * Get all tournaments with filters
-   */
   static getTournaments(filters: {
     status?: string;
     creator_id?: number;
@@ -222,11 +206,8 @@ export class TournamentService {
     }));
   }
 
-  /**
-   * Get tournament participants
-   */
   static getTournamentParticipants(tournamentId: string): TournamentParticipant[] {
-    console.log(`🔍 Looking for participants in tournament: ${tournamentId}`);
+    console.log(` Looking for participants in tournament: ${tournamentId}`);
     
     const stmt = db.prepare(`
       SELECT tp.*, u.display_name as user_display_name 
@@ -237,14 +218,11 @@ export class TournamentService {
     `);
     
     const participants = stmt.all(tournamentId) as TournamentParticipant[];
-    console.log(`🔍 Found ${participants.length} participants:`, participants.map(p => ({ id: p.id, user_id: p.user_id, display_name: p.display_name })));
+    console.log(` Found ${participants.length} participants:`, participants.map(p => ({ id: p.id, user_id: p.user_id, display_name: p.display_name })));
     
     return participants;
   }
 
-  /**
-   * Start tournament (generate bracket)
-   */
   static startTournament(tournamentId: string, userId: number, fastify?: any): Tournament {
     const tournament = this.getTournament(tournamentId);
     if (!tournament) {
@@ -259,60 +237,45 @@ export class TournamentService {
       throw new Error('Tournament cannot be started');
     }
 
-    // Get participants
     const participants = this.getTournamentParticipants(tournamentId);
-    console.log(`🎯 Tournament ${tournamentId} has ${participants.length} actual participants:`, participants);
+    console.log(` Tournament ${tournamentId} has ${participants.length} actual participants:`, participants);
     
     if (participants.length < 2) {
       throw new Error('Need at least 2 players to start tournament');
     }
     
-    // Generate bracket for elimination tournament
     if (tournament.tournament_type === 'elimination') {
       this.generateEliminationBracket(tournamentId, participants, fastify);
     }
 
-    // Update tournament status
     const now = new Date().toISOString();
     db.prepare('UPDATE tournaments SET status = ?, start_time = ?, updated_at = ? WHERE id = ?')
       .run('active', now, now, tournamentId);
 
-    // Try to create on blockchain
-    // Tournament-level blockchain storage removed - only individual matches are stored
-
     return this.getTournament(tournamentId)!;
   }
 
-  /**
-   * Generate elimination bracket
-   */
   private static generateEliminationBracket(tournamentId: string, participants: TournamentParticipant[], fastify?: any): void {
     const playerCount = participants.length;
-    console.log(`🎲 Generating elimination bracket for tournament ${tournamentId} with ${playerCount} participants:`, participants);
+    console.log(` Generating elimination bracket for tournament ${tournamentId} with ${playerCount} participants:`, participants);
     
-    // Get tournament info for notifications
     const tournament = db.prepare('SELECT name FROM tournaments WHERE id = ?').get(tournamentId) as { name: string };
     
-    // Calculate number of rounds needed
-    // const rounds = Math.ceil(Math.log2(playerCount));
-    
-    // Assign seeds
     participants.forEach((participant, index) => {
       db.prepare('UPDATE tournament_participants SET seed = ? WHERE id = ?')
         .run(index + 1, participant.id);
     });
 
-    // Generate first round matches
     const matchesPerRound = Math.floor(playerCount / 2);
-    console.log(`🏆 Creating ${matchesPerRound} matches for first round`);
+    console.log(` Creating ${matchesPerRound} matches for first round`);
     
     for (let i = 0; i < matchesPerRound; i++) {
       const player1 = participants[i * 2];
-      const player2 = participants[i * 2 + 1] || null; // Handle odd number of players
+      const player2 = participants[i * 2 + 1] || null;
 
       const matchId = randomUUID();
       
-      console.log(`⚡ Creating match ${i + 1}: Player ${player1.user_id} vs Player ${player2?.user_id || 'BYE'}`);
+      console.log(` Creating match ${i + 1}: Player ${player1.user_id} vs Player ${player2?.user_id || 'BYE'}`);
       
       db.prepare(`
         INSERT INTO tournament_matches (
@@ -322,7 +285,7 @@ export class TournamentService {
       `).run(
         tournamentId,
         matchId,
-        1, // First round
+        1,
         i + 1,
         player1.user_id,
         player2?.user_id || null,
@@ -330,18 +293,16 @@ export class TournamentService {
         new Date().toISOString()
       );
 
-      console.log(`✅ Match ${matchId} created successfully`);
+      console.log(` Match ${matchId} created successfully`);
 
-      // If odd number and this is the last match with only one player, auto-advance
       if (!player2) {
-        console.log(`🏃 Auto-advancing player ${player1.user_id} (BYE)`);
+        console.log(` Auto-advancing player ${player1.user_id} (BYE)`);
         db.prepare(`
           UPDATE tournament_matches 
           SET winner_id = ?, status = ?, end_time = ? 
           WHERE match_id = ?
         `).run(player1.user_id, 'completed', new Date().toISOString(), matchId);
       } else {
-        // Both players present, match is ready to play - send notification
         if (fastify && fastify.sendTournamentNotification && tournament) {
           fastify.sendTournamentNotification(
             tournamentId,
@@ -350,18 +311,12 @@ export class TournamentService {
             player1.display_name,
             player2.display_name
           );
-          console.log(`💬 Tournament notification sent for match ${matchId}`);
+          console.log(` Tournament notification sent for match ${matchId}`);
         }
       }
     }
   }
 
-  /**
-   * Complete a tournament match
-   */
-  /**
-   * Start a tournament match by setting it to active status
-   */
   static startMatch(matchId: string, userId: number, _fastify?: any): void {
     const match = db.prepare('SELECT * FROM tournament_matches WHERE match_id = ?').get(matchId) as TournamentMatch;
     
@@ -373,17 +328,14 @@ export class TournamentService {
       throw new Error('Match is not available to start');
     }
 
-    // Validate that both players are present
     if (!match.player1_id || !match.player2_id) {
       throw new Error('Cannot start match: waiting for second player');
     }
 
-    // Validate that the user is one of the players
     if (userId !== match.player1_id && userId !== match.player2_id) {
       throw new Error('You are not a participant in this match');
     }
 
-    // Check if the user already has an active match in this tournament
     const activeMatch = db.prepare(`
       SELECT match_id FROM tournament_matches 
       WHERE tournament_id = ? AND status = 'active'
@@ -394,18 +346,14 @@ export class TournamentService {
       throw new Error('You already have an active match in this tournament');
     }
 
-    // Note: Player and tournament info retrieved when notifications are needed
-
     const now = new Date().toISOString();
     
-    // Mark match as active
     db.prepare(`
       UPDATE tournament_matches 
       SET status = 'active', start_time = ?
       WHERE match_id = ?
     `).run(now, matchId);
 
-    // Note: Tournament notifications are sent when matches become available, not when they start
   }
 
   static completeMatch(matchId: string, winnerId: number, player1Score: number, player2Score: number, duration: number, fastify?: any): void {
@@ -419,19 +367,16 @@ export class TournamentService {
       throw new Error('Match is not active');
     }
 
-    // Validate that both players are present
     if (!match.player1_id || !match.player2_id) {
       throw new Error('Cannot complete match: waiting for second player');
     }
 
-    // Validate winner
     if (winnerId !== match.player1_id && winnerId !== match.player2_id) {
       throw new Error('Invalid winner');
     }
 
     const now = new Date().toISOString();
 
-    // Update match avec durée réelle
     db.prepare(`
       UPDATE tournament_matches 
       SET winner_id = ?, player1_score = ?, player2_score = ?, 
@@ -439,50 +384,40 @@ export class TournamentService {
       WHERE match_id = ?
     `).run(winnerId, player1Score, player2Score, 'completed', now, duration, matchId);
 
-    // Advance winner to next round first (creates next match if needed)
     this.advanceWinner(match.tournament_id, winnerId, match.round_number, match.match_order, fastify);
 
-    // Then check if tournament is complete (after potential next match creation)
     this.checkTournamentCompletion(match.tournament_id, fastify);
   }
 
-  /**
-   * Advance winner to next round
-   */
   private static advanceWinner(tournamentId: string, winnerId: number, currentRound: number, currentOrder: number, fastify?: any): void {
-    // Check how many matches are left in current round
     const remainingMatchesInRound = db.prepare(`
       SELECT COUNT(*) as count FROM tournament_matches 
       WHERE tournament_id = ? AND round_number = ? AND status IN ('pending', 'active')
     `).get(tournamentId, currentRound) as { count: number };
 
-    // Check how many matches exist in current round total
     const totalMatchesInRound = db.prepare(`
       SELECT COUNT(*) as count FROM tournament_matches 
       WHERE tournament_id = ? AND round_number = ?
     `).get(tournamentId, currentRound) as { count: number };
 
-    console.log(`🎯 Round ${currentRound}: ${totalMatchesInRound.count} total matches, ${remainingMatchesInRound.count} still pending`);
+    console.log(` Round ${currentRound}: ${totalMatchesInRound.count} total matches, ${remainingMatchesInRound.count} still pending`);
 
-    // If this is the only match in this round AND it's completed, this is the final
     if (totalMatchesInRound.count === 1 && remainingMatchesInRound.count === 0) {
-      console.log(`🏆 This was the final match (only 1 match in round ${currentRound}), tournament should be complete`);
+      console.log(` This was the final match (only 1 match in round ${currentRound}), tournament should be complete`);
       return;
     }
 
     const nextRound = currentRound + 1;
     const nextMatchOrder = Math.ceil(currentOrder / 2);
     
-    console.log(`🏆 Advancing winner ${winnerId} from Round ${currentRound} Match ${currentOrder} to Round ${nextRound} Match ${nextMatchOrder}`);
+    console.log(` Advancing winner ${winnerId} from Round ${currentRound} Match ${currentOrder} to Round ${nextRound} Match ${nextMatchOrder}`);
 
-    // Check if there's already a winner waiting for this next round match
     const existingWinner = db.prepare(`
       SELECT * FROM tournament_matches 
       WHERE tournament_id = ? AND round_number = ? AND match_order = ?
     `).get(tournamentId, nextRound, nextMatchOrder) as TournamentMatch;
 
     if (!existingWinner) {
-      // Create new match but only with player1 (wait for player2)
       const nextMatchId = randomUUID();
       
       console.log(`⚡ Creating new match in Round ${nextRound}: Winner ${winnerId} waiting for opponent`);
@@ -502,21 +437,18 @@ export class TournamentService {
         new Date().toISOString()
       );
     } else {
-      // Update existing match with second player and make it ready
-      console.log(`⚡ Updating existing match in Round ${nextRound}: Adding second player ${winnerId}`);
+      console.log(` Updating existing match in Round ${nextRound}: Adding second player ${winnerId}`);
       
       if (!existingWinner.player2_id && existingWinner.player1_id !== winnerId) {
-        console.log(`⚡ Setting ${winnerId} as player2, match is now ready`);
+        console.log(` Setting ${winnerId} as player2, match is now ready`);
         db.prepare('UPDATE tournament_matches SET player2_id = ? WHERE match_id = ?')
           .run(winnerId, existingWinner.match_id);
         
-        // Send notification about new match ready to play (simplified - same format as initial matches)
         if (fastify && fastify.sendTournamentNotification) {
           const player1 = db.prepare('SELECT display_name FROM users WHERE id = ?').get(existingWinner.player1_id) as { display_name: string };
           const player2 = db.prepare('SELECT display_name FROM users WHERE id = ?').get(winnerId) as { display_name: string };
           const tournament = db.prepare('SELECT name FROM tournaments WHERE id = ?').get(tournamentId) as { name: string };
           
-          // Use the same simple notification format as initial matches
           fastify.sendTournamentNotification(
             tournamentId,
             tournament.name,
@@ -524,27 +456,23 @@ export class TournamentService {
             player1.display_name,
             player2.display_name
           );
-          console.log(`💬 Tournament notification sent for next round match ${existingWinner.match_id}`);
+          console.log(` Tournament notification sent for next round match ${existingWinner.match_id}`);
         }
       } else {
-        console.log(`❌ Cannot add winner ${winnerId} - match already complete or duplicate`);
+        console.log(` Cannot add winner ${winnerId} - match already complete or duplicate`);
       }
     }
   }
 
-  /**
-   * Check if tournament is complete
-   */
   private static checkTournamentCompletion(tournamentId: string, _fastify?: any): void {
     const pendingMatches = db.prepare(`
       SELECT COUNT(*) as count FROM tournament_matches 
       WHERE tournament_id = ? AND status IN ('pending', 'active')
     `).get(tournamentId) as { count: number };
 
-    console.log(`🎯 Checking tournament completion: ${pendingMatches.count} pending matches remaining`);
+    console.log(` Checking tournament completion: ${pendingMatches.count} pending matches remaining`);
 
     if (pendingMatches.count === 0) {
-      // Tournament is complete, find winner
       const finalMatch = db.prepare(`
         SELECT * FROM tournament_matches 
         WHERE tournament_id = ? 
@@ -552,7 +480,7 @@ export class TournamentService {
         LIMIT 1
       `).get(tournamentId) as TournamentMatch;
 
-      console.log(`🏆 Tournament completed! Final match:`, { 
+      console.log(` Tournament completed! Final match:`, { 
         round: finalMatch?.round_number, 
         winner: finalMatch?.winner_id,
         player1: finalMatch?.player1_id,
@@ -562,28 +490,19 @@ export class TournamentService {
       if (finalMatch && finalMatch.winner_id) {
         const now = new Date().toISOString();
         
-        // Update tournament
         db.prepare(`
           UPDATE tournaments 
           SET status = ?, winner_id = ?, end_time = ?, updated_at = ? 
           WHERE id = ?
         `).run('completed', finalMatch.winner_id, now, now, tournamentId);
 
-        console.log(`✅ Tournament ${tournamentId} marked as completed with winner ${finalMatch.winner_id}`);
+        console.log(` Tournament ${tournamentId} marked as completed with winner ${finalMatch.winner_id}`);
 
-        // Note: Blockchain storage is now handled at individual match level, not tournament level
-        console.log(`ℹ️ Tournament completed. Individual matches already stored on blockchain.`);
+        console.log(` Tournament completed. Individual matches already stored on blockchain.`);
       }
     }
   }
 
-
-
-
-
-  /**
-   * Get tournament matches
-   */
   static getTournamentMatches(tournamentId: string): TournamentMatch[] {
     const stmt = db.prepare(`
       SELECT tm.*, 
@@ -599,9 +518,6 @@ export class TournamentService {
     return stmt.all(tournamentId) as TournamentMatch[];
   }
 
-  /**
-   * Get next pending match for a tournament
-   */
   static getNextPendingMatch(tournamentId: string): TournamentMatch | null {
     const stmt = db.prepare(`
       SELECT * FROM tournament_matches 

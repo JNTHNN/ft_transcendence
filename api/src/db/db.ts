@@ -163,7 +163,6 @@ export function migrate(): void {
         db.exec("CREATE INDEX idx_user_sessions_online ON user_sessions(is_online)");
       }
       
-      // Migration pour les colonnes blockchain dans tournament_matches
       try {
         const tournamentMatchesColumns = db.pragma("table_info(tournament_matches)") as any[];
         const hasBlockchainTxHash = tournamentMatchesColumns.some(col => col.name === 'blockchain_tx_hash');
@@ -185,19 +184,16 @@ export function migrate(): void {
         console.warn("Blockchain columns migration failed:", blockchainError);
       }
 
-      // Migration pour permettre player2_id NULL (matchs vs IA)
       try {
         const matchHistoryColumns = db.pragma("table_info(match_history)") as any[];
         const player2Col = matchHistoryColumns.find((col: any) => col.name === 'player2_id');
         
-        // Si player2_id est NOT NULL, on doit recréer la table
         if (player2Col && player2Col.notnull === 1) {
-          console.log("⚙️ Migrating match_history to allow NULL for player2_id (AI matches)...");
+          console.log(" Migrating match_history to allow NULL for player2_id (AI matches)...");
           
           db.exec("PRAGMA foreign_keys=OFF");
           db.exec("BEGIN TRANSACTION");
           
-          // Créer une nouvelle table avec player2_id nullable
           db.exec(`
             CREATE TABLE match_history_new (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -215,26 +211,22 @@ export function migrate(): void {
             )
           `);
           
-          // Copier les données
           db.exec(`
             INSERT INTO match_history_new 
             SELECT * FROM match_history
           `);
           
-          // Supprimer l'ancienne table
           db.exec("DROP TABLE match_history");
           
-          // Renommer la nouvelle table
           db.exec("ALTER TABLE match_history_new RENAME TO match_history");
           
-          // Recréer les index
           db.exec("CREATE INDEX IF NOT EXISTS idx_match_history_player1 ON match_history(player1_id)");
           db.exec("CREATE INDEX IF NOT EXISTS idx_match_history_player2 ON match_history(player2_id)");
           
           db.exec("COMMIT");
           db.exec("PRAGMA foreign_keys=ON");
           
-          console.log("✅ Match history migration completed");
+          console.log(" Match history migration completed");
         }
       } catch (matchHistoryError) {
         console.error("Match history migration failed:", matchHistoryError);

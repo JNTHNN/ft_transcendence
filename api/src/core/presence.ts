@@ -1,11 +1,8 @@
 import Database from 'better-sqlite3';
 
-// Import pour les notifications WebSocket (import dynamique pour éviter les dépendances circulaires)
 let notifyFriendsStatusChange: ((userId: number, isOnline: boolean) => Promise<void>) | null = null;
 
-/**
- * Service pour gérer la présence et le statut en ligne des utilisateurs
- */
+
 export class PresenceService {
   private db: Database.Database;
   private cleanupInterval: any;
@@ -13,30 +10,22 @@ export class PresenceService {
   constructor(db: Database.Database) {
     this.db = db;
     
-    // Nettoyer les sessions inactives toutes les minutes
     this.cleanupInterval = setInterval(() => {
       this.cleanupInactiveSessions();
     }, 60000);
   }
 
-  /**
-   * Marquer un utilisateur comme en ligne
-   */
   setUserOnline(userId: number, sessionToken: string, userAgent?: string, ipAddress?: string): void {
     try {
-      // Vérifier si l'utilisateur était déjà en ligne
       const wasOnline = this.isUserOnline(userId);
       
-      // Supprimer les anciennes sessions pour ce token
       this.db.prepare('DELETE FROM user_sessions WHERE session_token = ?').run(sessionToken);
       
-      // Créer ou mettre à jour la session
       this.db.prepare(`
         INSERT INTO user_sessions (user_id, session_token, last_activity, is_online, user_agent, ip_address)
         VALUES (?, ?, CURRENT_TIMESTAMP, 1, ?, ?)
       `).run(userId, sessionToken, userAgent, ipAddress);
       
-      // Notifier les amis si l'utilisateur vient de se connecter
       if (!wasOnline && notifyFriendsStatusChange) {
 
         notifyFriendsStatusChange(userId, true).catch(_error => {
@@ -50,26 +39,18 @@ export class PresenceService {
     }
   }
 
-  /**
-   * Marquer un utilisateur comme hors ligne
-   */
   setUserOffline(userId: number, sessionToken?: string): void {
     try {
-      // Vérifier si l'utilisateur était en ligne
       const wasOnline = this.isUserOnline(userId);
       
       if (sessionToken) {
-        // Supprimer cette session spécifique
         this.db.prepare('DELETE FROM user_sessions WHERE user_id = ? AND session_token = ?').run(userId, sessionToken);
       } else {
-        // Supprimer toutes les sessions de cet utilisateur
         this.db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(userId);
       }
       
-      // Vérifier si l'utilisateur est maintenant hors ligne
       const isStillOnline = this.isUserOnline(userId);
       
-      // Notifier les amis si l'utilisateur vient de se déconnecter
       if (wasOnline && !isStillOnline && notifyFriendsStatusChange) {
 
         notifyFriendsStatusChange(userId, false).catch(_error => {
@@ -83,9 +64,6 @@ export class PresenceService {
     }
   }
 
-  /**
-   * Mettre à jour l'activité d'un utilisateur
-   */
   updateUserActivity(userId: number, sessionToken: string): void {
     try {
       this.db.prepare(`
@@ -98,9 +76,6 @@ export class PresenceService {
     }
   }
 
-  /**
-   * Vérifier si un utilisateur est en ligne
-   */
   isUserOnline(userId: number): boolean {
     try {
       const session = this.db.prepare(`
@@ -115,9 +90,7 @@ export class PresenceService {
     }
   }
 
-  /**
-   * Obtenir le statut de plusieurs utilisateurs
-   */
+
   getUsersOnlineStatus(userIds: number[]): Map<number, boolean> {
     const statusMap = new Map<number, boolean>();
     
@@ -131,24 +104,18 @@ export class PresenceService {
         AND datetime(last_activity, '+5 minutes') > CURRENT_TIMESTAMP
       `).all(...userIds) as Array<{ user_id: number }>;
 
-      // Initialiser tous comme hors ligne
       userIds.forEach(id => statusMap.set(id, false));
       
-      // Marquer les utilisateurs en ligne
       onlineUsers.forEach(user => statusMap.set(user.user_id, true));
       
     } catch (error) {
 
-      // En cas d'erreur, marquer tous comme hors ligne
       userIds.forEach(id => statusMap.set(id, false));
     }
 
     return statusMap;
   }
 
-  /**
-   * Nettoyer les sessions inactives (plus de 5 minutes)
-   */
   private cleanupInactiveSessions(): void {
     try {
       const result = this.db.prepare(`
@@ -164,9 +131,6 @@ export class PresenceService {
     }
   }
 
-  /**
-   * Obtenir les statistiques de présence
-   */
   getPresenceStats(): { totalOnline: number; totalSessions: number } {
     try {
       const stats = this.db.prepare(`
@@ -187,9 +151,6 @@ export class PresenceService {
     }
   }
 
-  /**
-   * Nettoyer les ressources
-   */
   destroy(): void {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
@@ -202,7 +163,6 @@ let presenceService: PresenceService;
 export function initPresenceService(db: Database.Database): void {
   presenceService = new PresenceService(db);
   
-  // Initialiser la fonction de notification WebSocket (import dynamique)
   import('../friends/ws.js').then(wsModule => {
     notifyFriendsStatusChange = wsModule.notifyFriendsStatusChange;
 
