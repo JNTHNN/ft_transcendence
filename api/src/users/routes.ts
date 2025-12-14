@@ -16,7 +16,6 @@ const updateSchema = z.object({
 export async function registerUserRoutes(app: FastifyInstance, db: Database.Database) {
   app.get('/users', { preHandler: app.auth }, async (_req, res) => {
     try {
-      // Optimisation : seulement les champs nécessaires pour le chat
       const rows = db.prepare(`
         SELECT id, display_name AS displayName, avatar_url as avatarUrl
         FROM users 
@@ -30,7 +29,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Endpoint pour récupérer les utilisateurs bloqués
   app.get('/users/blocked', { preHandler: app.auth }, async (req: any, res) => {
     try {
       const uid = req.user?.uid;
@@ -51,9 +49,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Routes spécifiques AVANT la route générique pour éviter les conflits
-  
-  // Récupérer l'historique des matchs d'un utilisateur spécifique
   app.get('/users/:userId/match-history', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -105,8 +100,7 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Route pour récupérer un utilisateur par ID (pour les noms dans les tournois)
-  // PLACÉE APRÈS les routes spécifiques pour éviter les conflits de routage
+
   app.get('/users/:id', async (req: any, res) => {
     try {
       const userId = parseInt(req.params.id);
@@ -354,11 +348,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // ===============================
-  // ROUTES POUR LE SYSTÈME D'AMIS
-  // ===============================
-
-  // Récupérer la liste des amis
   app.get('/users/friends', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -383,7 +372,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         ORDER BY u.display_name
       `).all(uid, uid, uid) as any[];
 
-      // Obtenir le statut en ligne réel pour chaque ami
       const presenceService = getPresenceService();
       const userIds = friendsData.map(friend => friend.id);
       const onlineStatus = presenceService.getUsersOnlineStatus(userIds);
@@ -400,7 +388,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Récupérer les demandes d'amis en attente
   app.get('/users/friend-requests', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -427,7 +414,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Récupérer les demandes d'amis envoyées (en attente)
   app.get('/users/sent-requests', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -454,7 +440,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Envoyer une demande d'ami
   app.post('/users/:userId/friend-request', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -464,13 +449,11 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
       if (!uid) return res.status(401).send({ error: reqI18n.t('unauthorized') });
       if (uid === targetUserId) return res.status(400).send({ error: reqI18n.tFriends('cannotAddYourself') });
 
-      // Vérifier que l'utilisateur cible existe
       const targetUser = db.prepare('SELECT id FROM users WHERE id = ?').get(targetUserId);
       if (!targetUser) {
         return res.status(404).send({ error: reqI18n.t('userNotFound') });
       }
 
-      // Vérifier qu'il n'y a pas déjà une relation
       const existingFriendship = db.prepare(`
         SELECT id, status, requester_id, receiver_id FROM friendships 
         WHERE (requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)
@@ -480,14 +463,11 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         if (existingFriendship.status === 'accepted') {
           return res.status(409).send({ error: reqI18n.tFriends('alreadyFriends') });
         } else if (existingFriendship.status === 'pending') {
-          // Si l'autre personne nous a déjà envoyé une demande, l'accepter automatiquement
           if (existingFriendship.requester_id === targetUserId && existingFriendship.receiver_id === uid) {
-            // Accepter la demande existante au lieu d'en créer une nouvelle
             db.prepare(`
               UPDATE friendships SET status = 'accepted' WHERE id = ?
             `).run(existingFriendship.id);
             
-            // Notifier les deux utilisateurs via WebSocket
             notifyFriendsUsers([uid, targetUserId], {
               type: 'friend_accepted',
               data: {
@@ -504,7 +484,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
               autoAccepted: true 
             });
           } else {
-            // Si c'est nous qui avons déjà envoyé une demande
             return res.status(409).send({ error: reqI18n.tFriends('requestAlreadySent') });
           }
         } else if (existingFriendship.status === 'blocked') {
@@ -512,13 +491,11 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         }
       }
 
-      // Créer la demande d'ami
       const result = db.prepare(`
         INSERT INTO friendships (requester_id, receiver_id, status)
         VALUES (?, ?, 'pending')
       `).run(uid, targetUserId);
 
-      // Notifier le receveur de la nouvelle demande reçue
       notifyFriendsUsers([targetUserId], {
         type: 'friend_request_received',
         data: {
@@ -528,7 +505,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         }
       });
       
-      // Notifier l'expéditeur de la demande envoyée
       notifyFriendsUsers([uid], {
         type: 'friend_request_sent',
         data: {
@@ -545,7 +521,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Accepter une demande d'ami
   app.put('/users/friend-requests/:requestId/accept', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -570,7 +545,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         WHERE id = ?
       `).run(requestId);
 
-      // Notifier les deux utilisateurs via WebSocket
       notifyFriendsUsers([uid, (request as any).requester_id], {
         type: 'friend_accepted',
         data: {
@@ -587,7 +561,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Refuser une demande d'ami
   app.delete('/users/friend-requests/:requestId', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -607,7 +580,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
 
       db.prepare('DELETE FROM friendships WHERE id = ?').run(requestId);
 
-      // Notifier les deux utilisateurs du refus
       notifyFriendsUsers([uid, (request as any).requester_id], {
         type: 'friend_request_declined',
         data: {
@@ -624,7 +596,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Annuler une demande d'ami envoyée
   app.delete('/users/sent-requests/:requestId', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -633,7 +604,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
       
       if (!uid) return res.status(401).send({ error: reqI18n.t('unauthorized') });
 
-      // Vérifier que la demande existe et appartient à l'utilisateur connecté
       const request = db.prepare(`
         SELECT id, requester_id, receiver_id FROM friendships 
         WHERE id = ? AND requester_id = ? AND status = 'pending'
@@ -645,7 +615,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
 
       db.prepare('DELETE FROM friendships WHERE id = ?').run(requestId);
 
-      // Notifier les deux utilisateurs de l'annulation
       notifyFriendsUsers([uid, (request as any).receiver_id], {
         type: 'friend_request_cancelled',
         data: {
@@ -662,7 +631,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Supprimer un ami
   app.delete('/users/:userId/friend', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -683,7 +651,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
 
       db.prepare('DELETE FROM friendships WHERE id = ?').run(friendship.id);
 
-      // Notifier les deux utilisateurs de la suppression
       notifyFriendsUsers([uid, friendUserId], {
         type: 'friend_removed',
         data: {
@@ -700,7 +667,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Rechercher des utilisateurs pour les ajouter en ami
   app.get('/users/search', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -738,7 +704,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Route pour obtenir le statut en ligne d'utilisateurs spécifiques
   app.post('/users/online-status', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -753,7 +718,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
       const presenceService = getPresenceService();
       const onlineStatus = presenceService.getUsersOnlineStatus(userIds);
       
-      // Convertir la Map en objet pour la réponse JSON
       const statusObject: Record<number, boolean> = {};
       onlineStatus.forEach((status: boolean, userId: number) => {
         statusObject[userId] = status;
@@ -766,7 +730,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Route pour obtenir les statistiques de présence
   app.get('/users/presence-stats', { preHandler: app.auth }, async (_req: any, res) => {
     try {
       const presenceService = getPresenceService();
@@ -778,11 +741,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // ===============================
-  // ROUTES POUR L'HISTORIQUE DES MATCHS
-  // ===============================
-
-  // Récupérer l'historique des matchs de l'utilisateur connecté
   app.get('/users/match-history', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -829,7 +787,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Récupérer les statistiques d'un utilisateur - DÉPLACÉ PLUS HAUT
   app.get('/users/:userId/stats', { preHandler: app.auth }, async (req: any, res) => {
     const reqI18n = createI18nForRequest(req.headers);
     try {
@@ -865,13 +822,11 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
     }
   });
 
-  // Route pour récupérer les statistiques étendues de l'utilisateur connecté
   app.get('/users/me/stats', { preHandler: app.auth }, async (req: any, res) => {
     try {
       const uid = req.user?.uid;
       if (!uid) return res.status(401).send({ error: 'Unauthorized' });
 
-      // Statistiques de base
       const basicStats = db.prepare(`
         SELECT 
           COUNT(*) as totalGames,
@@ -885,7 +840,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         WHERE player1_id = ? OR player2_id = ?
       `).get(uid, uid, uid, uid, uid, uid, uid, uid) as any;
 
-      // Statistiques par mode de jeu
       const modeStats = db.prepare(`
         SELECT 
           match_type,
@@ -897,7 +851,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         GROUP BY match_type
       `).all(uid, uid, uid, uid);
 
-      // Jeux cette semaine et ce mois
       const timeStats = db.prepare(`
         SELECT 
           SUM(CASE WHEN created_at > datetime('now', '-7 days') THEN 1 ELSE 0 END) as gamesThisWeek,
@@ -906,7 +859,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         WHERE player1_id = ? OR player2_id = ?
       `).get(uid, uid) as any;
 
-      // Progression récente (derniers matchs avec score)
       const recentPerformance = db.prepare(`
         SELECT 
           id as match_id,
@@ -919,7 +871,6 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         LIMIT 10
       `).all(uid, uid, uid, uid);
 
-      // Calcul des streaks (série de victoires/défaites)
       const matches = db.prepare(`
         SELECT CASE WHEN winner_id = ? THEN 'win' ELSE 'loss' END as result
         FROM match_history 
@@ -951,12 +902,10 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
         }
       }
 
-      // Vérifier si le streak actuel est le meilleur
       if (lastResult === 'win' && tempStreak > bestStreak) {
         bestStreak = tempStreak;
       }
 
-      // Transformer les stats par mode en objets
       const winsByMode: { [mode: string]: number } = {};
       const lossesByMode: { [mode: string]: number } = {};
       

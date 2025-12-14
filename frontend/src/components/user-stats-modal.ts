@@ -1,9 +1,7 @@
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 
-// Helper pour extraire l'heure locale depuis une date
 function getLocalTime(dateString: string): string {
-  // S'assurer que la date est interprétée comme UTC
   let dateStr = dateString;
   if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
     dateStr = dateStr.replace(' ', 'T') + 'Z';
@@ -16,14 +14,11 @@ function getLocalTime(dateString: string): string {
     month: '2-digit',
     year: 'numeric'
   });
-  // Extraire uniquement la partie heure (après l'espace ou la virgule)
   const parts = fullDate.split(/[,\s]+/);
-  return parts[parts.length - 1]; // Retourne la dernière partie qui est l'heure
+  return parts[parts.length - 1];
 }
 
-// Helper pour formater la date locale depuis une date UTC
 function getLocalDate(dateString: string): string {
-  // S'assurer que la date est interprétée comme UTC
   let dateStr = dateString;
   if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
     dateStr = dateStr.replace(' ', 'T') + 'Z';
@@ -62,7 +57,6 @@ export async function createUserStatsModal(userId: number, userName: string, ava
   modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4';
   modal.id = 'user-stats-modal';
 
-  // Formater l'avatar avec l'API base URL pour les uploads locaux
   const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
   if (avatarUrl && avatarUrl.startsWith('/uploads/')) {
     avatarUrl = `${apiBaseUrl}${avatarUrl}`;
@@ -171,7 +165,6 @@ export async function createUserStatsModal(userId: number, userName: string, ava
 
   async function loadMatchHistory() {
     try {
-      // Utiliser la route spécifique pour l'historique de cet utilisateur
       const endpoint = userId ? `/users/${userId}/match-history` : '/users/match-history';
       const response = await api(endpoint);
       const matches: MatchHistoryItem[] = response.matches;

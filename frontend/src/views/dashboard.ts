@@ -3,7 +3,6 @@ import { router } from "../router";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 
-// Rendre le router disponible globalement pour les onclick
 (window as any).router = router;
 
 interface UserStats {
@@ -36,7 +35,6 @@ export default async function DashboardView() {
   const container = document.createElement("div");
   container.className = "max-w-7xl mx-auto p-4 md:p-6";
 
-  // Header
   const header = document.createElement("div");
   header.className = "mb-6 md:mb-8";
   header.innerHTML = `
@@ -44,19 +42,15 @@ export default async function DashboardView() {
     <p class="text-text/70 text-base md:text-lg">${t('dashboard.subtitle')}</p>
   `;
 
-  // Main grid layout
   const mainGrid = document.createElement("div");
   mainGrid.className = "grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6";
 
-  // Stats Overview (1/3 width)
   const statsOverview = document.createElement("div");
   statsOverview.className = "lg:col-span-1 space-y-4 md:space-y-6";
   
-  // Performance Chart (2/3 width)
   const chartSection = document.createElement("div");
   chartSection.className = "lg:col-span-2 space-y-4 md:space-y-6";
 
-  // Stats cards
   const statsCards = document.createElement("div");
   statsCards.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
   statsCards.innerHTML = `
@@ -68,7 +62,6 @@ export default async function DashboardView() {
     </div>
   `;
 
-  // Performance chart
   const performanceChart = document.createElement("div");
   performanceChart.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
   performanceChart.innerHTML = `
@@ -80,7 +73,6 @@ export default async function DashboardView() {
     </div>
   `;
 
-  // Win/Loss distribution
   const distributionChart = document.createElement("div");
   distributionChart.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
   distributionChart.innerHTML = `
@@ -92,7 +84,6 @@ export default async function DashboardView() {
     </div>
   `;
 
-  // Recent activity
   const recentActivity = document.createElement("div");
   recentActivity.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
   recentActivity.innerHTML = `
@@ -104,7 +95,6 @@ export default async function DashboardView() {
     </div>
   `;
 
-  // Game mode stats
   const gameModeStats = document.createElement("div");
   gameModeStats.className = "bg-prem rounded-lg p-4 md:p-6 shadow-xl";
   gameModeStats.innerHTML = `
@@ -116,7 +106,6 @@ export default async function DashboardView() {
     </div>
   `;
 
-  // Assemble layout
   statsOverview.appendChild(statsCards);
   statsOverview.appendChild(recentActivity);
   
@@ -126,7 +115,6 @@ export default async function DashboardView() {
   mainGrid.appendChild(statsOverview);
   mainGrid.appendChild(chartSection);
 
-  // Full width sections
   const fullWidthSection = document.createElement("div");
   fullWidthSection.className = "mt-4 md:mt-6";
   fullWidthSection.appendChild(gameModeStats);
@@ -135,7 +123,6 @@ export default async function DashboardView() {
   container.appendChild(mainGrid);
   container.appendChild(fullWidthSection);
 
-  // Load data after DOM is ready
   setTimeout(() => {
     loadDashboardData();
   }, 100);
@@ -144,12 +131,10 @@ export default async function DashboardView() {
 
   async function loadDashboardData() {
     try {
-      // Load basic stats
       const statsResponse = await api('/users/me/stats');
       const stats: UserStats = statsResponse.stats;
       renderStatsCards(stats);
 
-      // Load match history for charts
       const historyResponse = await api('/users/match-history');
       const matches: MatchHistoryItem[] = historyResponse.matches;
       
@@ -209,17 +194,14 @@ export default async function DashboardView() {
     const container = document.getElementById('performance-chart');
     if (!container) return;
 
-    // Create a simple line chart using Canvas
     container.innerHTML = `<canvas id="perf-canvas" class="w-full h-full"></canvas>`;
     const canvas = document.getElementById('perf-canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
 
-    // Prepare data - last 10 matches performance
     const recentMatches = matches.slice(0, 10).reverse();
     const winRate = recentMatches.map((_, index) => {
       const slice = recentMatches.slice(0, index + 1);
@@ -232,21 +214,17 @@ export default async function DashboardView() {
       return;
     }
 
-    // Draw chart
     const width = canvas.width;
     const height = canvas.height;
     const padding = 40;
     const chartWidth = width - 2 * padding;
     const chartHeight = height - 2 * padding;
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Draw grid
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
     
-    // Horizontal lines
     for (let i = 0; i <= 4; i++) {
       const y = padding + (chartHeight / 4) * i;
       ctx.beginPath();
@@ -255,7 +233,6 @@ export default async function DashboardView() {
       ctx.stroke();
     }
 
-    // Vertical lines
     const stepX = chartWidth / Math.max(winRate.length - 1, 1);
     for (let i = 0; i < winRate.length; i++) {
       const x = padding + stepX * i;
@@ -265,8 +242,7 @@ export default async function DashboardView() {
       ctx.stroke();
     }
 
-    // Draw line
-    ctx.strokeStyle = '#22d3ee'; // sec color
+    ctx.strokeStyle = '#22d3ee'; 
     ctx.lineWidth = 3;
     ctx.beginPath();
 
@@ -283,7 +259,6 @@ export default async function DashboardView() {
 
     ctx.stroke();
 
-    // Draw points
     ctx.fillStyle = '#22d3ee';
     winRate.forEach((rate, index) => {
       const x = padding + stepX * index;
@@ -293,19 +268,16 @@ export default async function DashboardView() {
       ctx.fill();
     });
 
-    // Draw labels
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'center';
     
-    // Y-axis labels
     for (let i = 0; i <= 4; i++) {
       const y = padding + (chartHeight / 4) * i;
       const value = 100 - (i * 25);
       ctx.fillText(`${value}%`, padding - 20, y + 4);
     }
 
-    // Title
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.font = 'bold 14px sans-serif';
     ctx.textAlign = 'center';
@@ -339,8 +311,7 @@ export default async function DashboardView() {
 
     const winAngle = (wins / total) * 2 * Math.PI;
 
-    // Draw pie chart
-    // Wins slice
+ 
     ctx.fillStyle = '#22c55e';
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -348,7 +319,6 @@ export default async function DashboardView() {
     ctx.closePath();
     ctx.fill();
 
-    // Losses slice
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -356,17 +326,14 @@ export default async function DashboardView() {
     ctx.closePath();
     ctx.fill();
 
-    // Labels
     ctx.fillStyle = 'white';
     ctx.font = 'bold 14px sans-serif';
     ctx.textAlign = 'center';
 
-    // Win percentage
     const winPercent = ((wins / total) * 100).toFixed(1);
     ctx.fillText(`${wins} Wins`, centerX, centerY - 30);
     ctx.fillText(`(${winPercent}%)`, centerX, centerY - 10);
 
-    // Loss percentage  
     const lossPercent = ((losses / total) * 100).toFixed(1);
     ctx.fillText(`${losses} Losses`, centerX, centerY + 15);
     ctx.fillText(`(${lossPercent}%)`, centerX, centerY + 35);
@@ -412,7 +379,6 @@ export default async function DashboardView() {
     const container = document.getElementById('gamemode-stats');
     if (!container) return;
 
-    // Group matches by type
     const modeStats: { [mode: string]: { wins: number; losses: number; total: number } } = {};
     
     matches.forEach(match => {

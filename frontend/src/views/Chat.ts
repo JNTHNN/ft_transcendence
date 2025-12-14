@@ -43,7 +43,6 @@ export default async function View() {
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-4 md:mt-8 p-4 md:p-0";
   
-  // Variable pour la fonction de mise à jour des utilisateurs en ligne
   let updateOnlineUsersFromWS: ((users: any[]) => void) | null = null;
 
   wrap.innerHTML = `
@@ -118,7 +117,6 @@ export default async function View() {
   let typingTimeout: NodeJS.Timeout | null = null;
   const readReceipts: Map<string, Set<number>> = new Map();
 
-  // Formater la date et l'heure comme : 06/12/2025 · 13:18
   const formatDateTime = (timestamp: number) => {
     const date = new Date(timestamp);
     const dateStr = date.toLocaleDateString('fr-FR', {
@@ -133,7 +131,6 @@ export default async function View() {
     return `${dateStr} · ${timeStr}`;
   };
 
-  // Mettre à jour l'indicateur de saisie
   const updateTypingIndicator = () => {
     if (typingUsers.size === 0) {
       typingIndicator.textContent = '';
@@ -150,7 +147,6 @@ export default async function View() {
     }
   };
 
-  // Envoyer un indicateur de saisie
   const sendTypingIndicator = (isTyping: boolean) => {
     if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
       chatSocket.send(JSON.stringify({
@@ -160,7 +156,6 @@ export default async function View() {
     }
   };
 
-  // Envoyer un accusé de lecture
   const sendReadReceipt = (messageId: string) => {
     if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
       chatSocket.send(JSON.stringify({
@@ -253,11 +248,9 @@ export default async function View() {
       `;
     }
     else if (msg.type === 'online_users_update' && msg.users) {
-      // Mise à jour en temps réel des utilisateurs en ligne
       if (updateOnlineUsersFromWS) {
         updateOnlineUsersFromWS(msg.users);
       }
-      // Ne pas afficher ce message dans le chat - retourner un élément vide
       return document.createElement("div");
     }
     else if (msg.type === 'game_invite_declined' && msg.gameInvite) {
@@ -332,13 +325,11 @@ export default async function View() {
       const isMyMessage = msg.userId === currentUserId;
       const messageId = msg.id || `msg_${msg.timestamp}`;
       
-      // Déterminer l'état de lecture
       const readers = readReceipts.get(messageId);
       const readCount = readers ? readers.size : 0;
       const hasReadBy = msg.readBy && msg.readBy.length > 0;
       const isRead = readCount > 0 || hasReadBy;
       
-      // ✓ gris si non lu, ✓✓ vert si lu (seulement pour mes messages)
       const readIndicator = isMyMessage 
         ? isRead 
           ? `<span class="text-xs text-green-400" title="${readCount || msg.readBy?.length || 0} personne(s) ont lu">✓✓</span>`
@@ -389,7 +380,6 @@ export default async function View() {
   };
 
   const addMessage = (msg: ChatMessage, sendReceipt: boolean = false) => {
-    // Initialiser les readReceipts depuis le message si disponible (seulement pour MES messages)
     const currentUserId = authManager.getState().user?.id;
     if (msg.id && msg.readBy && msg.userId === currentUserId) {
       const messageId = msg.id;
@@ -402,14 +392,12 @@ export default async function View() {
     }
     
     const messageElement = createMessageElement(msg);
-    // Ne pas ajouter d'éléments vides pour les messages système
     if (msg.type === 'online_users_update') {
       return;
     }
     messagesContainer.appendChild(messageElement);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     
-    // Envoyer un read receipt pour les messages des autres (seulement si demandé)
     if (sendReceipt) {
       if (msg.type === 'user' && msg.userId !== currentUserId && msg.id) {
         sendReadReceipt(msg.id);
@@ -417,11 +405,9 @@ export default async function View() {
     }
   };
 
-  // Fonctions globales pour les boutons
   (window as any).showUserProfile = (userId: number, username: string, avatarUrl?: string) => {
     const currentUserId = authManager.getState().user?.id;
     
-    // Ne pas permettre d'ouvrir son propre profil depuis le chat
     if (currentUserId === userId) {
       return;
     }
@@ -483,10 +469,8 @@ export default async function View() {
       const currentUser = authManager.getState().user;
       if (!currentUser) return;
 
-      // Générer un ID unique pour la partie
       const gameId = `game-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      // Envoyer l'invitation via WebSocket
       if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
         chatSocket.send(JSON.stringify({
           type: 'game_invite',
@@ -500,7 +484,6 @@ export default async function View() {
 
       (window as any).closeModal();
       
-      // Afficher un message de confirmation
       addMessage({
         type: 'system',
         text: `${t('chat.invitationSent') || 'Invitation envoyée à'} ${username}`,
@@ -515,7 +498,6 @@ export default async function View() {
     const currentUser = authManager.getState().user;
     if (!currentUser) return;
 
-    // Envoyer le refus via WebSocket
     if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
       chatSocket.send(JSON.stringify({
         type: 'game_invite_declined',
@@ -527,13 +509,11 @@ export default async function View() {
       }));
     }
 
-    // Supprimer le message d'invitation
     const inviteContainer = buttonElement.closest('.bg-green-600\\/20');
     if (inviteContainer) {
       inviteContainer.remove();
     }
 
-    // Afficher un message de confirmation locale
     addMessage({
       type: 'system',
       text: `${t('chat.inviteDeclined') || 'Invitation refusée'}`,
@@ -542,13 +522,10 @@ export default async function View() {
   };
 
   (window as any).viewProfile = async (userId: number, username: string, avatarUrl?: string) => {
-    // Fermer la modale du chat d'abord
     (window as any).closeModal();
     
-    // Petit délai pour s'assurer que la modale du chat est bien fermée
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Utiliser la fonction globale définie dans user-stats-modal.ts
     if ((window as any).viewUserStats) {
       await (window as any).viewUserStats(userId, username, avatarUrl);
     }
@@ -601,11 +578,9 @@ export default async function View() {
     }
   };
 
-  // Assigner la fonction pour la mise à jour des utilisateurs en ligne depuis WebSocket
   updateOnlineUsersFromWS = (users: any[]) => {
     const currentUserId = authManager.getState().user?.id;
     
-    // Formater les avatars avec l'API base URL pour les uploads locaux
     const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
     users.forEach(user => {
       if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
@@ -613,7 +588,6 @@ export default async function View() {
       }
     });
     
-    // Filtrer les utilisateurs bloqués
     const filteredUsers = users.filter((user: any) => !blockedUsers.has(user.userId));
     
     if (filteredUsers.length === 0) {
@@ -647,16 +621,13 @@ export default async function View() {
     }).join('');
   };
 
-  // Gestion des utilisateurs en ligne (charge initiale)
   const updateOnlineUsers = async () => {
     try {
       const response = await api('/chat/online-users');
       const currentUserId = authManager.getState().user?.id;
       
-      // Gérer à la fois {users: []} et [] comme format de réponse
       const onlineUsers = Array.isArray(response) ? response : (response.users || []);
       
-      // Formater les avatars avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       onlineUsers.forEach((user: any) => {
         if (user.avatarUrl && user.avatarUrl.startsWith('/uploads/')) {
@@ -664,7 +635,6 @@ export default async function View() {
         }
       });
       
-      // Filtrer les utilisateurs bloqués
       const filteredUsers = onlineUsers.filter((user: any) => !blockedUsers.has(user.userId));
       
       if (filteredUsers.length === 0) {
@@ -703,13 +673,11 @@ export default async function View() {
     }
   };
 
-  // Gestion des utilisateurs bloqués
   const updateBlockedUsers = async () => {
     try {
       const blocked = await api('/chat/blocked');
       blockedUsers = new Set(blocked.map((b: any) => b.blockedUserId));
       
-      // Formater les avatars avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       blocked.forEach((user: any) => {
         if (user.blockedUserAvatar && user.blockedUserAvatar.startsWith('/uploads/')) {
@@ -750,18 +718,13 @@ export default async function View() {
     }
   };
 
-  // Charger les messages récents et l'état initial
   const loadInitialData = async () => {
     try {
-      // Charger les utilisateurs bloqués en premier
       await updateBlockedUsers();
       
-      // Les messages seront chargés automatiquement via le WebSocket (type 'history')
-      
-      // Charger les utilisateurs en ligne (charge initiale uniquement)
+
       await updateOnlineUsers();
       
-      // Scroll automatique vers le bas après chargement
       setTimeout(() => {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }, 100);
@@ -770,13 +733,10 @@ export default async function View() {
     }
   };
 
-  // Connexion WebSocket avec authentification
   chatSocket = connectWS('/ws/chat', (msg: any) => {
-    // Gérer l'historique initial
     if (msg.type === 'history' && msg.messages) {
       messagesContainer.innerHTML = '';
       
-      // Formater les avatars avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       msg.messages.forEach((historyMsg: ChatMessage) => {
         if (historyMsg.avatarUrl && historyMsg.avatarUrl.startsWith('/uploads/')) {
@@ -785,7 +745,6 @@ export default async function View() {
       });
       
       msg.messages.forEach((historyMsg: ChatMessage) => {
-        // Filtrer les messages des utilisateurs bloqués
         if (historyMsg.type === 'user' && historyMsg.userId && blockedUsers.has(historyMsg.userId)) {
           return;
         }
@@ -795,7 +754,6 @@ export default async function View() {
     }
     
     if (msg.type === 'typing_indicator') {
-      // Gérer l'indicateur de saisie
       if (msg.isTyping) {
         typingUsers.set(msg.userId, msg.username);
       } else {
@@ -803,13 +761,10 @@ export default async function View() {
       }
       updateTypingIndicator();
     } else if (msg.type === 'read_receipt' && msg.messageId) {
-      // Gérer l'accusé de lecture - seulement pour mes messages
       const messageElement = messagesContainer.querySelector(`[data-message-id="${msg.messageId}"]`);
       if (messageElement) {
-        // Vérifier si c'est mon message en regardant si l'élément contient un indicateur de lecture
         const hasReadIndicator = messageElement.querySelector('.text-green-400, .text-gray-400');
         if (hasReadIndicator) {
-          // C'est mon message, mettre à jour le read receipt
           if (!readReceipts.has(msg.messageId)) {
             readReceipts.set(msg.messageId, new Set());
           }
@@ -818,7 +773,6 @@ export default async function View() {
           const readers = readReceipts.get(msg.messageId);
           const readCount = readers ? readers.size : 0;
           
-          // Mettre à jour l'indicateur de lecture (✓ gris vers ✓✓ vert)
           let existingIndicator = messageElement.querySelector('.text-green-400, .text-gray-400');
           if (existingIndicator) {
             existingIndicator.className = 'text-xs text-green-400';
@@ -828,25 +782,21 @@ export default async function View() {
         }
       }
     } else if (msg.type === 'user' || msg.type === 'system' || msg.type === 'tournament_notification' || msg.type === 'tournament_start' || msg.type === 'tournament_end' || msg.type === 'game_invite' || msg.type === 'game_invite_declined' || msg.type === 'online_users_update') {
-      // Filtrer les messages des utilisateurs bloqués
       if (msg.type === 'user' && msg.userId && blockedUsers.has(msg.userId)) {
         return;
       }
       
-      // Formater l'avatar avec l'API base URL pour les uploads locaux
       const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
       if (msg.avatarUrl && msg.avatarUrl.startsWith('/uploads/')) {
         msg.avatarUrl = `${apiBaseUrl}${msg.avatarUrl}`;
       }
       
-      // Ajouter le message et envoyer un read receipt pour les messages des autres utilisateurs
       const currentUserId = authManager.getState().user?.id;
       const shouldSendReceipt = msg.type === 'user' && msg.userId !== currentUserId && msg.id;
       addMessage(msg, shouldSendReceipt);
     }
-  }, true); // 🔧 Passer needsAuth=true pour envoyer le token
+  }, true);
 
-  // Envoyer un message
   const sendMessage = () => {
     const message = messageInput.value.trim();
     if (!message || !chatSocket) return;
@@ -858,7 +808,6 @@ export default async function View() {
 
     messageInput.value = "";
     
-    // Arrêter l'indicateur de saisie
     sendTypingIndicator(false);
   };
 
@@ -870,25 +819,20 @@ export default async function View() {
     }
   });
 
-  // Gérer l'indicateur de saisie
   messageInput.addEventListener("input", () => {
     const hasText = messageInput.value.trim().length > 0;
     
     if (hasText) {
-      // Envoyer typing = true
       sendTypingIndicator(true);
       
-      // Réinitialiser le timeout
       if (typingTimeout) {
         clearTimeout(typingTimeout);
       }
       
-      // Arrêter automatiquement après 3 secondes d'inactivité
       typingTimeout = setTimeout(() => {
         sendTypingIndicator(false);
       }, 3000);
     } else {
-      // Arrêter l'indicateur si le champ est vide
       sendTypingIndicator(false);
       if (typingTimeout) {
         clearTimeout(typingTimeout);
@@ -897,17 +841,14 @@ export default async function View() {
     }
   });
 
-  // Fermer le modal en cliquant à l'extérieur
   userModal.addEventListener("click", (e) => {
     if (e.target === userModal) {
       (window as any).closeModal();
     }
   });
 
-  // Charger les données initiales
   await loadInitialData();
 
-  // Cleanup quand on quitte la vue
   const cleanup = () => {
     if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
       chatSocket.close();
@@ -917,10 +858,8 @@ export default async function View() {
     }
   };
 
-  // Nettoyer lors de la navigation ou fermeture de la page
   window.addEventListener('beforeunload', cleanup);
   
-  // Observer quand l'élément est retiré du DOM (navigation)
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.removedNodes.forEach((node) => {
@@ -933,11 +872,9 @@ export default async function View() {
     });
   });
   
-  // Observer le parent du wrap
   if (wrap.parentElement) {
     observer.observe(wrap.parentElement, { childList: true });
   } else {
-    // Si pas encore dans le DOM, observer après insertion
     setTimeout(() => {
       if (wrap.parentElement) {
         observer.observe(wrap.parentElement, { childList: true });

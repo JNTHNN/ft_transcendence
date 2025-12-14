@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS temp_login_tokens (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Table pour les relations d'amitié
 CREATE TABLE IF NOT EXISTS friendships (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   requester_id INTEGER NOT NULL,
@@ -48,7 +47,6 @@ CREATE TABLE IF NOT EXISTS friendships (
   UNIQUE(requester_id, receiver_id)
 );
 
--- Table pour l'historique des matchs
 CREATE TABLE IF NOT EXISTS match_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   player1_id INTEGER NOT NULL,
@@ -57,21 +55,19 @@ CREATE TABLE IF NOT EXISTS match_history (
   player2_score INTEGER NOT NULL DEFAULT 0,
   winner_id INTEGER,
   match_type TEXT NOT NULL DEFAULT 'solo' CHECK (match_type IN ('solo', 'local', 'online', 'tournament')),
-  duration INTEGER, -- durée en secondes
+  duration INTEGER,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- Index pour améliorer les performances des requêtes d'amis
 CREATE INDEX IF NOT EXISTS idx_friendships_requester ON friendships(requester_id);
 CREATE INDEX IF NOT EXISTS idx_friendships_receiver ON friendships(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships(status);
 CREATE INDEX IF NOT EXISTS idx_match_history_player1 ON match_history(player1_id);
 CREATE INDEX IF NOT EXISTS idx_match_history_player2 ON match_history(player2_id);
 
--- Table pour tracker les sessions utilisateur et le statut en ligne
 CREATE TABLE IF NOT EXISTS user_sessions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
@@ -88,9 +84,8 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_online ON user_sessions(is_online);
 
--- Tables pour les tournois
 CREATE TABLE IF NOT EXISTS tournaments (
-  id TEXT PRIMARY KEY, -- UUID généré côté app
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   max_players INTEGER NOT NULL DEFAULT 8,
@@ -107,13 +102,12 @@ CREATE TABLE IF NOT EXISTS tournaments (
   FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- Participants d'un tournoi
 CREATE TABLE IF NOT EXISTS tournament_participants (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   tournament_id TEXT NOT NULL,
   user_id INTEGER NOT NULL,
-  display_name TEXT NOT NULL, -- Nom affiché dans le tournoi
-  seed INTEGER, -- Position dans le bracket
+  display_name TEXT NOT NULL,
+  seed INTEGER,
   eliminated_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
@@ -121,13 +115,12 @@ CREATE TABLE IF NOT EXISTS tournament_participants (
   UNIQUE(tournament_id, user_id)
 );
 
--- Matchs d'un tournoi
 CREATE TABLE IF NOT EXISTS tournament_matches (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   tournament_id TEXT NOT NULL,
-  match_id TEXT UNIQUE NOT NULL, -- ID unique du match
-  round_number INTEGER NOT NULL, -- 1 = première ronde, 2 = demi-finales, etc.
-  match_order INTEGER NOT NULL, -- Ordre dans la ronde
+  match_id TEXT UNIQUE NOT NULL,
+  round_number INTEGER NOT NULL,
+  match_order INTEGER NOT NULL,
   player1_id INTEGER,
   player2_id INTEGER,
   player1_score INTEGER DEFAULT 0,
@@ -137,15 +130,14 @@ CREATE TABLE IF NOT EXISTS tournament_matches (
   start_time DATETIME,
   end_time DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  blockchain_tx_hash TEXT, -- Hash de transaction blockchain pour ce match
-  blockchain_match_id TEXT, -- ID du match sur la blockchain
+  blockchain_tx_hash TEXT,
+  blockchain_match_id TEXT,
   FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
   FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE SET NULL,
   FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE SET NULL,
   FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- Index pour les tournois
 CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments(status);
 CREATE INDEX IF NOT EXISTS idx_tournaments_creator ON tournaments(creator_id);
 CREATE INDEX IF NOT EXISTS idx_tournament_participants_tournament ON tournament_participants(tournament_id);
@@ -154,7 +146,6 @@ CREATE INDEX IF NOT EXISTS idx_tournament_matches_tournament ON tournament_match
 CREATE INDEX IF NOT EXISTS idx_tournament_matches_round ON tournament_matches(round_number);
 CREATE INDEX IF NOT EXISTS idx_tournament_matches_status ON tournament_matches(status);
 
--- Table pour les messages de chat persistés
 CREATE TABLE IF NOT EXISTS chat_messages (
   id TEXT PRIMARY KEY,
   type TEXT NOT NULL CHECK (type IN ('message', 'system', 'game_invite', 'tournament_notification', 'tournament_start', 'tournament_end', 'user_join', 'user_leave')),
@@ -162,7 +153,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   username TEXT,
   text TEXT,
   tournament_id TEXT,
-  game_invite_data TEXT, -- JSON pour les invitations
+  game_invite_data TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
@@ -170,7 +161,6 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_type ON chat_messages(type);
 
--- Table pour les utilisateurs bloqués dans le chat
 CREATE TABLE IF NOT EXISTS user_blocks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   blocker_id INTEGER NOT NULL,
@@ -184,7 +174,6 @@ CREATE TABLE IF NOT EXISTS user_blocks (
 CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks(blocker_id);
 CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id);
 
--- Table pour les read receipts (accusés de lecture)
 CREATE TABLE IF NOT EXISTS message_read_receipts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   message_id TEXT NOT NULL,

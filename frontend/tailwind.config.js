@@ -23,12 +23,12 @@ export default {
   plugins: [
     function({ addBase }) {
       addBase({
-        // Firefox (standard CSS)
+        
         '*': {
           'scrollbar-width': 'thin',
           'scrollbar-color': '#06492D #1a1a1a',
         },
-        // Chrome, Edge, Safari (webkit)
+       
         '::-webkit-scrollbar': {
           width: '8px',
         },

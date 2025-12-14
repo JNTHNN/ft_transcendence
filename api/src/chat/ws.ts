@@ -32,7 +32,6 @@ interface ChatMessage {
 const chatConnections = new Map<number, any>();
 const typingTimeouts = new Map<number, NodeJS.Timeout>();
 
-// Fonction pour sauvegarder un message dans la base de données
 function saveMessage(db: Database, userId: number, username: string, text: string): string | null {
   try {
     const id = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -49,7 +48,6 @@ function saveMessage(db: Database, userId: number, username: string, text: strin
   }
 }
 
-// Fonction pour charger les read receipts d'un message
 function getMessageReadReceipts(db: Database, messageId: string): number[] {
   try {
     const stmt = db.prepare(`
@@ -63,10 +61,8 @@ function getMessageReadReceipts(db: Database, messageId: string): number[] {
   }
 }
 
-// Fonction pour charger les messages récents
 function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
   try {
-    // Récupérer les N derniers messages dans l'ordre décroissant, puis les inverser
     const stmt = db.prepare(`
       SELECT cm.id, cm.type, cm.user_id as userId, cm.username, cm.text, cm.tournament_id,
              u.avatar_url as avatarUrl,
@@ -78,10 +74,8 @@ function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
       LIMIT ?
     `);
     const messages = stmt.all(limit) as any[];
-    // Inverser pour avoir l'ordre chronologique (du plus ancien au plus récent)
     return messages.reverse().map(msg => {
       if (msg.type === 'tournament_notification') {
-        // Parser le texte pour extraire les infos
         const parts = msg.text.split(': ');
         const tournamentName = parts[0];
         const players = parts[1]?.split(' 🆚 ') || ['', ''];
@@ -147,7 +141,6 @@ function loadRecentMessages(db: Database, limit: number = 50): ChatMessage[] {
   }
 }
 
-// Fonction pour diffuser la liste des utilisateurs en ligne
 export function broadcastOnlineUsers(db: Database) {
   const onlineUsers: any[] = [];
   
@@ -182,7 +175,6 @@ export function broadcastOnlineUsers(db: Database) {
   });
 }
 
-// Fonction pour déconnecter un utilisateur du chat
 export function disconnectUserFromChat(userId: number, db: Database) {
   const conn = chatConnections.get(userId);
   if (conn) {
@@ -198,7 +190,6 @@ export function disconnectUserFromChat(userId: number, db: Database) {
   }
 }
 
-// Fonction pour diffuser une notification de tournoi
 export function broadcastTournamentNotification(
   db: Database,
   tournamentId: string,
@@ -210,7 +201,7 @@ export function broadcastTournamentNotification(
   const notification: ChatMessage = {
     type: 'tournament_notification',
     tournamentNotification: {
-      tournamentId: tournamentId, // Garder comme string
+      tournamentId: tournamentId,
       tournamentName,
       matchId: parseInt(matchId),
       player1,
@@ -219,7 +210,6 @@ export function broadcastTournamentNotification(
     timestamp: Date.now()
   };
 
-  // Sauvegarder la notification en DB
   try {
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const stmt = db.prepare(`
@@ -247,7 +237,6 @@ export function broadcastTournamentNotification(
   console.log(`Tournament notification sent: ${tournamentName} - ${player1} vs ${player2}`);
 }
 
-// Fonction pour diffuser le début d'un tournoi
 export function broadcastTournamentStart(
   db: Database,
   tournamentId: string,
@@ -265,7 +254,6 @@ export function broadcastTournamentStart(
     timestamp: Date.now()
   };
 
-  // Sauvegarder la notification en DB
   try {
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const stmt = db.prepare(`
@@ -293,7 +281,6 @@ export function broadcastTournamentStart(
   console.log(`Tournament start notification sent: ${tournamentName}`);
 }
 
-// Fonction pour diffuser la fin d'un tournoi
 export function broadcastTournamentEnd(
   db: Database,
   tournamentId: string,
@@ -312,7 +299,6 @@ export function broadcastTournamentEnd(
     timestamp: Date.now()
   };
 
-  // Sauvegarder la notification en DB
   try {
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const stmt = db.prepare(`
@@ -346,7 +332,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
     let userId: number | undefined = undefined;
     let username: string | null = null;
 
-    // Authentification via token dans l'URL (comme /ws/friends)
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : req.query?.token;
@@ -376,7 +361,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
       username = user.display_name;
       chatConnections.set(userId, { socket, username });
 
-      // Marquer tous les messages existants comme lus (sauf ceux de l'utilisateur et des utilisateurs qu'on a bloqués)
       try {
         const markReadStmt = db.prepare(`
           INSERT OR IGNORE INTO message_read_receipts (message_id, user_id, read_at)
@@ -390,14 +374,12 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
         `);
         markReadStmt.run(userId, userId, userId);
         
-        // Charger tous les messages avec leurs read receipts et les envoyer au client
         const messages = loadRecentMessages(db);
         socket.send(JSON.stringify({
           type: 'history',
           messages: messages
         }));
         
-        // Notifier tous les autres utilisateurs que ces messages ont été lus
         const readMessages = db.prepare(`
           SELECT DISTINCT message_id FROM message_read_receipts WHERE user_id = ?
         `).all(userId) as any[];
@@ -421,7 +403,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
         console.error('Error marking messages as read:', error);
       }
 
-      // Diffuser la liste mise à jour des utilisateurs en ligne
       broadcastOnlineUsers(db);
 
       console.log(`User ${username} (${userId}) connected to chat`);
@@ -436,15 +417,12 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
       try {
         const message = JSON.parse(rawMessage.toString());
 
-        // Vérifier que l'utilisateur est authentifié
         if (!userId || !username) {
           socket.send(JSON.stringify({ type: 'error', message: 'Not authenticated' }));
           return;
         }
 
-        // Message normal
         if (message.type === 'message' && message.text) {
-          // Récupérer l'avatar de l'utilisateur
           let avatarUrl = null;
           try {
             const user = db.prepare('SELECT avatar_url FROM users WHERE id = ?').get(userId) as any;
@@ -453,7 +431,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
             console.error('Error getting user avatar:', error);
           }
 
-          // Sauvegarder dans la base de données et récupérer l'ID
           const messageId = saveMessage(db, userId, username, message.text);
 
           const chatMessage: ChatMessage = {
@@ -466,14 +443,12 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
             timestamp: Date.now()
           };
 
-          // Récupérer la liste des utilisateurs bloqués
           const blockedByUsers = db.prepare(`
             SELECT blocker_id FROM user_blocks WHERE blocked_id = ?
           `).all(userId) as any[];
 
           const blockedByIds = new Set(blockedByUsers.map(b => b.blocker_id));
 
-          // Broadcast à tous sauf ceux qui ont bloqué cet utilisateur
           chatConnections.forEach((conn, connUserId) => {
             if (!blockedByIds.has(connUserId) && conn.socket.readyState === 1) {
               conn.socket.send(JSON.stringify(chatMessage));
@@ -481,7 +456,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
           });
         }
 
-        // Invitation de jeu
         if (message.type === 'game_invite') {
           const inviteMessage: ChatMessage = {
             type: 'game_invite',
@@ -495,7 +469,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
             timestamp: Date.now()
           };
 
-          // Envoyer à tous les utilisateurs connectés
           chatConnections.forEach((conn) => {
             if (conn.socket.readyState === 1) {
               conn.socket.send(JSON.stringify(inviteMessage));
@@ -503,7 +476,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
           });
         }
 
-        // Refus d'invitation de jeu
         if (message.type === 'game_invite_declined') {
           const declineMessage: ChatMessage = {
             type: 'game_invite_declined',
@@ -517,14 +489,12 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
             timestamp: Date.now()
           };
 
-          // Envoyer uniquement au joueur qui a invité
           const inviterConnection = chatConnections.get(message.inviterId);
           if (inviterConnection && inviterConnection.socket.readyState === 1) {
             inviterConnection.socket.send(JSON.stringify(declineMessage));
           }
         }
 
-        // Typing indicator
         if (message.type === 'typing_indicator') {
           const typingMessage: ChatMessage = {
             type: 'typing_indicator',
@@ -534,20 +504,17 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
             timestamp: Date.now()
           };
 
-          // Récupérer la liste des utilisateurs bloqués
           const blockedByUsers = db.prepare(`
             SELECT blocker_id FROM user_blocks WHERE blocked_id = ?
           `).all(userId) as any[];
           const blockedByIds = new Set(blockedByUsers.map(b => b.blocker_id));
 
-          // Broadcast à tous sauf ceux qui ont bloqué cet utilisateur
           chatConnections.forEach((conn, connUserId) => {
             if (connUserId !== userId && !blockedByIds.has(connUserId) && conn.socket.readyState === 1) {
               conn.socket.send(JSON.stringify(typingMessage));
             }
           });
 
-          // Gérer le timeout automatique après 3 secondes
           if (message.isTyping) {
             const existingTimeout = typingTimeouts.get(userId);
             if (existingTimeout) {
@@ -582,24 +549,19 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
           }
         }
 
-        // Read receipt
         if (message.type === 'read_receipt' && message.messageId) {
-          // Vérifier que l'utilisateur n'a pas bloqué l'auteur du message
           try {
             const messageAuthor = db.prepare(`
               SELECT user_id FROM chat_messages WHERE id = ?
             `).get(message.messageId) as any;
             
             if (messageAuthor) {
-              // Vérifier si l'utilisateur actuel a bloqué l'auteur du message
               const isBlocked = db.prepare(`
                 SELECT 1 FROM user_blocks 
                 WHERE blocker_id = ? AND blocked_id = ?
               `).get(userId, messageAuthor.user_id);
               
-              // Ne pas enregistrer le read receipt si l'auteur est bloqué
               if (!isBlocked) {
-                // Sauvegarder le read receipt en DB
                 const stmt = db.prepare(`
                   INSERT OR IGNORE INTO message_read_receipts (message_id, user_id, read_at)
                   VALUES (?, ?, CURRENT_TIMESTAMP)
@@ -614,7 +576,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
                   timestamp: Date.now()
                 };
 
-                // Broadcast à tous les utilisateurs connectés
                 chatConnections.forEach((conn) => {
                   if (conn.socket.readyState === 1) {
                     conn.socket.send(JSON.stringify(readReceiptMessage));
@@ -634,9 +595,8 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
 
     socket.on('close', () => {
       if (userId !== undefined && username) {
-        const userIdValue = userId; // Garantir que c'est un number
+        const userIdValue = userId;
         
-        // Nettoyer le timeout de typing si existant
         const existingTimeout = typingTimeouts.get(userIdValue);
         if (existingTimeout) {
           clearTimeout(existingTimeout);
@@ -645,13 +605,11 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
         
         chatConnections.delete(userIdValue);
 
-        // Diffuser la liste mise à jour des utilisateurs en ligne
         broadcastOnlineUsers(db);
       }
     });
   });
 
-  // Route pour récupérer les messages récents
   app.get('/chat/messages', { preHandler: app.auth }, async (_req: any, res: any) => {
     try {
       const messages = loadRecentMessages(db);
@@ -662,7 +620,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
     }
   });
 
-  // Route pour récupérer les utilisateurs en ligne
   app.get('/chat/online-users', { preHandler: app.auth }, async (_req: any, res: any) => {
     try {
       const onlineUsers: any[] = [];
@@ -689,7 +646,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
     }
   });
 
-  // Route pour bloquer un utilisateur
   app.post('/chat/block', { preHandler: app.auth }, async (req: any, res: any) => {
     try {
       const uid = req.user?.uid;
@@ -710,7 +666,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
     }
   });
 
-  // Route pour débloquer un utilisateur
   app.post('/chat/unblock', { preHandler: app.auth }, async (req: any, res: any) => {
     try {
       const uid = req.user?.uid;
@@ -731,7 +686,6 @@ export async function registerChatWS(app: FastifyInstance, db: Database) {
     }
   });
 
-  // Route pour récupérer la liste des utilisateurs bloqués
   app.get('/chat/blocked', { preHandler: app.auth }, async (req: any, res: any) => {
     try {
       const uid = req.user?.uid;

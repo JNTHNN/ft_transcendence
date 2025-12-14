@@ -3,9 +3,7 @@ import { router } from "../router";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 
-// Helper pour extraire l'heure locale depuis une date
 function getLocalTime(dateString: string, includeSeconds = false): string {
-  // S'assurer que la date est interprétée comme UTC
   let dateStr = dateString;
   if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
     dateStr = dateStr.replace(' ', 'T') + 'Z';
@@ -18,11 +16,9 @@ function getLocalTime(dateString: string, includeSeconds = false): string {
   if (includeSeconds) {
     options.second = '2-digit';
   }
-  // Utiliser toLocaleDateString qui gère automatiquement le fuseau horaire
   const fullDate = date.toLocaleDateString('fr-FR', { ...options, day: '2-digit', month: '2-digit', year: 'numeric' });
-  // Extraire uniquement la partie heure (après l'espace ou la virgule)
   const parts = fullDate.split(/[,\s]+/);
-  return parts[parts.length - 1]; // Retourne la dernière partie qui est l'heure
+  return parts[parts.length - 1]; 
 }
 
 interface MatchDetail {
@@ -40,8 +36,7 @@ interface MatchDetail {
   winner_id: number | null;
   player1_id: number;
   player2_id: number;
-  tournament_match_id?: string; // UUID pour les matchs de tournoi
-  // Blockchain data si disponible
+  tournament_match_id?: string; 
   blockchain_tx_hash?: string;
   blockchain_match_id?: string;
 }
@@ -52,7 +47,6 @@ export async function GameSessionDetailView() {
     return document.createElement("div");
   }
 
-  // Récupérer l'ID du match depuis l'URL
   const path = window.location.pathname;
   const matchId = path.split('/').pop();
   
@@ -64,7 +58,6 @@ export async function GameSessionDetailView() {
   const container = document.createElement("div");
   container.className = "max-w-4xl mx-auto p-6";
 
-  // Header avec bouton retour
   const header = document.createElement("div");
   header.className = "mb-8 flex items-center space-x-4";
   header.innerHTML = `
@@ -79,7 +72,6 @@ export async function GameSessionDetailView() {
     </div>
   `;
 
-  // Loading state
   const loadingDiv = document.createElement("div");
   loadingDiv.className = "flex items-center justify-center py-16";
   loadingDiv.innerHTML = `
@@ -89,7 +81,6 @@ export async function GameSessionDetailView() {
     </div>
   `;
 
-  // Content container
   const content = document.createElement("div");
   content.id = "match-content";
   content.appendChild(loadingDiv);
@@ -97,20 +88,18 @@ export async function GameSessionDetailView() {
   container.appendChild(header);
   container.appendChild(content);
 
-  // Event listeners
   const backBtn = header.querySelector('#back-btn');
   backBtn?.addEventListener('click', () => {
     router.navigate("/dashboard");
   });
 
-  // Load match details
+ 
   setTimeout(() => loadMatchDetails(parseInt(matchId)), 100);
 
   return container;
 
   async function loadMatchDetails(matchId: number) {
     try {
-      // Récupérer les détails du match via l'historique
       const historyResponse = await api('/users/match-history');
       const matches = historyResponse.matches;
       
@@ -121,14 +110,12 @@ export async function GameSessionDetailView() {
         return;
       }
 
-      // Récupérer les données blockchain si disponibles (uniquement pour les matchs de tournoi)
       let blockchainData = null;
       if (match.tournament_match_id) {
         try {
           const blockchainResponse = await api(`/tournaments/match/${match.tournament_match_id}/blockchain`);
           blockchainData = blockchainResponse;
         } catch (e) {
-          // Blockchain data pas disponible, pas grave
           console.log('Blockchain data not available for this match');
         }
       }
@@ -161,7 +148,6 @@ export async function GameSessionDetailView() {
     const content = document.getElementById('match-content');
     if (!content) return;
 
-    // Update subtitle
     const subtitle = document.getElementById('match-subtitle');
     if (subtitle) {
       subtitle.textContent = `${match.player1Name} vs ${match.player2Name} • ${new Date(match.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
@@ -176,12 +162,10 @@ export async function GameSessionDetailView() {
     const currentUserId = authManager.getState().user?.id;
     const currentUser = authManager.getState().user;
     
-    // Utiliser les IDs s'ils sont disponibles, sinon utiliser le nom du joueur
     let isPlayer1: boolean;
     if (match.player1_id !== undefined && match.player2_id !== undefined) {
       isPlayer1 = currentUserId === match.player1_id;
     } else {
-      // Fallback: utiliser le nom d'affichage pour identifier le joueur
       isPlayer1 = currentUser?.displayName === match.player1Name;
     }
     

@@ -473,7 +473,7 @@ export class TwoFactorAuthView {
   }
 
   destroy(): void {
-    // Cleanup if needed
+ 
   }
 }
 

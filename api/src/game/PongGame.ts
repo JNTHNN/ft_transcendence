@@ -36,12 +36,7 @@ export class PongGame {
       timestamp: Date.now(),
     };
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Ajoute un joueur/IA à la partie
-  // ═══════════════════════════════════════════════════════════════
-  
+
   public addPlayer(config: PlayerConfig): boolean {
     if (this.players.size >= 2) {
       return false;
@@ -50,17 +45,12 @@ export class PongGame {
     this.players.set(config.id, config);
     this.inputs.set(config.id, { up: false, down: false });
     
-    // Ne démarre plus automatiquement, attend le signal "start" du frontend
-    console.log(`✅ Player ${config.id} added to game ${this.id} (${this.players.size}/2)`);
+    console.log(` Player ${config.id} added to game ${this.id} (${this.players.size}/2)`);
     
     return true;
   }
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Démarre le game loop (60 FPS)
-  // ═══════════════════════════════════════════════════════════════
-  
+
   public start(): void {
     if (this.isRunning) return;
     
@@ -74,25 +64,16 @@ export class PongGame {
     }, 1000 / CFG.TICK_RATE);
   }
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Update : Appelé 60 fois par seconde
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private update(dt: number): void {
-    // 1. Mettre à jour les inputs IA
     this.updateAIInputs();
     
-    // 2. Update paddles
     this.updatePaddles(dt);
     
-    // 3. Update balle
     this.state.ball = Physics.moveBall(this.state.ball, dt);
     
-    // 4. Check collisions murs
     this.state.ball.velocity = Physics.checkWallCollision(this.state.ball);
     
-    // 5. Check collisions paddles
     if (Physics.checkPaddleCollision(this.state.ball, this.state.paddles.left, 'left')) {
       this.state.ball.velocity = Physics.reflectBall(this.state.ball, this.state.paddles.left);
     }
@@ -100,7 +81,6 @@ export class PongGame {
       this.state.ball.velocity = Physics.reflectBall(this.state.ball, this.state.paddles.right);
     }
     
-    // 6. Check goal
     const goal = Physics.checkGoal(this.state.ball);
     if (goal) {
       this.handleGoal(goal);
@@ -108,11 +88,6 @@ export class PongGame {
     
     this.state.timestamp = Date.now();
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Appelle les IA pour obtenir leurs inputs
-  // ═══════════════════════════════════════════════════════════════
   
   private updateAIInputs(): void {
     for (const [playerId, player] of this.players) {
@@ -122,11 +97,6 @@ export class PongGame {
       }
     }
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Update paddles : Applique les inputs (AI + humains)
-  // ═══════════════════════════════════════════════════════════════
   
   private updatePaddles(dt: number): void {
     for (const [playerId, player] of this.players) {
@@ -144,11 +114,6 @@ export class PongGame {
     }
   }
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Gère un point marqué
-  // ═══════════════════════════════════════════════════════════════
-  
   private handleGoal(winner: 'left' | 'right'): void {
     if (winner === 'left') {
       this.state.score.right++;
@@ -162,11 +127,7 @@ export class PongGame {
       this.end();
     }
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Broadcast state : Envoie l'état à tous les joueurs (60 FPS)
-  // ═══════════════════════════════════════════════════════════════
+
   
   private broadcastState(): void {
     const message = JSON.stringify({
@@ -182,11 +143,6 @@ export class PongGame {
   }
   
   
-  // ═══════════════════════════════════════════════════════════════
-  // Met à jour les inputs d'un joueur humain
-  // (appelé depuis WebSocket ou clavier local)
-  // ═══════════════════════════════════════════════════════════════
-  
   public setPlayerInput(playerId: string, input: Partial<PlayerInput>): void {
     const current = this.inputs.get(playerId);
     
@@ -195,11 +151,6 @@ export class PongGame {
     }
   }
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Arrête le game loop
-  // ═══════════════════════════════════════════════════════════════
-  
   public stop(): void {
     if (this.gameLoop) {
       clearInterval(this.gameLoop);
@@ -207,19 +158,14 @@ export class PongGame {
     }
     this.isRunning = false;
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Termine la partie (appelé quand score max atteint)
-  // ═══════════════════════════════════════════════════════════════
-  
+
   private end(): void {
     this.stop();
     
     this.state.status = 'finished';
     
     const winner = this.state.score.left > this.state.score.right ? 'left' : 'right';
-    console.log(`🏆 Game end - Score: ${this.state.score.left}-${this.state.score.right}, Winner: ${winner}`);
+    console.log(` Game end - Score: ${this.state.score.left}-${this.state.score.right}, Winner: ${winner}`);
     
     const endedAt = new Date();
     const duration = this.startedAt 
@@ -256,7 +202,6 @@ export class PongGame {
         },
       };
       
-      // Sauvegarder
       gameManager.saveMatchResult(result);
     }
     
@@ -273,16 +218,11 @@ export class PongGame {
     
     setTimeout(() => {
       gameManager.removeGame(this.id);
-    }, 5000); // 5 secondes pour laisser le temps d'afficher le résultat
+    }, 5000);
   }
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Retourne l'état enrichi avec infos joueurs
-  // ═══════════════════════════════════════════════════════════════
-  
+
   public getState(): GameState {
-    // Enrichir l'état avec les informations sur les joueurs
     const playerArray = Array.from(this.players.values());
     const leftPlayer = playerArray.find(p => p.side === 'left');
     const rightPlayer = playerArray.find(p => p.side === 'right');
@@ -304,13 +244,7 @@ export class PongGame {
     };
   }
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Récupère le nom d'un joueur depuis la DB
-  // ═══════════════════════════════════════════════════════════════
-  
   private getPlayerName(playerId: string): string {
-    // Récupérer le vrai nom depuis la base de données
     if (this.db && playerId.startsWith('user-')) {
       try {
         const userId = parseInt(playerId.replace('user-', ''));
@@ -325,26 +259,15 @@ export class PongGame {
       }
     }
     
-    // Fallback vers noms génériques
     if (playerId.startsWith('user-')) {
       return `Joueur ${playerId.replace('user-', '')}`;
     }
     return playerId === 'player-1' ? 'Joueur 1' : 'Joueur 2';
   }
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Vérifie si le jeu est actif
-  // ═══════════════════════════════════════════════════════════════
-  
   public isActive(): boolean {
     return this.isRunning;
   }
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Crée un paddle avec valeurs par défaut
-  // ═══════════════════════════════════════════════════════════════
   
   private createPaddle(): Paddle {
     return {

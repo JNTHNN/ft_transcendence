@@ -24,7 +24,7 @@ const cfg: HardhatUserConfig = {
       url: AVALANCHE_RPC_URL || "https://api.avax-test.network/ext/bc/C/rpc",
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       chainId: 43113,
-      gasPrice: 25000000000, // 25 gwei
+      gasPrice: 25000000000,
     },
     avalanche: {
       url: "https://api.avax.network/ext/bc/C/rpc",

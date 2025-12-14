@@ -3,6 +3,7 @@ import { router } from "../router";
 import { api } from "../api-client";
 import { t } from "../i18n/index.js";
 import { menuManager } from "./Menu.js";
+import { LanguageSelector } from "../components/language-selector.js";
 import "../components/user-stats-modal.js";
 
 interface User {
@@ -133,6 +134,21 @@ export default async function View() {
     
     <div id="avatarError" class="mt-4 p-3 bg-red-900 text-red-200 rounded-lg text-sm font-sans hidden"></div>
     <div id="avatarSuccess" class="mt-4 p-3 bg-green-900 text-green-200 rounded-lg text-sm font-sans hidden"></div>
+  `;
+
+  const preferencesSection = document.createElement("div");
+  preferencesSection.className = "bg-prem rounded-lg shadow-xl p-4 md:p-8 mb-4 md:mb-6";
+  preferencesSection.innerHTML = `
+    <h3 class="font-display text-xl md:text-2xl font-bold text-text mb-4 md:mb-6">${t('profile.preferences') || 'Préférences'}</h3>
+    <div class="space-y-4">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gray-700 rounded-lg">
+        <div>
+          <h4 class="font-sans font-medium text-text">${t('language.language') || 'Langue'}</h4>
+          <p class="text-sm text-gray-400">${t('language.changeLanguage') || 'Changer la langue de l\'interface'}</p>
+        </div>
+        <div id="profile-language-selector"></div>
+      </div>
+    </div>
   `;
 
   const securitySection = document.createElement("div");
@@ -718,7 +734,7 @@ ${t('stats.viewStatsAndHistory')}
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024; 
     if (file.size > maxSize) {
       showAvatarError(t('profile.fileTooLarge'));
       return;
@@ -788,11 +804,17 @@ ${t('stats.viewStatsAndHistory')}
 
   container.appendChild(header);
   container.appendChild(avatarSection);
+  container.appendChild(preferencesSection);
   container.appendChild(securitySection);
   container.appendChild(profileForm);
   container.appendChild(passwordForm);
   container.appendChild(deleteAccountSection);
   container.appendChild(stats);
+
+  const languageSelectorContainer = preferencesSection.querySelector('#profile-language-selector');
+  if (languageSelectorContainer) {
+    new LanguageSelector(languageSelectorContainer as HTMLElement);
+  }
 
   return container;
 }

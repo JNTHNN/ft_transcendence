@@ -3,16 +3,8 @@ import { gameManager } from './GameManager.js';
 import { PredictiveAI } from './PredictiveAI.js';
 import type { GameMode } from './types.js';
 
-/**
- * Enregistre les routes REST pour le jeu
- */
 export async function registerGameRoutes(app: FastifyInstance) {
-  
-  // ═══════════════════════════════════════════════════════════════
-  // POST /game/create
-  // Crée une nouvelle partie
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.post<{
     Body: { mode: GameMode; matchId?: string };
   }>('/game/create', async (request, reply) => {
@@ -26,7 +18,6 @@ export async function registerGameRoutes(app: FastifyInstance) {
     try {
       const id = gameManager.createGame(mode, matchId);
       
-      // Si mode solo-vs-ai, ajouter automatiquement l'IA
       if (mode === 'solo-vs-ai') {
         gameManager.addPlayerToGame(id, {
           id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -47,23 +38,13 @@ export async function registerGameRoutes(app: FastifyInstance) {
     }
   });
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // GET /game/list
-  // Liste toutes les parties actives
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.get('/game/list', async (_request, reply) => {
     const games = gameManager.listGames();
     return reply.send({ games });
   });
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // GET /game/:matchId
-  // Récupère l'état d'une partie
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.get<{
     Params: { matchId: string };
   }>('/game/:matchId', async (request, reply) => {
@@ -80,13 +61,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
       active: game.isActive(),
     });
   });
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // DELETE /game/:matchId
-  // Supprime une partie
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.delete<{
     Params: { matchId: string };
   }>('/game/:matchId', async (request, reply) => {
@@ -96,7 +71,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
     const game = gameManager.getGame(matchId);
     
     if (game) {
-      game.stop();  // ✅ Arrêter le jeu avant de le supprimer
+      game.stop();
     }
     
     gameManager.removeGame(matchId);
@@ -104,23 +79,12 @@ export async function registerGameRoutes(app: FastifyInstance) {
     return reply.send({ ok: true });
   });
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // GET /game/stats
-  // Statistiques globales
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.get('/game/stats', async (_request, reply) => {
     const stats = gameManager.getStats();
     return reply.send(stats);
   });
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // POST /game/local/create
-  // Crée une partie locale 2 joueurs ou tournoi
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.post<{
     Body: {
       player1Id?: string;
@@ -136,7 +100,6 @@ export async function registerGameRoutes(app: FastifyInstance) {
     } = request.body;
     
     try {
-      // Créer la partie (sans ajouter automatiquement les joueurs)
       const matchId = gameManager.createGame(mode);
       
       return reply.code(201).send({
@@ -152,12 +115,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
     }
   });
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // POST /game/:matchId/input
-  // Envoie un input sans WebSocket (pour mode local)
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.post<{
     Params: { matchId: string };
     Body: {
@@ -180,12 +138,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
     return reply.send({ ok: true });
   });
   
-  
-  // ═══════════════════════════════════════════════════════════════
-  // GET /game/stats/:playerId
-  // Statistiques d'un joueur spécifique
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.get<{
     Params: { playerId: string };
   }>('/game/stats/:playerId', async (request, reply) => {
@@ -196,13 +149,7 @@ export async function registerGameRoutes(app: FastifyInstance) {
     
     return reply.send({ stats, history });
   });
-  
-  
-  // ═══════════════════════════════════════════════════════════════
-  // GET /game/history
-  // Historique global des matchs
-  // ═══════════════════════════════════════════════════════════════
-  
+
   app.get('/game/history', async (_request, reply) => {
     const history = gameManager.getMatchHistory();
     return reply.send({ history });

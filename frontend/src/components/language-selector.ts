@@ -154,14 +154,12 @@ export function createLanguageModal(): HTMLElement {
   modal.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
 
-    // Check if click is on close button or its children (SVG/path)
     const closeButton = target.closest('#close-language-modal');
     if (closeButton) {
       modal.remove();
       return;
     }
 
-    // Check if click is on a language option
     const langOption = target.closest('.modal-language-option') as HTMLElement;
     if (langOption) {
       const lang = langOption.dataset.lang as Language;
@@ -172,7 +170,6 @@ export function createLanguageModal(): HTMLElement {
       return;
     }
 
-    // Check if click is outside the modal content
     if (target === modal) {
       modal.remove();
       return;

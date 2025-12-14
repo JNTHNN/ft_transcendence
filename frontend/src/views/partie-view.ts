@@ -3,7 +3,6 @@ import { router } from "../router";
 import { t } from "../i18n/index.js";
 
 export async function PartieView() {
-  // Check authentication
   if (!authManager.isAuthenticated()) {
     router.navigate("/login");
     return document.createElement("div");
@@ -50,16 +49,15 @@ export async function PartieView() {
       </div>
     `;
 
-    // 🎯 ÉVÉNEMENTS DES BOUTONS
     const btnSolo = content.querySelector("#btn-solo") as HTMLButtonElement;
     const btnLocal = content.querySelector("#btn-local") as HTMLButtonElement;
 
-    // Solo vs IA
+
     btnSolo.onclick = () => {
       router.navigate("/match?mode=solo");
     };
 
-    // Local 2 joueurs
+
     btnLocal.onclick = () => {
       router.navigate("/match?mode=local");
     };

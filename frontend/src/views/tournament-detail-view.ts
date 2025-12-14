@@ -39,7 +39,7 @@ interface TournamentMatch {
 }
 
 export async function TournamentDetailView() {
-  // Check authentication
+  
   if (!authManager.isAuthenticated()) {
     router.navigate("/login");
     return document.createElement("div");
@@ -48,7 +48,7 @@ export async function TournamentDetailView() {
   const wrap = document.createElement("div");
   wrap.className = "max-w-6xl mx-auto mt-4 md:mt-8 p-4 md:p-0";
 
-  // Récupérer l'ID du tournoi depuis l'URL
+  
   const tournamentId = window.location.pathname.split('/tournament/')[1];
   
   if (!tournamentId) {
@@ -84,7 +84,6 @@ export async function TournamentDetailView() {
   try {
     await loadTournamentDetails(wrap, tournamentId);
     
-    // Ajouter un listener pour recharger automatiquement quand la page devient visible
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
         console.log('🔄 Page is visible, reloading tournament data...');
@@ -98,19 +97,16 @@ export async function TournamentDetailView() {
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Nettoyer l'event listener quand on quitte la page
     const cleanup = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
     
-    // Stocker la fonction de cleanup pour pouvoir l'appeler plus tard si nécessaire
     (wrap as any).__cleanup = cleanup;
     
   } catch (error: unknown) {
     const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
     const errorMessage = error instanceof Error ? error.message : t('tournamentDetail.unknownError');
     
-    // Si erreur d'authentification, rediriger vers login
     if (errorMessage.includes('Authentication') || errorMessage.includes('Unauthorized') || errorMessage.includes('expired')) {
       content.innerHTML = `
         <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-6 text-center">
@@ -141,12 +137,10 @@ async function loadTournamentDetails(wrap: HTMLDivElement, tournamentId: string)
       api("/auth/me").catch(() => null)
     ]);
 
-    // Notre API retourne directement l'objet tournoi avec players et matches inclus
     const tournament = tournamentData;
     const participants = tournamentData.players || [];
     const matches = tournamentData.matches || [];
     
-    // Formater les avatars avec l'API base URL pour les uploads locaux
     const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://api.localhost:8443";
     participants.forEach((p: any) => {
       if (p.avatar_url && p.avatar_url.startsWith('/uploads/')) {
@@ -162,7 +156,6 @@ async function loadTournamentDetails(wrap: HTMLDivElement, tournamentId: string)
       }
     });
     
-    // Blockchain verification now handled at individual match level
     updateHeader(wrap, tournament, userMe, participants);
     updateContent(wrap, tournament, participants, matches, userMe);
     
@@ -189,7 +182,6 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
     </div>
   `;
 
-  // Actions selon le statut et l'utilisateur
   let actionsHtml = '';
   
 
@@ -199,9 +191,9 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
         const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
         const canStart = participants.length >= 2 && (tournament.tournament_type !== 'elimination' || isPowerOfTwo(participants.length));
         const startButtonClass = canStart ? "bg-green-500 hover:bg-green-600" : "bg-gray-500 cursor-not-allowed";
-        const startButtonText = canStart ? `🚀 ${t('tournamentDetail.startTournament')}` : 
+        const startButtonText = canStart ? ` ${t('tournamentDetail.startTournament')}` : 
           (participants.length < 2 ? `⏳ ${t('tournamentDetail.needMorePlayers')}` :
-           (!isPowerOfTwo(participants.length) ? `⚠️ ${t('tournamentDetail.needPowerOfTwo')}` : `🚀 ${t('tournamentDetail.startTournament')}`));
+           (!isPowerOfTwo(participants.length) ? ` ${t('tournamentDetail.needPowerOfTwo')}` : `🚀 ${t('tournamentDetail.startTournament')}`));
 
         actionsHtml += `
           <button onclick="${canStart ? `startTournament('${tournament.id}')` : 'showTournamentStartError()'}" 
@@ -216,7 +208,6 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
       }
     }
     
-    // Si le tournoi est actif, afficher le bouton pour jouer
     if (tournament.status === 'active') {
       const userParticipant = participants.find(p => p.id === userMe.id);
       if (userParticipant) {
@@ -232,18 +223,15 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
     }
     
     if (tournament.status === 'waiting') {
-      // Vérifier si l'utilisateur a déjà rejoint le tournoi
       const hasJoined = participants.some(p => p.id === userMe.id);
       
       if (hasJoined) {
-        // L'utilisateur a rejoint - afficher le bouton "Quitter"
         actionsHtml += `
           <button onclick="leaveTournament('${tournament.id}')" class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg">
             ❌ ${t('tournamentDetail.leaveTournament')}
           </button>
         `;
       } else if (tournament.current_players < tournament.max_players) {
-        // L'utilisateur n'a pas rejoint et il y a de la place
         actionsHtml += `
           <button onclick="joinTournament('${tournament.id}')" class="bg-sec hover:bg-sec/80 text-text font-bold px-6 py-2 rounded-lg">
             ➕ ${t('tournamentDetail.joinTournament')}
@@ -254,7 +242,6 @@ function updateHeader(wrap: HTMLDivElement, tournament: Tournament, userMe: any,
     
 
     
-    // Le bouton "Preuve blockchain" est maintenant affiché au niveau de chaque match dans l'historique
 
   }
 
@@ -266,7 +253,6 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
   
   let contentHtml = '';
 
-  // Informations générales
   contentHtml += `
     <div class="bg-prem rounded-lg shadow-xl p-6">
       <h2 class="text-2xl font-bold text-text mb-4">📋 ${t('tournamentDetail.information')}</h2>
@@ -291,7 +277,6 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
     </div>
   `;
 
-  // Participants
   contentHtml += `
     <div class="bg-prem rounded-lg shadow-xl p-6">
       <h2 class="text-2xl font-bold text-text mb-4">👥 ${t('tournament.participants')}</h2>
@@ -326,20 +311,17 @@ function updateContent(wrap: HTMLDivElement, tournament: Tournament, participant
     </div>
   `;
 
-  // Bracket/Matchs
   if (matches.length > 0) {
     contentHtml += generateBracket(tournament, participants, matches);
     contentHtml += generateMatchHistory(matches);
   }
 
-  // Note: Blockchain verification is now handled at individual match level
-  // Each completed match has its own blockchain proof button in the match history
+
 
   content.innerHTML = contentHtml;
 }
 
 function generateBracket(tournament: Tournament, participants: any[], matches: TournamentMatch[]): string {
-  // Grouper les matchs par round
   const matchesByRound = matches.reduce((acc, match) => {
     if (!acc[match.round_number]) {
       acc[match.round_number] = [];
@@ -350,10 +332,7 @@ function generateBracket(tournament: Tournament, participants: any[], matches: T
 
   const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => a - b);
 
-  // Calculate total expected rounds based on actual number of participants
-  // For 4 players: 2 rounds (demi-finales -> finale)
-  // For 8 players: 3 rounds (quart -> demi -> finale)
-  // For 16 players: 4 rounds (8ème -> quart -> demi -> finale)
+
   const actualParticipants = participants.length || tournament.max_players;
   const totalExpectedRounds = Math.log2(actualParticipants);
 
@@ -367,7 +346,6 @@ function generateBracket(tournament: Tournament, participants: any[], matches: T
   rounds.forEach((roundNumber, _roundIndex) => {
     const roundMatches = matchesByRound[roundNumber];
     
-    // Determine round name based on position from the end
     let roundName = `${t('tournamentDetail.round')} ${roundNumber}`;
     if (roundNumber === totalExpectedRounds) {
       roundName = t('tournamentDetail.final');
@@ -434,7 +412,6 @@ function generateMatchCard(match: TournamentMatch): string {
     `;
   }
 
-  // Ne pas afficher l'overlay vert si le match n'a qu'un seul joueur ou n'est pas terminé
   const isIncompleteMatch = !match.player2_id;
   const isMatchCompleted = match.status === 'completed';
   
@@ -454,7 +431,6 @@ function generateMatchCard(match: TournamentMatch): string {
 }
 
 function generateMatchHistory(matches: TournamentMatch[]): string {
-  // Trier les matchs par date de création (plus récent en premier) 
   const sortedMatches = [...matches].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   
   let historyHtml = `
@@ -476,7 +452,6 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
       const player1 = match.player1_username || (match.player1_id ? `${t('tournamentDetail.playerNumber')}${match.player1_id}` : '...');
       const player2 = match.player2_username || (match.player2_id ? `${t('tournamentDetail.playerNumber')}${match.player2_id}` : '...');
       
-      // Utiliser la durée la plus précise (champ duration si dispo)
       let duration = '';
       if (typeof match.duration === 'number' && match.duration > 0) {
         const durationMinutes = Math.floor(match.duration / 60);
@@ -491,7 +466,6 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
         duration = `${durationMinutes}m ${durationSeconds}s`;
       }
 
-      // Déterminer le gagnant et le score final
       let winnerName = '';
       let scoreDisplay = '';
       if (match.status === 'completed' && match.winner_id) {
@@ -499,7 +473,6 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
         scoreDisplay = `${match.player1_score} - ${match.player2_score}`;
       }
 
-      // Formater les dates seulement pour les matchs commencés/terminés
       let matchDateHtml = '';
       if (match.status !== 'pending' && (match.end_time || match.start_time)) {
         const dateValue = match.end_time || match.start_time || match.created_at;
@@ -513,7 +486,6 @@ function generateMatchHistory(matches: TournamentMatch[]): string {
         matchDateHtml = `<p class="text-text/60 text-sm">${matchDate}</p>`;
       }
 
-      // CSS classes pour le statut
       let statusClass = '';
       let statusIcon = '';
       let statusText = '';
@@ -653,7 +625,6 @@ function getStatusText(status: string): string {
   }
 }
 
-// Fonctions globales pour les événements
 (window as any).joinTournament = async (tournamentId: string) => {
   try {
     await api(`/tournaments/${tournamentId}/join`, {
@@ -692,11 +663,9 @@ function getStatusText(status: string): string {
       return;
     }
     
-    // Récupérer le prochain match de l'utilisateur dans ce tournoi
     const nextMatch = await api(`/tournaments/${tournamentId}/next-match`);
     
     if (!nextMatch || !nextMatch.match) {
-      // Vérifier s'il y a un match actif bloqué
       if (nextMatch.activeMatchId && nextMatch.canRestart) {
         if (confirm(t('tournamentDetail.blockedMatchConfirm'))) {
           try {
@@ -704,7 +673,6 @@ function getStatusText(status: string): string {
               method: "POST",
               body: JSON.stringify({ matchId: nextMatch.activeMatchId })
             });
-            // Réessayer après reset
             return (window as any).playTournamentMatch(tournamentId);
           } catch (resetError: any) {
             alert(t('tournamentDetail.resetError') + ": " + resetError.message);
@@ -718,7 +686,6 @@ function getStatusText(status: string): string {
 
     const match = nextMatch.match;
     
-    // Démarrer le match côté serveur pour validation
     try {
       await api(`/tournaments/${tournamentId}/start-match`, {
         method: "POST",
@@ -729,7 +696,6 @@ function getStatusText(status: string): string {
       return;
     }
     
-    // Rediriger vers le match avec les IDs des joueurs
     const url = `/match?mode=tournament&tournamentId=${tournamentId}&matchId=${match.match_id}&player1=${match.player1_id}&player2=${match.player2_id}`;
     
     console.log('🎮 Lancement du match:', {
@@ -754,7 +720,7 @@ function getStatusText(status: string): string {
       return;
     }
 
-    // Appeler reset-match sans matchId pour qu'il trouve automatiquement le bon match
+    
     const result = await api(`/tournaments/${tournamentId}/reset-match`, {
       method: "POST",
       body: JSON.stringify({})
@@ -768,7 +734,6 @@ function getStatusText(status: string): string {
       alert(t('tournamentDetail.resetFailed'));
     }
   } catch (error: any) {
-    // Messages d'erreur plus utiles
     let errorMessage = t('tournamentDetail.resetError');
     if (error.message.includes("No resettable match found")) {
       errorMessage = t('tournamentDetail.noResettableMatch');
@@ -810,7 +775,6 @@ function getStatusText(status: string): string {
       method: "DELETE"
     });
     
-    // Rediriger vers la page des tournois après suppression
     const { router } = await import('../router.js');
     router.navigate('/tournois');
   } catch (error) {

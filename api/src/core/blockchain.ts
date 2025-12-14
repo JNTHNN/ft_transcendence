@@ -31,7 +31,6 @@ export class BlockchainService {
   private initialized = false;
   private initPromise: Promise<void>;
 
-  // ABI simplifiée pour le contrat MatchStats
   private readonly MATCHSTATS_ABI = [
     {
       "type": "function",
@@ -107,7 +106,7 @@ export class BlockchainService {
       const contractAddress = process.env.SCORES_CONTRACT_ADDRESS;
 
       if (!rpcUrl) {
-        console.warn('⚠️  AVALANCHE_RPC_URL not configured, blockchain features disabled');
+        console.warn('AVALANCHE_RPC_URL not configured, blockchain features disabled');
         return;
       }
 
@@ -124,15 +123,15 @@ export class BlockchainService {
       }
 
       this.initialized = true;
-      console.log('✅ Blockchain service initialized with MatchStats contract');
+      console.log('Blockchain service initialized with MatchStats contract');
     } catch (error) {
-      console.error('❌ Failed to initialize blockchain service:', (error as Error).message);
+      console.error('Failed to initialize blockchain service:', (error as Error).message);
     }
   }
 
   private initializeContract() {
     if (!this.wallet || !this.contractAddress || !this.contractABI.length) {
-      console.warn('⚠️ Missing requirements for contract initialization');
+      console.warn('Missing requirements for contract initialization');
       return;
     }
 
@@ -142,9 +141,9 @@ export class BlockchainService {
         this.contractABI,
         this.wallet
       );
-      console.log(`✅ Contract initialized at ${this.contractAddress}`);
+      console.log(`Contract initialized at ${this.contractAddress}`);
     } catch (error) {
-      console.error('❌ Failed to initialize contract:', (error as Error).message);
+      console.error('Failed to initialize contract:', (error as Error).message);
     }
   }
 
@@ -161,9 +160,7 @@ export class BlockchainService {
     };
   }
 
-  /**
-   * Stocker un résultat de match sur la blockchain
-   */
+ 
   public async storeMatchResult(matchData: MatchData): Promise<MatchResult> {
     await this.ensureInitialized();
     
@@ -172,28 +169,24 @@ export class BlockchainService {
     }
 
     try {
-      console.log(`🏅 Storing match result on blockchain: ${matchData.matchId}`);
-      console.log(`🏅 Tournament: ${matchData.tournamentId}`);
-      console.log(`🏅 Score: ${matchData.player1Score}-${matchData.player2Score}, Round: ${matchData.round}`);
+      console.log(` Storing match result on blockchain: ${matchData.matchId}`);
+      console.log(` Tournament: ${matchData.tournamentId}`);
+      console.log(` Score: ${matchData.player1Score}-${matchData.player2Score}, Round: ${matchData.round}`);
       
-      // Convertir l'ID de match en bytes32
       const matchIdBytes = ethers.keccak256(ethers.toUtf8Bytes(matchData.matchId));
       
-      // Déterminer l'index du gagnant (1 ou 2)
       let winnerIndex: number;
       if (matchData.winnerId === 1 || matchData.winnerId === "1") {
         winnerIndex = 1;
       } else if (matchData.winnerId === 2 || matchData.winnerId === "2") {
         winnerIndex = 2;
       } else {
-        // Fallback basé sur le score
         winnerIndex = matchData.player1Score > matchData.player2Score ? 1 : 2;
       }
       
-      console.log(`🏅 Winner index: ${winnerIndex}`);
-      console.log(`🏅 Using MatchStats.storeMatch function`);
+      console.log(` Winner index: ${winnerIndex}`);
+      console.log(` Using MatchStats.storeMatch function`);
       
-      // Appeler le smart contract
       const tx = await this.contract!.storeMatch(
         matchIdBytes,
         matchData.tournamentId,
@@ -205,13 +198,11 @@ export class BlockchainService {
         matchData.round
       );
 
-      console.log(`🏅 Transaction sent: ${tx.hash}`);
+      console.log(` Transaction sent: ${tx.hash}`);
       
-      // Attendre la confirmation
       const receipt = await tx.wait();
-      console.log(`🏅 Transaction confirmed: ${receipt.hash}`);
+      console.log(` Transaction confirmed: ${receipt.hash}`);
       
-      // Récupérer le dataHash depuis les logs
       let dataHash = '';
       if (receipt.logs && receipt.logs.length > 0) {
         try {
@@ -220,7 +211,7 @@ export class BlockchainService {
             dataHash = parsedLog.args.dataHash;
           }
         } catch (logError) {
-          console.warn('⚠️ Could not parse transaction logs:', logError);
+          console.warn(' Could not parse transaction logs:', logError);
         }
       }
 
@@ -231,18 +222,15 @@ export class BlockchainService {
         gasUsed: receipt.gasUsed.toString()
       };
 
-      console.log(`✅ Match result stored on blockchain: ${result.transactionHash}`);
+      console.log(` Match result stored on blockchain: ${result.transactionHash}`);
       return result;
 
     } catch (error) {
-      console.error('❌ Failed to store match result on blockchain:', error);
+      console.error(' Failed to store match result on blockchain:', error);
       throw error;
     }
   }
 
-  /**
-   * Récupérer un match depuis la blockchain
-   */
   public async getMatch(matchId: string): Promise<any> {
     await this.ensureInitialized();
     
@@ -253,7 +241,6 @@ export class BlockchainService {
     try {
       const matchIdBytes = ethers.keccak256(ethers.toUtf8Bytes(matchId));
       
-      // Use a read-only contract connected to provider instead of wallet for view functions
       const readOnlyContract = new ethers.Contract(
         this.contractAddress,
         this.contractABI,
@@ -275,14 +262,11 @@ export class BlockchainService {
         dataHash: result[9]
       };
     } catch (error) {
-      console.warn(`⚠️ Could not retrieve match ${matchId} from blockchain:`, (error as Error).message);
+      console.warn(` Could not retrieve match ${matchId} from blockchain:`, (error as Error).message);
       throw error;
     }
   }
 
-  /**
-   * Vérifier l'intégrité d'un match
-   */
   public async verifyMatch(matchId: string): Promise<boolean> {
     await this.ensureInitialized();
     
@@ -293,7 +277,6 @@ export class BlockchainService {
     try {
       const matchIdBytes = ethers.keccak256(ethers.toUtf8Bytes(matchId));
       
-      // Use read-only contract for view functions
       const readOnlyContract = new ethers.Contract(
         this.contractAddress,
         this.contractABI,
@@ -302,14 +285,11 @@ export class BlockchainService {
       
       return await readOnlyContract.verifyMatch(matchIdBytes);
     } catch (error) {
-      console.warn(`⚠️ Could not verify match ${matchId}:`, (error as Error).message);
+      console.warn(` Could not verify match ${matchId}:`, (error as Error).message);
       return false;
     }
   }
 
-  /**
-   * Obtenir le nombre total de matchs
-   */
   public async getTotalMatches(): Promise<number> {
     await this.ensureInitialized();
     
@@ -321,11 +301,10 @@ export class BlockchainService {
       const total = await this.contract!.getTotalMatches();
       return Number(total);
     } catch (error) {
-      console.warn('⚠️ Could not get total matches:', (error as Error).message);
+      console.warn(' Could not get total matches:', (error as Error).message);
       return 0;
     }
   }
 }
 
-// Export singleton instance
 export const blockchainService = new BlockchainService();

@@ -1,45 +1,43 @@
-# Commande par défaut
 all: build up
 
-# Démarrer
+
 up:
 	docker compose up -d
 	@echo "✅ Projet démarré"
 	@echo "Frontend: https://app.localhost:8443"
 	@echo "API:      https://api.localhost:8443"
 
-# Arrêter
 down:
 	docker compose down
 
-# Redémarrer
+
 restart:
 	docker compose restart
 
-# Logs
+
 logs:
 	docker compose logs -f
 
-# Rebuild
+
 build:
 	docker compose build --no-cache
 
-# Rebuild et redémarrer
+
 rebuild: down build up
 
-# Nettoyage simple
+
 clean:
 	docker compose down -v
 
-# Nettoyage complet
+
 fclean:
 	docker compose down -v
 	docker system prune -af
 
-# Tout refaire
+
 re: fclean all
 
-# Aide
+
 help:
 	@echo "Commandes disponibles:"
 	@echo "  make          - Démarre le projet"
