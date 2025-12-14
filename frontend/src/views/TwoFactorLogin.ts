@@ -283,7 +283,7 @@ class TwoFactorLoginView {
   }
 
   destroy(): void {
-    // Cleanup if needed
+    
   }
 }
 

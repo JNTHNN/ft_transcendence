@@ -17,7 +17,6 @@ interface Tournament {
 }
 
 export async function TournoiView() {
-  // Check authentication
   if (!authManager.isAuthenticated()) {
     router.navigate("/login");
     return document.createElement("div");
@@ -75,7 +74,6 @@ export async function TournoiView() {
   const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
   const createModal = wrap.querySelector("#create-tournament-modal") as HTMLDivElement;
 
-  // Event listeners pour les modals
   setupModalHandlers(wrap, createModal);
 
   try {
@@ -95,7 +93,6 @@ export async function TournoiView() {
   return wrap;
 }
 
-// Cache pour stocker les noms des joueurs
 const playerNameCache = new Map<number, string>();
 
 async function getPlayerName(userId: number): Promise<string> {
@@ -198,19 +195,17 @@ async function loadTournaments(content: HTMLDivElement) {
       </div>
     `;
     
-    // Populate completed tournaments with winner names
     const completedTournamentsDiv = content.querySelector('#completed-tournaments') as HTMLDivElement;
     const completedTournaments = tournamentsResponse.tournaments.filter((t: Tournament) => t.status === 'completed');
     
     if (completedTournaments.length === 0) {
       completedTournamentsDiv.innerHTML = '<p class="text-text/50 text-sm">Aucun tournoi terminé</p>';
     } else {
-      // Fetch winner names for all completed tournaments
       const tournamentHTMLPromises = completedTournaments.map(async (tournament: Tournament) => {
         let winnerText = t('tournament.noWinner');
         if (tournament.winner_id) {
           const winnerName = await getPlayerName(tournament.winner_id);
-          winnerText = `🏆 ${t('tournamentDetail.winner')}: ${winnerName}`;
+          winnerText = ` ${t('tournamentDetail.winner')}: ${winnerName}`;
         }
         
         return `
@@ -235,7 +230,7 @@ async function loadTournaments(content: HTMLDivElement) {
   } catch (error) {
     content.innerHTML = `
       <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-        <p class="text-red-400">❌ Erreur lors du chargement des tournois</p>
+        <p class="text-red-400"> Erreur lors du chargement des tournois</p>
       </div>
     `;
   }
@@ -246,12 +241,10 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
   const btnCloseCreateModal = wrap.querySelector("#btn-close-create-modal") as HTMLButtonElement;
   const createForm = wrap.querySelector("#create-tournament-form") as HTMLFormElement;
 
-  // Ouvrir modal création
   btnCreateTournament.addEventListener('click', () => {
     createModal.classList.remove('hidden');
   });
 
-  // Fermer modal création
   btnCloseCreateModal.addEventListener('click', () => {
     createModal.classList.add('hidden');
     createForm.reset();
@@ -259,11 +252,9 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
 
 
 
-  // Créer tournoi
   createForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Empêcher les soumissions multiples
     const submitBtn = createForm.querySelector('button[type="submit"]') as HTMLButtonElement;
     if (submitBtn.disabled) return;
     
@@ -271,17 +262,14 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
     const description = (wrap.querySelector("#tournament-description") as HTMLTextAreaElement).value;
     const maxPlayers = parseInt((wrap.querySelector("#tournament-max-players") as HTMLSelectElement).value);
 
-    // Validation rapide côté client
     if (!name.trim()) {
       alert("Le nom du tournoi est requis");
       return;
     }
 
-    // Sauvegarder le texte original du bouton
     const originalText = submitBtn.textContent || 'Créer';
     
     try {
-      // Désactiver le bouton et afficher un loader
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<div class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full inline-block mr-2"></div>Création...';
 
@@ -295,20 +283,16 @@ function setupModalHandlers(wrap: HTMLDivElement, createModal: HTMLDivElement) {
         })
       });
 
-      // Fermer la modal
       createModal.classList.add('hidden');
       
-      // Recharger seulement le contenu des tournois au lieu de toute la page
       const content = wrap.querySelector("#tournament-content") as HTMLDivElement;
       await loadTournaments(content);
       
-      // Réinitialiser le formulaire
       createForm.reset();
       
     } catch (error) {
       alert("Erreur lors de la création du tournoi: " + (error as Error).message);
     } finally {
-      // Réactiver le bouton
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
     }
@@ -335,7 +319,6 @@ function getStatusText(status: string): string {
   }
 }
 
-// Fonctions globales pour les événements onclick
 (window as any).joinTournament = async (tournamentId: string) => {
   try {
     await api(`/tournaments/${tournamentId}/join`, {

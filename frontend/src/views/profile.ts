@@ -718,7 +718,7 @@ ${t('stats.viewStatsAndHistory')}
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024; 
     if (file.size > maxSize) {
       showAvatarError(t('profile.fileTooLarge'));
       return;

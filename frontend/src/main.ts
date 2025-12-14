@@ -34,7 +34,6 @@ const initApp = async () => {
   addFooterToPage();
 
 
-  // Démarrer le WebSocket friends global si l'utilisateur est connecté
   if (authManager.isAuthenticated()) {
     startGlobalFriendsWebSocket();
   }
@@ -43,7 +42,7 @@ const initApp = async () => {
 };
 
 function addFooterToPage() {
-  // Vérifier si le footer existe déjà
+ 
   const footerContainer = document.getElementById('footer-container');
   
   if (footerContainer) {
@@ -56,20 +55,20 @@ window.addEventListener('languageChanged', () => {
 });
 
 
-// WebSocket friends global
+
 let globalFriendsWebSocket: WebSocket | null = null;
 
 function startGlobalFriendsWebSocket() {
   
   globalFriendsWebSocket = connectWS(WEBSOCKET_PATHS.FRIENDS, (message) => {
     
-    // Dispatcher TOUS les événements friends globalement
+    
     const event = new CustomEvent('friendsWebSocketMessage', {
       detail: message
     });
     window.dispatchEvent(event);
     
-    // Dispatcher aussi les événements de changement de statut spécifiquement
+    
     if (message.type === 'friend_status_changed') {
       const statusEvent = new CustomEvent('friendStatusChanged', {
         detail: {
@@ -90,7 +89,7 @@ function stopGlobalFriendsWebSocket() {
   }
 }
 
-// Écouter les changements d'authentification pour démarrer/arrêter le WebSocket
+
 window.addEventListener('authChanged', (event: any) => {
   if (event.detail.isAuthenticated) {
     startGlobalFriendsWebSocket();
@@ -99,7 +98,7 @@ window.addEventListener('authChanged', (event: any) => {
   }
 });
 
-// Nettoyer lors de la fermeture de la page
+
 window.addEventListener('beforeunload', () => {
   stopGlobalFriendsWebSocket();
 });

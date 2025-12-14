@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Safe area pour iOS */
+
 @layer utilities {
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);

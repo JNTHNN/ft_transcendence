@@ -167,9 +167,7 @@ export class MenuManager {
   }
 
   private setupNavigation() {
-    // 🆕 Navigation interceptée par le router via data-navigate
-    // Plus besoin d'event listener ici, le router s'en occupe !
-    // Voir router.ts lignes 51-60
+
   }
 
   private setupBottomNavigation() {
@@ -187,7 +185,6 @@ export class MenuManager {
       }
     });
 
-    // Mettre à jour l'état actif lors du chargement
     const currentPath = window.location.hash.slice(1) || '/';
     this.updateBottomNavActive(currentPath);
   }

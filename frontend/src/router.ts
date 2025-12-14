@@ -29,7 +29,7 @@ const routes: Record<string, () => Promise<HTMLElement>> = {
   "/terms": async () => (await import("./views/terms")).default()
 };
 
-// Route dynamique pour les détails de tournoi et sessions de jeu
+
 function getDynamicRoute(path: string): (() => Promise<HTMLElement>) | null {
   if (path.startsWith('/tournament/')) {
     return async () => (await import("./views/tournament-detail-view")).TournamentDetailView();
@@ -40,68 +40,68 @@ function getDynamicRoute(path: string): (() => Promise<HTMLElement>) | null {
   return null;
 }
 
-// 🧹 CLEANUP AVANT NAVIGATION
+
 function cleanupBeforeNavigation() {
-  // Si une instance de jeu existe dans le contexte global
+  
   if (window.currentGameInstance) {
 
     
     try {
-      // Appeler la méthode destroy() de l'instance
+     
       window.currentGameInstance.destroy();
     } catch (error) {
 
     }
     
-    // Nettoyer la référence globale
+   
     window.currentGameInstance = undefined;
   }
 }
 
-// 🧭 NAVIGATION AVEC CLEANUP AUTOMATIQUE
+
 function navigate(path: string) {
-  // ✅ ÉTAPE 1 : Cleanup AVANT de changer de route
+  
   cleanupBeforeNavigation();
   
-  // ✅ ÉTAPE 2 : Changer l'URL dans l'historique
+ 
   history.pushState({}, "", path);
   
-  // ✅ ÉTAPE 3 : Rendre la nouvelle vue
+  
   render();
 }
 
-// 🎨 RENDU DE LA VUE
+
 async function render() {
   const root = document.getElementById("app")!;
   const path = location.pathname;
   
-  // Cleanup avant de changer de vue (important pour popstate)
+  
   cleanupBeforeNavigation();
   
-  // Vérifier d'abord les routes statiques
+ 
   let routeHandler: (() => Promise<HTMLElement>) | null = routes[path] || null;
   
-  // Si pas de route statique, vérifier les routes dynamiques
+  
   if (!routeHandler) {
     routeHandler = getDynamicRoute(path);
   }
   
-  // Si toujours pas de route, utiliser la route par défaut
+  
   if (!routeHandler) {
     routeHandler = routes["/"];
   }
   
-  // Charger et afficher la vue
+  
   root.replaceChildren(await routeHandler());
 }
 
-// 📡 EXPORT DU ROUTER
+
 export const router = {
   start() {
-    // Bouton précédent/suivant du navigateur
+    
     window.addEventListener("popstate", render);
     
-    // Interception des clics sur les liens <a href>
+    
     document.body.addEventListener("click", (e) => {
       const a = (e.target as HTMLElement).closest("a[href]");
       if (a && a.getAttribute("href")?.startsWith("/")) {
@@ -110,7 +110,7 @@ export const router = {
       }
     });
 
-    // 🆕 Interception des clics sur [data-navigate] (optionnel)
+    
     document.body.addEventListener("click", (e) => {
       const btn = (e.target as HTMLElement).closest("[data-navigate]");
       if (btn) {
@@ -122,12 +122,12 @@ export const router = {
       }
     });
 
-    // Changement de langue
+    
     window.addEventListener("languageChanged", () => {
       render();
     });
     
-    // Rendu initial
+    
     render();
   },
   navigate,
