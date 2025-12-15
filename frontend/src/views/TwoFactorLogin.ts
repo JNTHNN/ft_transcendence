@@ -125,7 +125,7 @@ class TwoFactorLoginView {
       const value = (e.target as HTMLInputElement).value;
       if (!this.isBackupMode && value.length === 6 && /^\d{6}$/.test(value)) {
         this.verify(value);
-      } else if (this.isBackupMode && value.length >= 8 && /^[A-Z0-9-]{8,10}$/.test(value)) {
+      } else if (this.isBackupMode && value.length >= 8 && /^[A-Z0-9\-]{8,10}$/.test(value)) {
         this.verify(value);
       }
     });
@@ -210,7 +210,7 @@ class TwoFactorLoginView {
     label.textContent = t('backupCode');
     codeInput.placeholder = t('enterBackupCode');
     codeInput.maxLength = 10;
-    codeInput.pattern = '[A-Z0-9-]{8,10}';
+    codeInput.pattern = '[A-Z0-9\\-]{8,10}';
     codeInput.className = codeInput.className.replace('tracking-widest', '');
     instruction.textContent = t('enterBackupCodeInstructions');
     
