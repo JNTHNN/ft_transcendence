@@ -316,7 +316,9 @@ export default {
     peopleTyping: "personnes écrivent...",
     noOnlineUsers: "Aucun utilisateur en ligne",
     tournamentStarted: "Le tournoi {{name}} a commencé !",
-    tournamentEnded: "Le tournoi {{name}} est terminé ! 🏆 Gagnant : {{winner}}"
+    tournamentEnded: "Le tournoi {{name}} est terminé ! 🏆 Gagnant : {{winner}}",
+    userNoLongerExists: "Cet utilisateur n'existe plus",
+    cannotBlockDeletedUser: "Impossible de bloquer un utilisateur supprimé"
   },
 
   common: {

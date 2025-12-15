@@ -412,6 +412,16 @@ export default async function View() {
       return;
     }
     
+    // Vérifier si l'utilisateur existe encore (compte supprimé)
+    if (!userId || userId === null || userId === undefined) {
+      addMessage({
+        type: 'system',
+        text: `${t('chat.userNoLongerExists') || 'Cet utilisateur n\'existe plus'}`,
+        timestamp: Date.now()
+      });
+      return;
+    }
+    
     const avatarHtml = avatarUrl 
       ? `<img src="${avatarUrl}" alt="${username}" class="w-16 h-16 rounded-full object-cover ring-4 ring-sec/30" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
          <div class="w-16 h-16 bg-gradient-to-br from-sec to-sec/60 rounded-full flex items-center justify-center ring-4 ring-sec/30" style="display:none">
@@ -532,6 +542,17 @@ export default async function View() {
   };
 
   (window as any).blockUser = async (userId: number, username: string) => {
+    // Vérifier si l'utilisateur ID est valide
+    if (!userId || userId === null || userId === undefined) {
+      addMessage({
+        type: 'system',
+        text: `${t('chat.cannotBlockDeletedUser') || 'Impossible de bloquer un utilisateur supprimé'}`,
+        timestamp: Date.now()
+      });
+      (window as any).closeModal();
+      return;
+    }
+    
     try {
       await api('/chat/block', {
         method: 'POST',

@@ -316,7 +316,9 @@ export default {
     peopleTyping: "people are typing...",
     noOnlineUsers: "No online users",
     tournamentStarted: "Tournament {{name}} has started!",
-    tournamentEnded: "Tournament {{name}} is over! 🏆 Winner: {{winner}}"
+    tournamentEnded: "Tournament {{name}} is over! 🏆 Winner: {{winner}}",
+    userNoLongerExists: "This user no longer exists",
+    cannotBlockDeletedUser: "Cannot block a deleted user"
   },
 
   common: {
