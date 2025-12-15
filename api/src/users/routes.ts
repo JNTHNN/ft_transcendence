@@ -750,6 +750,8 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
       const matches = db.prepare(`
         SELECT 
           m.id,
+          m.player1_id,
+          m.player2_id,
           m.player1_score,
           m.player2_score,
           m.winner_id,
@@ -771,10 +773,21 @@ export async function registerUserRoutes(app: FastifyInstance, db: Database.Data
             WHEN m.winner_id IS NULL AND m.player1_score = m.player2_score THEN 'draw'
             WHEN (m.player1_id = ? OR m.player2_id = ?) AND m.winner_id != ? THEN 'loss'
             ELSE 'unknown'
-          END as result
+          END as result,
+          tm.blockchain_tx_hash,
+          tm.blockchain_match_id,
+          tm.match_id as tournament_match_id
         FROM match_history m
         JOIN users p1 ON p1.id = m.player1_id
         LEFT JOIN users p2 ON p2.id = m.player2_id
+        LEFT JOIN tournament_matches tm ON (
+          m.match_type = 'tournament' 
+          AND tm.player1_id = m.player1_id 
+          AND tm.player2_id = m.player2_id 
+          AND tm.player1_score = m.player1_score 
+          AND tm.player2_score = m.player2_score
+          AND ABS(strftime('%s', tm.created_at) - strftime('%s', m.created_at)) < 60
+        )
         WHERE m.player1_id = ? OR m.player2_id = ?
         ORDER BY m.created_at DESC
         LIMIT 50

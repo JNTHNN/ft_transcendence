@@ -9,7 +9,7 @@ mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE =
   process.env.DATABASE_URL?.startsWith("file:")
     ? process.env.DATABASE_URL.replace("file:", "")
-    : `${DATA_DIR}/app.sqlite`;
+    : process.env.DATABASE_PATH || `${DATA_DIR}/app.sqlite`;
 
 const db = new Database(DB_FILE);
 db.pragma("foreign_keys = ON");
