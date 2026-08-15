@@ -5,7 +5,7 @@ export function connectWS(path: string, onMessage: (m: any) => void, needsAuth =
   
   
   const port = window.location.port ? `:${window.location.port}` : '';
-  let wsUrl = `${protocol}//api.localhost${port}${path}`;
+  let wsUrl = (import.meta as any).env?.VITE_WS_URL ? `${(import.meta as any).env.VITE_WS_URL}${path}` : `${protocol}//api.localhost${port}${path}`;
   
   
   if (needsAuth) {
